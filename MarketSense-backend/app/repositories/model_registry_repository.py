@@ -36,12 +36,26 @@ class ModelRegistryRepository:
         model_name: str,
         version: int = None,
     ):
+        # First try exact match with version
+        if version is not None:
+            statement = (
+                select(TrainedModel)
+                .where(
+                    TrainedModel.model_name == model_name,
+                    TrainedModel.is_active is True,
+                    TrainedModel.version == version,
+                )
+            )
+            result = db.exec(statement).first()
+            if result:
+                return result
+
+        # Try to find by base name (e.g., "AAPL_prophet" matches "AAPL_prophet_v10")
         statement = (
             select(TrainedModel)
             .where(
                 TrainedModel.model_name == model_name,
                 TrainedModel.is_active is True,
-                TrainedModel.version == version if version is not None else True,
             )
             .order_by(TrainedModel.version.desc())
         )
