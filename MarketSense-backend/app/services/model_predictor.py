@@ -30,7 +30,12 @@ def get_performance_metrics() -> dict:
             logger.warning("Failed to load metrics: %s", e)
 
     logger.warning("Metrics file not found, returning placeholder")
-    return {"MAE": None, "RMSE": None, "R2": None, "message": "Metrics not available. Train model to generate metrics."}
+    return {
+        "MAE": None,
+        "RMSE": None,
+        "R2": None,
+        "message": "Metrics not available. Train model to generate metrics.",
+    }
 
 
 def predict_future_prices(n_days: int) -> list[float]:

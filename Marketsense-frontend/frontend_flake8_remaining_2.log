@@ -1,0 +1,64 @@
+﻿app.py:56:89: E501 line too long (116 > 88 characters)
+app.py:74:89: E501 line too long (116 > 88 characters)
+app.py:85:89: E501 line too long (121 > 88 characters)
+app.py:97:89: E501 line too long (117 > 88 characters)
+app.py:109:89: E501 line too long (131 > 88 characters)
+app.py:125:89: E501 line too long (95 > 88 characters)
+app.py:126:41: W291 trailing whitespace
+app.py:127:1: W293 blank line contains whitespace
+app.py:134:89: E501 line too long (114 > 88 characters)
+app.py:139:18: W605 invalid escape sequence '\B'
+app.py:140:89: E501 line too long (110 > 88 characters)
+app.py:153:89: E501 line too long (92 > 88 characters)
+app.py:154:89: E501 line too long (133 > 88 characters)
+pages/1_Dashboard.py:6:1: F401 'requests' imported but unused
+pages/1_Dashboard.py:9:1: F401 'utils.helpers' imported but unused
+pages/1_Dashboard.py:170:89: E501 line too long (107 > 88 characters)
+pages/2_Model_Performance.py:37:89: E501 line too long (94 > 88 characters)
+pages/2_Model_Performance.py:43:1: F841 local variable 'e' is assigned to but never used
+pages/2_Model_Performance.py:65:89: E501 line too long (92 > 88 characters)
+pages/2_Model_Performance.py:74:89: E501 line too long (108 > 88 characters)
+pages/2_Model_Performance.py:79:89: E501 line too long (156 > 88 characters)
+pages/2_Model_Performance.py:138:89: E501 line too long (89 > 88 characters)
+pages/2_Model_Performance.py:167:89: E501 line too long (112 > 88 characters)
+pages/2_Model_Performance.py:188:89: E501 line too long (104 > 88 characters)
+pages/3_Model_Management.py:97:51: W291 trailing whitespace
+pages/3_Model_Management.py:98:46: W291 trailing whitespace
+pages/4_Settings.py:4:1: F401 'requests' imported but unused
+pages/4_Settings.py:68:32: W291 trailing whitespace
+pages/4_Settings.py:69:25: W291 trailing whitespace
+pages/4_Settings.py:70:69: W291 trailing whitespace
+pages/4_Settings.py:71:37: W291 trailing whitespace
+pages/4_Settings.py:72:27: W291 trailing whitespace
+pages/4_Settings.py:73:30: W291 trailing whitespace
+pages/4_Settings.py:75:40: W291 trailing whitespace
+pages/4_Settings.py:80:89: E501 line too long (114 > 88 characters)
+pages/5_About.py:25:89: E501 line too long (127 > 88 characters)
+pages/5_About.py:26:89: E501 line too long (101 > 88 characters)
+pages/5_About.py:27:89: E501 line too long (113 > 88 characters)
+pages/5_About.py:29:89: E501 line too long (105 > 88 characters)
+pages/5_About.py:29:106: W291 trailing whitespace
+pages/5_About.py:30:89: E501 line too long (102 > 88 characters)
+pages/5_About.py:53:89: E501 line too long (93 > 88 characters)
+pages/5_About.py:54:89: E501 line too long (107 > 88 characters)
+pages/5_About.py:66:33: W291 trailing whitespace
+pages/5_About.py:67:89: E501 line too long (90 > 88 characters)
+pages/5_About.py:67:91: W291 trailing whitespace
+pages/5_About.py:68:31: W291 trailing whitespace
+pages/5_About.py:69:62: W291 trailing whitespace
+pages/5_About.py:70:28: W291 trailing whitespace
+pages/5_About.py:71:78: W291 trailing whitespace
+pages/5_About.py:72:22: W291 trailing whitespace
+pages/5_About.py:91:46: W291 trailing whitespace
+pages/5_About.py:92:61: W291 trailing whitespace
+pages/5_About.py:95:49: W291 trailing whitespace
+pages/5_About.py:98:36: W291 trailing whitespace
+pages/5_About.py:99:89: E501 line too long (99 > 88 characters)
+pages/5_About.py:101:52: W291 trailing whitespace
+pages/5_About.py:122:35: W291 trailing whitespace
+pages/5_About.py:123:49: W291 trailing whitespace
+pages/5_About.py:124:39: W291 trailing whitespace
+pages/5_About.py:125:81: W291 trailing whitespace
+pages/5_About.py:126:81: W291 trailing whitespace
+pages/5_About.py:127:23: W291 trailing whitespace
+pages/5_About.py:128:58: W291 trailing whitespace

@@ -1,0 +1,82 @@
+# -----------------------
+# Python
+# -----------------------
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+*.pyo
+*.pyd
+
+# Virtual environment
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# Byte-compiled / optimized files
+*.pyc
+*.pyo
+*.pyd
+
+# -----------------------
+# FastAPI / Project
+# -----------------------
+# Config & secrets
+*.env
+
+# Database / SQLite
+*.db
+*.sqlite3
+
+# Cached / temp files
+*.DS_Store
+*.swp
+*.swo
+
+# -----------------------
+# ML / DL
+# -----------------------
+# Model artifacts
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+*.ckpt
+*.pt
+*.onnx
+
+# TensorFlow / PyTorch training checkpoints
+checkpoints/
+saved_model/
+runs/
+outputs/
+
+# Large data files
+data/
+datasets/
+*.csv
+*.tsv
+*.json
+
+# -----------------------
+# IDE / Editor
+# -----------------------
+.vscode/
+.idea/
+*.iml
+
+# -----------------------
+# OS specific
+# -----------------------
+Thumbs.db
+.DS_Store
