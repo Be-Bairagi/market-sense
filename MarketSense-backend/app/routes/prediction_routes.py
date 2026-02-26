@@ -2,9 +2,11 @@
 
 import re
 
+from app.auth import verify_api_key
 from app.database import get_session
+from app.main import limiter
 from app.services.prediction_service import PredictionService
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from sqlmodel import Session
 
 predict_router = APIRouter()
@@ -41,7 +43,9 @@ def validate_model_name(model_name: str) -> str:
 
 
 @predict_router.get("", summary="Predict using an active trained model")
-def predict_endpoint(
+@limiter.limit("10/minute")
+def predict_endpoint(request: Request,
+    api_key: str = Security(verify_api_key),
     model_name: str = Query(..., description="Model name (e.g. AAPL_prophet)"),
     n_days: int = Query(..., gt=0, le=365, description="Number of days to predict (1-365)"),
     db: Session = Depends(get_session),

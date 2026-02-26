@@ -6,6 +6,27 @@ from app.router import router as appRouter
 from app.routes import api_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+
+# Initialize rate limiter with IP-based limiting
+limiter = Limiter(key_func=get_remote_address)
+
+
+@limiter.limit("100/minute")
+def rate_limit_data(request: Request):
+    """Rate limit for data endpoints: 100 requests per minute per IP"""
+    pass
+
+
+@limiter.limit("10/minute")
+def rate_limit_predict(request: Request):
+    """Rate limit for prediction endpoints: 10 requests per minute per IP"""
+    pass
 
 
 @asynccontextmanager
@@ -25,6 +46,22 @@ app = FastAPI(
 )
 
 
+# Add rate limiter to app state
+app.state.limiter = limiter
+
+
+# Custom rate limit handler
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Rate limit exceeded. Please try again later.",
+            "retry_after": exc.detail,
+        },
+    )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8501"],  # Restricted to Streamlit frontend
@@ -37,6 +74,12 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": f"Welcome to {settings.app_name} 🚀"}
+
+
+# Health check endpoint (no rate limiting, no auth required)
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "version": "1.0.0"}
 
 
 app.include_router(api_router)

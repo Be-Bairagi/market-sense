@@ -1,12 +1,13 @@
 from typing import Annotated, List
 
+from app.auth import verify_api_key
 from app.database import get_session
 from app.schemas.data_fetcher_schemas import ModelPredictionParams
 from app.schemas.model_registry_schemas import (TrainedModelCreate,
                                                 TrainedModelRead)
 from app.services.model_registry_service import ModelRegistryService
 from app.services.model_service import ModelService
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Security, status
 from sqlmodel import Session
 
 router = APIRouter()
@@ -28,6 +29,7 @@ def predict_models(
     "/register", response_model=TrainedModelRead, status_code=status.HTTP_201_CREATED
 )
 def register_trained_model(
+    api_key: str = Security(verify_api_key),
     payload: TrainedModelCreate,
     db: Session = Depends(get_session),
     service: ModelRegistryService = Depends(),

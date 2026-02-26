@@ -4,7 +4,8 @@ from typing import Any, Dict, List
 
 import pandas as pd  # Import pandas to handle DataFrame operations
 from app.services.data_fetcher import fetch_stock_data
-from fastapi import APIRouter, HTTPException, Query
+from app.main import limiter
+from fastapi import APIRouter, HTTPException, Query, Request
 # Import DataFrame and list for precise type hinting
 from pandas import DataFrame
 
@@ -58,7 +59,8 @@ def validate_interval(interval: str) -> str:
 
 
 @data_router.get("/data", response_model=Dict[str, Any])
-def get_stock_data(
+@limiter.limit("100/minute")
+def get_stock_data(request: Request,
     ticker: str = Query(..., description="Stock ticker symbol, e.g. AAPL"),
     period: str = Query("30d", description="Period, e.g. 30d, 6mo, 1y"),
     interval: str = Query("1d", description="Interval, e.g. 1d, 1h, 5mo"),
