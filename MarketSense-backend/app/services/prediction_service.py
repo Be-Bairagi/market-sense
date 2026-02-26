@@ -16,8 +16,13 @@ class PredictionService:
         if n_days <= 0:
             raise HTTPException(400, "n_days must be positive")
 
-        version = int(model_name.split("_v")[-1]) if "_" in model_name else None
-        base_name = model_name.rsplit("_v", 1)[0]
+        # Parse model name - handle both "AAPL_prophet_v1" and "AAPL_prophet" formats
+        if "_v" in model_name and model_name.count("_v") >= 1:
+            version = int(model_name.split("_v")[-1])
+            base_name = model_name.rsplit("_v", 1)[0]
+        else:
+            version = None
+            base_name = model_name
 
         model = ModelRegistryRepository.get_active_model(db, base_name, version=version)
 
