@@ -76,22 +76,46 @@ st.sidebar.header("🔄 Data Refresh")
 refresh_interval = st.sidebar.selectbox(
     "Auto-refresh interval:",
     ["Manual only", "30 seconds", "1 minute", "5 minutes"],
-    index=0
+    index=0,
+    key="refresh_interval_selector"
 )
 
-# Refresh button
-refresh_btn = st.sidebar.button("🔄 Refresh Data")
+# Refresh button with key to ensure proper state handling
+refresh_btn = st.sidebar.button("🔄 Refresh Data", key="refresh_data_btn")
 
+# -----------------------------
 # Auto-refresh logic based on interval
+# -----------------------------
+if 'auto_refresh_enabled' not in st.session_state:
+    st.session_state.auto_refresh_enabled = False
+
+# Map interval names to seconds
+interval_seconds_map = {"30 seconds": 30, "1 minute": 60, "5 minutes": 300}
+
+# Handle auto-refresh
 if refresh_interval != "Manual only":
-    interval_seconds = {"30 seconds": 30, "1 minute": 60, "5 minutes": 300}
-    time_since_update = 0
+    st.session_state.auto_refresh_enabled = True
+    selected_interval = interval_seconds_map.get(refresh_interval, 60)
+    
+    # Calculate time since last update
     if st.session_state.last_updated:
         time_since_update = (pd.Timestamp.now() - st.session_state.last_updated).total_seconds()
-    
-    if time_since_update >= interval_seconds.get(refresh_interval, 0):
+        
+        if time_since_update >= selected_interval:
+            # Clear data and trigger refresh
+            st.session_state.current_data = None
+            st.session_state.refresh_trigger += 1
+            st.rerun()
+    else:
+        # No data loaded yet - trigger initial fetch
         st.session_state.refresh_trigger += 1
         st.rerun()
+else:
+    st.session_state.auto_refresh_enabled = False
+
+# Show auto-refresh status indicator
+if st.session_state.auto_refresh_enabled and refresh_interval != "Manual only":
+    st.sidebar.markdown(f"🔄 **Auto-refresh:** {refresh_interval}")
 
 # Last updated timestamp display
 if st.session_state.last_updated:
@@ -116,9 +140,16 @@ should_fetch = fetch_data_btn or refresh_btn or st.session_state.refresh_trigger
 if st.session_state.refresh_trigger > 0 and not fetch_data_btn:
     st.session_state.refresh_trigger = 0
 
+# Clear cached data when refresh button is clicked to ensure fresh data
+if refresh_btn and not fetch_data_btn:
+    st.session_state.current_data = None
+    st.session_state.last_updated = None
+
 if should_fetch:
-    # Loading indicator
-    with st.spinner(f"Loading {ticker} data..."):
+    # Loading indicator - show different message for refresh vs initial load
+    is_refresh = refresh_btn or st.session_state.refresh_trigger > 0
+    loading_msg = "🔄 Refreshing data..." if is_refresh else f"Loading {ticker} data..."
+    with st.spinner(loading_msg):
         try:
             # Determine which tickers to fetch
             tickers_to_fetch = compare_tickers if compare_tickers else [ticker]
