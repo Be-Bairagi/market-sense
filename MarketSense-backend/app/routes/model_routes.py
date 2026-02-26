@@ -29,8 +29,8 @@ def predict_models(
     "/register", response_model=TrainedModelRead, status_code=status.HTTP_201_CREATED
 )
 def register_trained_model(
-    api_key: str = Security(verify_api_key),
     payload: TrainedModelCreate,
+    api_key: str = Security(verify_api_key),
     db: Session = Depends(get_session),
     service: ModelRegistryService = Depends(),
 ):

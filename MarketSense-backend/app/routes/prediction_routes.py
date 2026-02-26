@@ -4,7 +4,7 @@ import re
 
 from app.auth import verify_api_key
 from app.database import get_session
-from app.main import limiter
+from app.limiter import limiter
 from app.services.prediction_service import PredictionService
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from sqlmodel import Session

@@ -1,5 +1,5 @@
 # app/schemas/data_schemas.py
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -10,8 +10,8 @@ class StockQueryParams(BaseModel):
     interval: str = Field("1d", description="Interval, e.g. 1d, 1h, 5mo")
 
     # Allowed values for period and interval
-    ALLOWED_PERIODS = ("7d", "30d", "90d", "180d", "1y", "2y", "5y")
-    ALLOWED_INTERVALS = ("1d", "1h", "1wk", "1mo")
+    ALLOWED_PERIODS: ClassVar[tuple] = ("7d", "30d", "90d", "180d", "1y", "2y", "5y")
+    ALLOWED_INTERVALS: ClassVar[tuple] = ("1d", "1h", "1wk", "1mo")
 
     @field_validator("ticker")
     @classmethod

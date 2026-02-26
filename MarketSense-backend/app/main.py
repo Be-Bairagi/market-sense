@@ -2,19 +2,17 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import create_db_and_tables
+from app.limiter import limiter
 from app.router import router as appRouter
 from app.routes import api_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
 
-# Initialize rate limiter with IP-based limiting
-limiter = Limiter(key_func=get_remote_address)
+# Rate limit decorators use the limiter from app.limiter module
 
 
 @limiter.limit("100/minute")
