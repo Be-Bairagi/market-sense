@@ -106,6 +106,9 @@ def get_stock_data(request: Request,
             "message": "Data fetched successfully",
         }
 
+    except HTTPException:
+        # Re-raise HTTPExceptions to preserve their status code (e.g., 404 for not found)
+        raise
     except Exception as e:
         # Log the actual error for server-side debugging
         logger.exception(f"Error fetching data for {ticker}: {e}")

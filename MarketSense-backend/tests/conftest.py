@@ -115,10 +115,9 @@ def test_client():
     from fastapi.testclient import TestClient
     from app.main import app
 
-    # Override rate limiting for tests
-    with patch("app.limiter.enabled", False):
-        with TestClient(app) as client:
-            yield client
+    # Use TestClient without rate limiting for tests
+    with TestClient(app) as client:
+        yield client
 
 
 @pytest.fixture
