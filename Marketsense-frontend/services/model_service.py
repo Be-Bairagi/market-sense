@@ -1,4 +1,5 @@
 import logging
+import time
 
 import pandas as pd
 import requests
@@ -9,6 +10,26 @@ logger = logging.getLogger(__name__)
 
 
 class ModelService:
+    @staticmethod
+    def get_training_status(ticker: str, model_type: str):
+        """Get the current training status for a model."""
+        try:
+            # This would be called to poll for status if we had a status endpoint
+            # For now, return status phases that can be used by the UI
+            return {
+                "status": "idle",
+                "phases": [
+                    "Fetching historical data",
+                    "Preprocessing data",
+                    "Training model",
+                    "Evaluating metrics",
+                    "Saving model artifact",
+                    "Complete"
+                ]
+            }
+        except Exception as e:
+            logger.exception("Failed to get training status")
+            return {"error": f"Failed to get status: {str(e)}"}
     @staticmethod
     def get_model_list():
         try:
