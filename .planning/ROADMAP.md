@@ -19,7 +19,7 @@
 | 1 | [x] | 100% | 2/2 |
 | 2 | [x] | 100% | 2/2 |
 | 3 | [x] | 100% | 2/2 |
-| 4 | [ ] | 0% | 2/2 |
+| 4 | [ ] | 50% | 1/2 |
 
 ## Phase Details
 
@@ -70,11 +70,11 @@
 **Goal:** Implement core features for stock market prediction platform
 
 **Plans:**
-- [x] 04-01 - Dashboard Enhancement
-- [x] 04-02 - Model Training Interface
+- [x] 04-01 - Dashboard Enhancement (Complete)
+- [ ] 04-02 - Model Training Interface
 
 **Requirements:**
-- FTR-01: Interactive stock charts with Plotly [PLANNED]
-- FTR-02: Real-time data refresh capability [PLANNED]
+- FTR-01: Interactive stock charts with Plotly [DONE]
+- FTR-02: Real-time data refresh capability [DONE]
 - FTR-03: Model training UI with progress tracking [PLANNED]
 - FTR-04: Prediction visualization with confidence intervals [PLANNED]

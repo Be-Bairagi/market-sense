@@ -26,8 +26,16 @@ def predict_prophet(model_path: str, n_days: int) -> dict:
         {
             "date": (start_date + timedelta(days=i)).isoformat(),
             "value": round(float(y), 2),
+            "lower_bound": round(float(lower), 2),
+            "upper_bound": round(float(upper), 2),
         }
-        for i, y in enumerate(forecast["yhat"].tolist())
+        for i, (y, lower, upper) in enumerate(
+            zip(
+                forecast["yhat"].tolist(),
+                forecast["yhat_lower"].tolist(),
+                forecast["yhat_upper"].tolist(),
+            )
+        )
     ]
 
     return predictions

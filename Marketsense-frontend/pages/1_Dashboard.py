@@ -282,15 +282,29 @@ if predict_btn:
             # col3.metric("R² Score", metrics.get("R2", "N/A"))
 
             # -----------------------------
-            # Prediction Line Chart
+            # Prediction Line Chart with Confidence Intervals
             # -----------------------------
             # st.subheader("📊 Predicted Prices")
             fig = go.Figure()
 
+            # Add confidence interval as a filled area
+            if "lower_bound" in df_pred.columns and "upper_bound" in df_pred.columns:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df_pred["date"].tolist() + df_pred["date"].tolist()[::-1],
+                        y=df_pred["upper_bound"].tolist() + df_pred["lower_bound"].tolist()[::-1],
+                        fill="toself",
+                        fillcolor="rgba(255, 165, 0, 0.2)",
+                        line=dict(color="rgba(255, 165, 0, 0)"),
+                        name="Confidence Interval",
+                        showlegend=True,
+                    )
+                )
+
             fig.add_trace(
                 go.Scatter(
-                    x=df_pred["Date"],
-                    y=df_pred["Predicted"],
+                    x=df_pred["date"],
+                    y=df_pred["value"],
                     mode="lines",
                     name="Predicted",
                     line=dict(color="orange", width=2, dash="dot"),
@@ -298,7 +312,7 @@ if predict_btn:
             )
 
             fig.update_layout(
-                title=f"{prediction_ticker} Stock Price Prediction",
+                title=f"{prediction_ticker} Stock Price Prediction with Confidence Interval",
                 xaxis_title="Date",
                 yaxis_title="Price (USD)",
                 template="plotly_white",
@@ -312,14 +326,22 @@ if predict_btn:
             # Prediction Table
             # -----------------------------
             st.subheader(f"🤖 Predictions for {prediction_ticker} - Next {predict_days} Days")
-            st.write(df_pred)
+            
+            # Rename columns for display
+            display_df = df_pred.rename(columns={
+                "value": "Predicted",
+                "lower_bound": "Lower Bound",
+                "upper_bound": "Upper Bound"
+            })
+            st.write(display_df)
 
             # -----------------------------
             # Next-Day Prediction Summary
             # -----------------------------
             next_day = df_pred.iloc[-1]
             st.markdown(
-                f"**Next Predicted Closing Price:** ${next_day['Predicted']:.2f}"
+                f"**Next Predicted Closing Price:** ${next_day['value']:.2f} "
+                f"(Range: ${next_day['lower_bound']:.2f} - ${next_day['upper_bound']:.2f})"
             )
 
             # -----------------------------

@@ -8,6 +8,9 @@ from utils.config import BASE_URL
 
 logger = logging.getLogger(__name__)
 
+# Default API key for development - should be changed in production
+API_KEY = "marketsense-api-key-change-in-production"
+
 
 class ModelService:
     @staticmethod
@@ -48,6 +51,7 @@ class ModelService:
             response = requests.post(
                 f"{BASE_URL}/train",
                 params={"model": model_type, "ticker": ticker, "period": period},
+                headers={"X-API-Key": API_KEY},
             )
             response.raise_for_status()
             return response.json()

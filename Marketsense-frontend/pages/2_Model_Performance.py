@@ -4,6 +4,7 @@ import re  # Import the regular expression module
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import requests
 import streamlit as st
 from services.model_service import ModelService
@@ -99,16 +100,46 @@ if refresh and "No models" not in selected_model:
                     # Ensure 'date' is a datetime object for proper plotting
                     df["date"] = pd.to_datetime(df["date"])
                     st.subheader("📊 Actual vs Predicted Stock Prices")
-                    fig = px.line(
-                        df,
-                        x="date",
-                        y=["actual", "predicted"],
-                        labels={"value": "Price", "date": "Date"},
-                        color_discrete_map={
-                            "actual": "#1f77b4",
-                            "predicted": "#ff7f0e",
-                        },
+                    
+                    # Create figure with confidence intervals if available
+                    fig = go.Figure()
+                    
+                    # Add confidence interval if lower_bound and upper_bound exist
+                    if "lower_bound" in df.columns and "upper_bound" in df.columns:
+                        fig.add_trace(go.Scatter(
+                            x=df["date"].tolist() + df["date"].tolist()[::-1],
+                            y=df["upper_bound"].tolist() + df["lower_bound"].tolist()[::-1],
+                            fill="toself",
+                            fillcolor="rgba(255, 165, 0, 0.2)",
+                            line=dict(color="rgba(255, 165, 0, 0)"),
+                            name="Confidence Interval",
+                            showlegend=True,
+                        ))
+                    
+                    # Add actual and predicted lines
+                    fig.add_trace(go.Scatter(
+                        x=df["date"],
+                        y=df["actual"],
+                        mode="lines",
+                        name="Actual",
+                        line=dict(color="#1f77b4", width=2),
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=df["date"],
+                        y=df["predicted"],
+                        mode="lines",
+                        name="Predicted",
+                        line=dict(color="#ff7f0e", width=2),
+                    ))
+                    
+                    fig.update_layout(
                         title=f"Model Prediction Performance for {ticker}",
+                        xaxis_title="Date",
+                        yaxis_title="Price (USD)",
+                        template="plotly_white",
+                        legend=dict(
+                            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+                        ),
                     )
                     st.plotly_chart(fig, width="stretch")
                 else:
