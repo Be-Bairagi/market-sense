@@ -50,11 +50,16 @@ class ModelRegistryRepository:
             if result:
                 return result
 
-        # Try to find by base name (e.g., "AAPL_prophet" matches "AAPL_prophet_v10")
+        # Try to find by base name - match models starting with the base name
+        # e.g., "AAPL_prophet" should match "AAPL_prophet_v10"
+        from sqlmodel import or_
         statement = (
             select(TrainedModel)
             .where(
-                TrainedModel.model_name == model_name,
+                or_(
+                    TrainedModel.model_name == model_name,
+                    TrainedModel.model_name.startswith(model_name + "_v"),
+                ),
                 TrainedModel.is_active is True,
             )
             .order_by(TrainedModel.version.desc())
