@@ -9,7 +9,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(
     DATABASE_URL,
-    echo=True,  # shows SQL queries in terminal
+    echo=False,  # Disable SQL query logging for security
     pool_pre_ping=True,
     pool_recycle=300,
 )
