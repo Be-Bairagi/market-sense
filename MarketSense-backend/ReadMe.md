@@ -51,7 +51,7 @@ The following endpoints do NOT require authentication:
 |----------|--------|-------------|
 | `/` | GET | Root endpoint |
 | `/health` | GET | Health check |
-| `/data` | GET | Fetch stock data |
+| `/fetch-data` | GET | Fetch stock data |
 | `/models/list` | GET | List available models |
 | `/models/predict` | GET | Model prediction |
 | `/models/get-all` | GET | Get all registered models |
@@ -64,7 +64,7 @@ To prevent abuse, the API implements rate limiting:
 
 | Endpoint Type | Limit |
 |--------------|-------|
-| Data endpoints (`/data`) | 100 requests/minute |
+| Data endpoints (`/fetch-data`) | 100 requests/minute |
 | Prediction endpoints (`/predict`) | 10 requests/minute |
 
 When rate limit is exceeded, the API returns:

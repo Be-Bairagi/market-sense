@@ -204,7 +204,7 @@ if refresh and "No models" not in selected_model:
             st.subheader("🚀 Suggested Next Steps")
             st.write("""
             - Add rolling retraining every 7 days to maintain model accuracy.
-            - Compare Linear Regression vs LSTM performance.
+            - Compare different Prophet model configurations.
             - Integrate market sentiment signals for better volatility handling.
             - Monitor feature drift and retrain when R² drops by >10%.
             """)
