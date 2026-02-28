@@ -55,7 +55,7 @@ period = st.sidebar.selectbox(
 
 # date interval for the period
 interval = st.sidebar.selectbox(
-    "Select Interval for the Period:", ["1d", "1hr", "1mo"], index=0
+    "Select Interval for the Period:", ["1d", "1h", "1wk", "1mo"], index=0
 )
 
 # Prediction horizon
@@ -389,7 +389,15 @@ if predict_btn:
             st.error("❌ Failed to fetch predictions from backend.")
     except Exception as e:
         logger.exception("Error fetching predictions")
-        st.error(f"⚠️ Error fetching predictions: {e}")
+        error_msg = str(e)
+        # Check for specific error messages
+        if "No active model found" in error_msg:
+            st.error("🤖 No trained model found. Please train a model first in **Model Management** page.")
+            st.info("Navigate to the sidebar: Model Management → Select ticker → Train Model")
+        elif "Connection" in error_msg or "ConnectionError" in error_msg:
+            st.error("🔌 Cannot connect to backend. Please ensure the API server is running.")
+        else:
+            st.error(f"⚠️ Error fetching predictions: {e}")
 
 if not fetch_data_btn and not predict_btn and not refresh_btn and st.session_state.refresh_trigger == 0:
     st.info(
