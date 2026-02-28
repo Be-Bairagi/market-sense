@@ -13,6 +13,7 @@ def fetch_stock_data(ticker: str, period: str, interval: str) -> pd.DataFrame:
 
     Returns a clean Pandas DataFrame.
     """
+    logger.info(f"Fetching stock data for ticker={ticker}, period={period}, interval={interval}")
 
     try:
         # 1. Download the data. We pass the ticker as a list to ensure consistent behavior  # noqa: E501
@@ -66,6 +67,7 @@ def fetch_stock_data(ticker: str, period: str, interval: str) -> pd.DataFrame:
         df.loc[:, price_cols] = df.loc[:, price_cols].round(2)
 
         # CRITICAL CHANGE: RETURN THE DATAFRAME, NOT THE DICT
+        logger.info(f"Successfully fetched {len(df)} rows for ticker={ticker}")
         return df
 
     except HTTPException:

@@ -1,9 +1,14 @@
 # app/services/prediction_service.py
 
+import logging
+
 from app.features.predictors.registry import get_predictor
 from app.repositories.model_registry_repository import ModelRegistryRepository
 from fastapi import HTTPException
 from sqlmodel import Session
+
+
+logger = logging.getLogger(__name__)
 
 
 class PredictionService:
@@ -13,6 +18,8 @@ class PredictionService:
         model_name: str,
         n_days: int,
     ):
+        logger.info(f"Making prediction: model={model_name}, n_days={n_days}")
+
         if n_days <= 0:
             raise HTTPException(400, "n_days must be positive")
 
@@ -43,6 +50,8 @@ class PredictionService:
             model_path=model.file_path,
             n_days=n_days,
         )
+
+        logger.info(f"Prediction successful: model={model_name}, n_days={n_days}")
 
         return {
             "model": {

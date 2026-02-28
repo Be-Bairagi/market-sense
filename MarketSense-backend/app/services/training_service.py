@@ -1,3 +1,4 @@
+import logging
 import os
 
 import joblib
@@ -8,17 +9,23 @@ from app.services.model_registry_service import ModelRegistryService
 from sqlmodel import Session
 
 
+logger = logging.getLogger(__name__)
+
+
 class TrainingService:
 
     @staticmethod
     def train_and_register(db: Session, model_type: str, ticker: str, period: str):
+        logger.info(f"Starting model training: type={model_type}, ticker={ticker}, period={period}")
 
         # STEP 1: Fetch data
+        logger.debug(f"Fetching training data for {ticker}")
         training_df = FetchDataService.fetch_stock_data(
             FetchDataService, ticker, period, "1d", True
         )
 
         # STEP 2: Train based on model type
+        logger.debug(f"Training {model_type} model")
         if model_type == "prophet":
             model, metrics = train_prophet_model(training_df)
             framework = MLFramework.prophet
@@ -36,6 +43,7 @@ class TrainingService:
         model_path = os.path.join(model_dir, file_name)
 
         joblib.dump(model, model_path)
+        logger.debug(f"Model saved to {model_path}")
 
         # STEP 4: Register model in DB
         payload = TrainedModelCreate(
@@ -50,6 +58,8 @@ class TrainingService:
         registered_model = ModelRegistryService.register_model(
             db=db, payload=payload, activate=True
         )
+
+        logger.info(f"Model training completed: name={registered_model.model_name}, version={version}")
 
         return {
             "status": "success",
