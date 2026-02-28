@@ -29,7 +29,7 @@ model = st.session_state.active_model
 st.subheader("📈 Select Model")
 
 with st.form("select_model_form"):
-    model_type = st.selectbox("Select Model", ["Prophet", "Linear Regression"], index=0)
+    model_type = st.selectbox("Select Model", ["Prophet"], index=0)
     submitted = st.form_submit_button("Activate Model")
 
 if submitted:
@@ -82,17 +82,18 @@ if submitted:
             progress_bar.progress(90)
             status_text.info("💾 Saving model artifact...")
             
+            with st.spinner(f"Training model '{model}' for {ticker}..."):
+                result = ModelService.train_model(ticker, period, model)
+            
             if not result.get("error"):
                 progress_bar.progress(100)
                 status_text.success("✅ Training complete!")
                 
                 # Short delay then clear progress UI
-                import time
                 time.sleep(1)
                 progress_bar.empty()
                 status_text.empty()
-
-            if not result.get("error"):
+                
                 st.success("✅ Model trained successfully!")
 
                 # --- Training summary section ---

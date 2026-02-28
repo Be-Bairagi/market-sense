@@ -154,7 +154,7 @@ with col1:
         <div class='card'>
             <div class='feature-icon'>🤖</div>
             <h3>AI-Powered Predictions</h3>
-            <p>Train machine learning models like Linear Regression, LSTM, and Prophet to forecast real stock trends.</p>  # noqa: E501
+            <p>Train machine learning models like Prophet to forecast real stock trends.</p>  # noqa: E501
         </div>
         """,
         unsafe_allow_html=True,
