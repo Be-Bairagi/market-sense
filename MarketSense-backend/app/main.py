@@ -1,7 +1,15 @@
+import logging
+import time
 from contextlib import asynccontextmanager
 
+import sentry_sdk
+import yfinance
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sqlalchemy import text
+
 from app.config import settings
-from app.database import create_db_and_tables
+from app.database import create_db_and_tables, engine
 from app.limiter import limiter
 from app.router import router as appRouter
 from app.routes import api_router
@@ -10,6 +18,42 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from fastapi import Request
 from fastapi.responses import JSONResponse
+
+
+logger = logging.getLogger(__name__)
+
+
+# Initialize Sentry for error tracking
+def init_sentry():
+    """Initialize Sentry SDK for error tracking."""
+    dsn = settings.sentry_dsn if hasattr(settings, "sentry_dsn") else None
+    if dsn:
+        sentry_sdk.init(
+            dsn=dsn,
+            integrations=[
+                FastApiIntegration(),
+                SqlalchemyIntegration(),
+            ],
+            # Filter out expected HTTP errors
+            before_send_filter_event=_filter_sentry_events,
+            # Set environment
+            environment="development" if settings.debug else "production",
+            # Sample rate for transactions (0-1)
+            traces_sample_rate=0.1,
+        )
+
+
+def _filter_sentry_events(event: dict, hint: dict) -> dict | None:
+    """Filter out expected errors that create noise in Sentry."""
+    # Check if this is an exception event
+    if "exception" in event:
+        exception_values = event.get("exception", {}).get("values", [])
+        for exc in exception_values:
+            exc_type = exc.get("type", "")
+            # Filter out HTTPException types
+            if exc_type in ("HTTPException", "RateLimitExceeded"):
+                return None
+    return event
 
 
 # Rate limit decorators use the limiter from app.limiter module
@@ -29,6 +73,8 @@ def rate_limit_predict(request: Request):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize Sentry for error tracking
+    init_sentry()
     # This runs at startup
     create_db_and_tables()
     yield
@@ -76,8 +122,62 @@ def root():
 
 # Health check endpoint (no rate limiting, no auth required)
 @app.get("/health")
-def health_check():
-    return {"status": "healthy", "version": "1.0.0"}
+async def health_check():
+    """Enhanced health check with database and external API status."""
+    health_status = {
+        "status": "healthy",
+        "version": "1.0.0",
+        "checks": {},
+    }
+    all_healthy = True
+
+    # Check database connectivity
+    db_start = time.time()
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_response_time = round((time.time() - db_start) * 1000, 2)
+        health_status["checks"]["database"] = {
+            "status": "healthy",
+            "response_time_ms": db_response_time,
+        }
+    except Exception as e:
+        db_response_time = round((time.time() - db_start) * 1000, 2)
+        logger.error(f"Database health check failed: {e}")
+        health_status["checks"]["database"] = {
+            "status": "unhealthy",
+            "response_time_ms": db_response_time,
+            "error": str(e),
+        }
+        all_healthy = False
+
+    # Check external API (yfinance) availability
+    api_start = time.time()
+    try:
+        # Test with a simple yfinance lookup
+        test_ticker = yfinance.Ticker("AAPL")
+        _ = test_ticker.info
+        api_response_time = round((time.time() - api_start) * 1000, 2)
+        health_status["checks"]["yfinance_api"] = {
+            "status": "healthy",
+            "response_time_ms": api_response_time,
+        }
+    except Exception as e:
+        api_response_time = round((time.time() - api_start) * 1000, 2)
+        logger.warning(f"YFinance API health check warning: {e}")
+        health_status["checks"]["yfinance_api"] = {
+            "status": "degraded",
+            "response_time_ms": api_response_time,
+            "error": str(e),
+        }
+        # Don't mark as unhealthy - external API might be temporarily unavailable
+        # but app should still function with cached data
+
+    # Overall status
+    if not all_healthy:
+        health_status["status"] = "unhealthy"
+
+    return health_status
 
 
 app.include_router(api_router)
