@@ -1,7 +1,79 @@
 # app.py
 from datetime import datetime
 
+import requests
 import streamlit as st
+
+# Backend configuration
+BACKEND_URL = "http://localhost:8000"
+HEALTH_ENDPOINT = f"{BACKEND_URL}/health"
+
+
+def check_backend_health():
+    """Check if backend is available."""
+    try:
+        response = requests.get(HEALTH_ENDPOINT, timeout=5)
+        if response.status_code == 200:
+            return True, response.json()
+        return False, None
+    except Exception:
+        return False, None
+
+
+# Health check on startup
+if "health_check_done" not in st.session_state:
+    # Show loading in titlebar
+    with st.spinner("Checking backend services..."):
+        healthy, health_data = check_backend_health()
+    st.session_state["backend_healthy"] = healthy
+    st.session_state["health_data"] = health_data
+    st.session_state["health_check_done"] = True
+
+# If backend is down, show error page and stop
+if not st.session_state.get("backend_healthy", False):
+    st.set_page_config(page_title="Service Unavailable", page_icon="⚠️")
+    st.markdown("""
+    <style>
+    .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        text-align: center;
+    }
+    .error-code {
+        font-size: 6rem;
+        font-weight: bold;
+        color: #dc2626;
+        margin-bottom: 1rem;
+    }
+    .error-title {
+        font-size: 1.5rem;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+    .error-message {
+        color: #6b7280;
+        margin-bottom: 2rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<div class="error-container">', unsafe_allow_html=True)
+    st.markdown('<div class="error-code">503</div>', unsafe_allow_html=True)
+    st.markdown('<div class="error-title">Service Temporarily Unavailable</div>', unsafe_allow_html=True)
+    st.markdown('<div class="error-message">Unable to connect to the backend service.<br>Please ensure the backend server is running on http://localhost:8000</div>', unsafe_allow_html=True)
+    
+    if st.button("🔄 Retry Connection", type="primary"):
+        # Clear health check state to re-attempt
+        st.session_state.pop("health_check_done", None)
+        st.session_state.pop("backend_healthy", None)
+        st.session_state.pop("health_data", None)
+        st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.stop()
 
 # Page config
 st.set_page_config(
