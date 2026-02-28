@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 6
 status: unknown
-last_updated: "2026-02-28T11:43:02Z"
+last_updated: "2026-02-28T11:50:48.857Z"
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # State
@@ -70,6 +70,10 @@ Phase 6: [====================] 100%
 - Filtered HTTP errors (404, 401, 429) from Sentry to reduce noise
 - Made Sentry DSN optional via environment variable for flexibility
 - Enhanced health check endpoint with database and yfinance API checks
+- Added structured logging with console and file handlers
+- Used RotatingFileHandler for log rotation (5MB max, 5 backups)
+- Added RequestLoggingMiddleware to log all HTTP requests/responses
+- Added service-level logging to data_fetcher, prediction_service, and training_service
 
 ## Blockers
 
