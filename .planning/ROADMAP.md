@@ -12,7 +12,8 @@
 | 3 | Testing Infrastructure | Complete | 2 |
 | 4 | Feature Development | Complete | 2 |
 | 5 | Bug Fixes | Complete | 1 |
-| 6 | Monitoring | Complete    | 2026-02-28 |
+| 6 | Monitoring | Complete | 2 |
+| 7 | Startup Health Check | In Progress | 1 |
 
 ## Progress
 
@@ -24,6 +25,7 @@
 | 4 | [x] | 100% | 2/2 |
 | 5 | [x] | 100% | 1/1 |
 | 6 | [x] | 100% | 2/2 |
+| 7 | [ ] | 0% | 1/1 |
 
 ## Phase Details
 
@@ -107,3 +109,15 @@
 - MON-02: Add error tracking (Sentry) [DONE]
 - MON-03: Health check endpoint improvements [DONE]
 - MON-04: Request logging middleware [DONE]
+
+### Phase 7: Startup Health Check
+
+**Goal:** Add startup health check to Streamlit frontend that verifies backend availability before app loads
+
+**Plans:**
+- [ ] 07-01-PLAN.md — Startup Health Check implementation
+
+**Requirements:**
+- HLT-01: Health check call on Streamlit app startup [PLANNED]
+- HLT-02: Visual loading indicator in titlebar while checking [PLANNED]
+- HLT-03: Error page with retry option if services unavailable [PLANNED]
