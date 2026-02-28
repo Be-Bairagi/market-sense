@@ -1,6 +1,7 @@
 import logging
 import time
 from contextlib import asynccontextmanager
+from starlette.middleware.base import BaseHTTPMiddleware
 
 import sentry_sdk
 import yfinance
@@ -21,6 +22,60 @@ from fastapi.responses import JSONResponse
 
 
 logger = logging.getLogger(__name__)
+
+
+# Request logging middleware
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    """Middleware to log all HTTP requests and responses."""
+
+    async def dispatch(self, request: Request, call_next):
+        # Start timer for response time
+        start_time = time.time()
+
+        # Log request
+        logger.info(
+            f"Request started: {request.method} {request.url.path}",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "client": request.client.host if request.client else "unknown",
+            },
+        )
+
+        # Process request
+        try:
+            response = await call_next(request)
+        except Exception as e:
+            # Log errors with traceback
+            logger.exception(
+                f"Request failed: {request.method} {request.url.path} - {str(e)}",
+                extra={
+                    "method": request.method,
+                    "path": request.url.path,
+                    "error": str(e),
+                },
+            )
+            raise
+
+        # Calculate response time
+        process_time = time.time() - start_time
+
+        # Log response
+        logger.info(
+            f"Request completed: {request.method} {request.url.path} "
+            f"- Status: {response.status_code} - Time: {process_time:.3f}s",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "process_time": process_time,
+            },
+        )
+
+        # Add custom header with response time
+        response.headers["X-Process-Time"] = str(process_time)
+
+        return response
 
 
 # Initialize Sentry for error tracking
@@ -104,6 +159,10 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
             "retry_after": exc.detail,
         },
     )
+
+
+# Add request logging middleware
+app.add_middleware(RequestLoggingMiddleware)
 
 
 app.add_middleware(
