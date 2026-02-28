@@ -14,6 +14,7 @@
 | 5 | Bug Fixes | Complete | 1 |
 | 6 | Monitoring | Complete | 2 |
 | 7 | Startup Health Check | Complete | 1 |
+| 8 | Code Cleanup | Complete | 1 |
 
 ## Progress
 
@@ -26,6 +27,7 @@
 | 5 | [x] | 100% | 1/1 |
 | 6 | [x] | 100% | 2/2 |
 | 7 | [x] | 100% | 1/1 |
+| 8 | [x] | 100% | 1/1 |
 
 ## Phase Details
 
@@ -122,3 +124,16 @@
 - HLT-01: Health check call on Streamlit app startup [DONE]
 - HLT-02: Visual loading indicator in titlebar while checking [DONE]
 - HLT-03: Error page with retry option if services unavailable [DONE]
+
+### Phase 8: Code Cleanup
+
+**Goal:** Remove unused backend routes and non-functional Linear Regression model code
+
+**Plans:**
+1/1 plans complete
+- [x] 08-01 - Remove unused routes and Linear Regression
+
+**Requirements:**
+- CLN-01: Remove unused /data route (never called from frontend) [DONE]
+- CLN-02: Remove Linear Regression model code (not functional) [DONE]
+- CLN-03: Update frontend to remove Linear Regression options [DONE]
