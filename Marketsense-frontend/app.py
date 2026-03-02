@@ -208,7 +208,7 @@ with c1:
 
 with c3:
     st.image(
-        "./assets\\BrandLogoMarketSense.png",
+        "./assets/BrandLogoMarketSense.png",
         caption="Be fearful when others are greedy and greedy only when others are fearful. - Warren Buffett",  # noqa: E501
         width=200,
     )
