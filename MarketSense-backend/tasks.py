@@ -13,7 +13,7 @@ def install(c):
 
 
 @task
-def write(c):
+def freeze(c):
     c.run("pip freeze > requirements.txt")
 
 

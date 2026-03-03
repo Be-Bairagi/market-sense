@@ -21,7 +21,7 @@ class FetchDataService:
             # 1. Download the data. We pass the ticker as a list to ensure consistent behavior  # noqa: E501
             # and create a copy to prevent SettingWithCopyWarning later.
             download_result = yf.download(
-                tickers=[ticker], period=period, interval=interval, auto_adjust=True
+                tickers=[ticker], period=period, interval=interval, auto_adjust=True, progress=False, threads=False
             )
 
             # CRITICAL FIX: Ensure we are dealing with a single DataFrame.
