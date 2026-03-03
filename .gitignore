@@ -1,9 +1,11 @@
 # coding agents
-.claude/*
-.codex/*
-.gemini/*
-.opencode/*
-.planning/*
+/.claude/*
+/.codex/*
+/.gemini/*
+/.opencode/*
+/.planning/*
+/.pytest_cache/*
+
 
 # other
 🚀 Next Steps.txt
