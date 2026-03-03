@@ -18,7 +18,10 @@ class TrainingService:
     def train_and_register(db: Session, model_type: str, ticker: str, period: str):
         logger.info(f"Starting model training: type={model_type}, ticker={ticker}, period={period}")
 
-        # STEP 1: Fetch data
+        # Sanitize ticker for filenames: RELIANCE.NS -> RELIANCE_NS
+        safe_ticker = ticker.replace(".", "_")
+
+        # STEP 1: Fetch data (use original ticker for yfinance)
         logger.debug(f"Fetching training data for {ticker}")
         training_df = FetchDataService.fetch_stock_data(
             FetchDataService, ticker, period, "1d", True
@@ -36,8 +39,8 @@ class TrainingService:
         model_dir = "models"
         os.makedirs(model_dir, exist_ok=True)
 
-        version = TrainingService._get_next_version(db, ticker, model_type)
-        file_name = f"{ticker}_{model_type}_v{version}.pkl"
+        version = TrainingService._get_next_version(db, safe_ticker, model_type)
+        file_name = f"{safe_ticker}_{model_type}_v{version}.pkl"
 
         # model.save(model_path)
         model_path = os.path.join(model_dir, file_name)
@@ -45,9 +48,9 @@ class TrainingService:
         joblib.dump(model, model_path)
         logger.debug(f"Model saved to {model_path}")
 
-        # STEP 4: Register model in DB
+        # STEP 4: Register model in DB (use sanitized ticker in model name)
         payload = TrainedModelCreate(
-            model_name=f"{ticker}_{model_type}",
+            model_name=f"{safe_ticker}_{model_type}",
             version=version,
             file_path=model_path,
             framework=framework,

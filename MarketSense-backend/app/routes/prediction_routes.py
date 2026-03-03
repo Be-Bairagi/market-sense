@@ -11,9 +11,9 @@ from sqlmodel import Session
 
 predict_router = APIRouter()
 
-# Validation constants
-TICKER_PATTERN = re.compile(r"^[A-Z]{1,5}$")
-MODEL_NAME_PATTERN = re.compile(r"^[A-Z]{1,5}_\w+$")
+# Validation constants — support NSE/BSE tickers like RELIANCE.NS
+TICKER_PATTERN = re.compile(r"^[A-Z0-9&-]+(\.[A-Z]{2})?$")
+MODEL_NAME_PATTERN = re.compile(r"^[A-Z0-9&._-]+_\w+$")
 
 
 def validate_ticker(ticker: str) -> str:
@@ -23,7 +23,7 @@ def validate_ticker(ticker: str) -> str:
             status_code=400,
             detail={
                 "error": "Invalid ticker format",
-                "message": "Ticker must be 1-5 uppercase letters (e.g., AAPL)",
+                "message": "Ticker must be uppercase letters/digits, optionally with exchange suffix (e.g., RELIANCE.NS, AAPL)",
             },
         )
     return ticker
@@ -36,7 +36,7 @@ def validate_model_name(model_name: str) -> str:
             status_code=400,
             detail={
                 "error": "Invalid model name format",
-                "message": "Model name must be in format TICKER_modelname (e.g., AAPL_prophet)",
+                "message": "Model name must be in format TICKER_modelname (e.g., RELIANCE.NS_prophet, AAPL_prophet)",
             },
         )
     return model_name

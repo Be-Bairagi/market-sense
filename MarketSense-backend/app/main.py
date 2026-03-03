@@ -12,7 +12,6 @@ from sqlalchemy import text
 from app.config import settings
 from app.database import create_db_and_tables, engine
 from app.limiter import limiter
-from app.router import router as appRouter
 from app.routes import api_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -239,5 +238,4 @@ async def health_check():
     return health_status
 
 
-app.include_router(api_router)
-appRouter(app.include_router)
+app.include_router(api_router, prefix="/api/v1")

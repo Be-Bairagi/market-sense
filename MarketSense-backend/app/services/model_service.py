@@ -1,13 +1,19 @@
 import os
-from datetime import date, datetime, timedelta
+import re
+from datetime import datetime
 
+from app.features.predictors.registry import get_predictor
 from app.repositories.model_registry_repository import ModelRegistryRepository
 from app.schemas.data_fetcher_schemas import ModelPredictionParams
-from app.services.prophet_service import (get_prophet_metrics,
-                                          prophet_predict_future_prices)
 from fastapi import Depends, HTTPException
 
 MODELS_DIR = "models"
+
+# Pattern to parse versioned model filenames like:
+# RELIANCE_NS_prophet_v1.pkl  or  AAPL_prophet_v1.pkl
+MODEL_FILE_PATTERN = re.compile(
+    r"^(?P<ticker>.+?)_(?P<model_type>[a-z]+)_v(?P<version>\d+)\.pkl$"
+)
 
 
 class ModelService:
@@ -17,8 +23,8 @@ class ModelService:
     def get_local_models(self):
         """
         Scans the models/ folder and returns a list of available models with metadata.
-        Expected filename format: {TICKER}_{MODELTYPE}.pkl
-        Example: AAPL_linear.pkl
+        Expected filename format: {TICKER}_{MODELTYPE}_v{VERSION}.pkl
+        Examples: AAPL_prophet_v1.pkl, RELIANCE_NS_prophet_v2.pkl
         """
         if not os.path.exists(MODELS_DIR):
             os.makedirs(MODELS_DIR)
@@ -29,9 +35,13 @@ class ModelService:
 
         for file in model_files:
             try:
-                name, ext = os.path.splitext(file)
-                ticker, model_type = name.split("_")
+                match = MODEL_FILE_PATTERN.match(file)
+                if not match:
+                    continue
 
+                ticker = match.group("ticker")
+                model_type = match.group("model_type")
+                version = int(match.group("version"))
                 full_path = os.path.join(MODELS_DIR, file)
 
                 # Extract file modified time as training date
@@ -42,6 +52,7 @@ class ModelService:
                     {
                         "ticker": ticker,
                         "model_type": model_type,
+                        "version": version,
                         "model_path": full_path,
                         "date_trained": date_trained,
                     }
@@ -53,34 +64,29 @@ class ModelService:
 
         return {"count": len(models), "models": models}
 
-    def prophet_predict(params: ModelPredictionParams):
-        """Generates time series predictions using the trained model."""
+    def prophet_predict(self, params: ModelPredictionParams):
+        """Generates time series predictions using the predictor registry."""
         n_days = params.n_days
         ticker = params.ticker
 
-        predicted_prices = prophet_predict_future_prices(n_days, ticker)
+        # Find the model file on disk
+        model_name = f"{ticker}_prophet"
+        model_files = [
+            f for f in os.listdir(MODELS_DIR) if f.startswith(model_name) and f.endswith(".pkl")
+        ]
 
-        if not predicted_prices:
-            # This will be raised if the model hasn't been trained yet
+        if not model_files:
             raise HTTPException(
-                status_code=404, detail="Model not trained. Run /prophet/train first."
+                status_code=404,
+                detail=f"No trained Prophet model found for {ticker}. Train one first.",
             )
 
-        # Get Metrics
-        metrics = get_prophet_metrics()
+        # Use the latest version
+        model_files.sort(reverse=True)
+        model_path = os.path.join(MODELS_DIR, model_files[0])
 
-        # Structure Output
-        start_date = date.today() + timedelta(days=1)
-        predictions_list = []
+        # Use the predictor registry
+        predictor = get_predictor("prophet")
+        predictions = predictor(model_path, n_days)
 
-        for i, price in enumerate(predicted_prices):
-            prediction_date = start_date + timedelta(days=i)
-
-            predictions_list.append(
-                {
-                    "Date": prediction_date.strftime("%Y-%m-%d"),
-                    "Predicted": round(price, 2),
-                }
-            )
-
-        return {"predictions": predictions_list, "metrics": metrics}
+        return {"predictions": predictions}

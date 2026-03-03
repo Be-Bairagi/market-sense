@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class StockQueryParams(BaseModel):
-    ticker: str = Field(..., description="Stock ticker symbol, e.g. AAPL")
+    ticker: str = Field(..., description="Stock ticker symbol, e.g. RELIANCE.NS, INFY.BO, AAPL")
     period: str = Field("30d", description="Period, e.g. 30d, 6mo, 1y")
     interval: str = Field("1d", description="Interval, e.g. 1d, 1h, 5mo")
 
@@ -16,8 +16,15 @@ class StockQueryParams(BaseModel):
     @field_validator("ticker")
     @classmethod
     def validate_ticker(cls, v: str) -> str:
-        if not v or not v.isalpha() or not v.isupper() or len(v) > 5:
-            raise ValueError("Ticker must be 1-5 uppercase letters (e.g., AAPL)")
+        if not v or len(v) > 20:
+            raise ValueError("Ticker must be 1-20 characters")
+        # Allow formats: AAPL, RELIANCE.NS, INFY.BO, TCS.NS
+        import re
+        if not re.match(r"^[A-Z0-9&-]+(\.[A-Z]{2})?$", v):
+            raise ValueError(
+                "Ticker must be uppercase letters/digits, optionally followed by "
+                "exchange suffix like .NS or .BO (e.g., RELIANCE.NS, INFY.BO, AAPL)"
+            )
         return v
 
     @field_validator("period")
@@ -41,7 +48,7 @@ class StockQueryParams(BaseModel):
 
 class ModelPredictionParams(BaseModel):
     n_days: int = Field(..., description="Number of days ahead to predict")
-    ticker: str = Field(..., description="Ticker for prediction, e.g. MSFT")
+    ticker: str = Field(..., description="Ticker for prediction, e.g. RELIANCE.NS, MSFT")
 
     @field_validator("n_days")
     @classmethod
@@ -53,6 +60,12 @@ class ModelPredictionParams(BaseModel):
     @field_validator("ticker")
     @classmethod
     def validate_ticker(cls, v: str) -> str:
-        if not v or not v.isalpha() or not v.isupper() or len(v) > 5:
-            raise ValueError("Ticker must be 1-5 uppercase letters (e.g., AAPL)")
+        if not v or len(v) > 20:
+            raise ValueError("Ticker must be 1-20 characters")
+        import re
+        if not re.match(r"^[A-Z0-9&-]+(\.[A-Z]{2})?$", v):
+            raise ValueError(
+                "Ticker must be uppercase letters/digits, optionally followed by "
+                "exchange suffix like .NS or .BO (e.g., RELIANCE.NS, INFY.BO, AAPL)"
+            )
         return v
