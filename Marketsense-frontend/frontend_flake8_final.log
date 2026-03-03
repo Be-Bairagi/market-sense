@@ -1,6 +1,0 @@
-﻿app.py:56:89: E501 line too long (116 > 88 characters)
-pages/1_Dashboard.py:168:89: E501 line too long (107 > 88 characters)
-pages/2_Model_Performance.py:43:1: F841 local variable 'e' is assigned to but never used
-pages/4_Settings.py:67:32: W291 trailing whitespace
-pages/4_Settings.py:74:40: W291 trailing whitespace
-pages/4_Settings.py:79:89: E501 line too long (114 > 88 characters)

@@ -71,7 +71,7 @@ if refresh and "No models" not in selected_model:
         model_type = match.group(2).strip()  # e.g., "prophet"
 
         # NOTE: Using 'model_type' parameter in URL to match the FastAPI route signature
-        eval_url = f"http://127.0.0.1:8000/evaluate?ticker={ticker}&period={period}&model_type={model_type}"  # noqa: E501
+        eval_url = f"http://127.0.0.1:8000/api/v1/evaluate?ticker={ticker}&period={period}&model_type={model_type}"  # noqa: E501
         eval_response = requests.get(eval_url)
 
         if eval_response.status_code != 200:
@@ -135,7 +135,7 @@ if refresh and "No models" not in selected_model:
                     fig.update_layout(
                         title=f"Model Prediction Performance for {ticker}",
                         xaxis_title="Date",
-                        yaxis_title="Price (USD)",
+                        yaxis_title="Price (₹)",
                         template="plotly_white",
                         legend=dict(
                             orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
@@ -161,29 +161,22 @@ if refresh and "No models" not in selected_model:
             # --- Dynamically update Model Summary based on backend response ---
             model_summary_name = metrics.get("model_type", "Unknown Model")
 
-            if (
-                not feat_data
-                or metrics["feature_importance"].get("Weight", ["N/A"])[0] == "N/A"
-            ):
-                # Use mock data only if backend did not provide usable feature importance  # noqa: E501
-                st.warning(
-                    f"Feature importance unavailable for {model_summary_name} model."
+            if feat_data and feat_data.get("Weight", ["N/A"])[0] != "N/A":
+                df_feat = pd.DataFrame(feat_data)
+                fig_feat = px.bar(
+                    df_feat,
+                    x="Feature",
+                    y="Weight",
+                    color="Feature",
+                    text="Weight",
+                    title="Model Feature Importance",
                 )
-                feat_data = {
-                    "Feature": ["Open", "High", "Low", "Close", "Volume"],
-                    "Weight": [0.45, 0.38, 0.31, 0.50, 0.19],
-                }
-
-            df_feat = pd.DataFrame(feat_data)
-            fig_feat = px.bar(
-                df_feat,
-                x="Feature",
-                y="Weight",
-                color="Feature",
-                text="Weight",
-                title="Model Feature Importance",
-            )
-            st.plotly_chart(fig_feat, width="stretch")
+                st.plotly_chart(fig_feat, width="stretch")
+            else:
+                st.info(
+                    f"Feature importance is not available for {model_summary_name} models. "
+                    "This will be available after implementing tree-based models (XGBoost, Random Forest)."
+                )
 
             # --- Model Summary Section ---
             st.markdown("### 🧾 Model Summary")

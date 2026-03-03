@@ -38,7 +38,7 @@ st.sidebar.header("🔎 Stock Selection")
 # Stock comparison - multi-select
 compare_tickers = st.sidebar.multiselect(
     "Compare Stocks (select multiple):",
-    ["AAPL", "TSLA", "MSFT", "GOOGL", "AMZN", "NVDA", "META"],
+    ["RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS", "HINDUNILVR.NS", "ITC.NS"],
     default=[]
 )
 
@@ -46,7 +46,7 @@ compare_tickers = st.sidebar.multiselect(
 if compare_tickers:
     ticker = st.sidebar.selectbox("Primary Stock:", compare_tickers, index=0)
 else:
-    ticker = st.sidebar.text_input("Enter Stock Ticker (e.g., AAPL, TSLA, MSFT):", "AAPL")
+    ticker = st.sidebar.text_input("Enter Stock Ticker (e.g., RELIANCE.NS, TCS.NS, INFY.NS):", "RELIANCE.NS")
 
 # Historical data period
 period = st.sidebar.selectbox(
@@ -188,7 +188,7 @@ if should_fetch:
                             fig.update_layout(
                                 title=f"{t} - Candlestick Chart",
                                 xaxis_title="Date",
-                                yaxis_title="Price (USD)",
+                                yaxis_title="Price (₹)",
                                 template="plotly_white",
                                 xaxis_rangeslider_visible=False,
                                 height=400
@@ -244,7 +244,7 @@ if should_fetch:
                         fig_candle.update_layout(
                             title=f"{t} - Candlestick Chart",
                             xaxis_title="Date",
-                            yaxis_title="Price (USD)",
+                            yaxis_title="Price (₹)",
                             template="plotly_white",
                             xaxis_rangeslider_visible=False,
                             height=400,

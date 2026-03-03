@@ -82,9 +82,6 @@ if submitted:
             progress_bar.progress(90)
             status_text.info("💾 Saving model artifact...")
             
-            with st.spinner(f"Training model '{model}' for {ticker}..."):
-                result = ModelService.train_model(ticker, period, model)
-            
             if not result.get("error"):
                 progress_bar.progress(100)
                 status_text.success("✅ Training complete!")
