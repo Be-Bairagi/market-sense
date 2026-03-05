@@ -38,6 +38,19 @@ SQLAlchemy/Postgres may fail to bind `np.float64` or `np.int64` types directly.
 MarketSense targets the Indian market.
 - **The Hack**: The `APScheduler` is configured with `timezone="Asia/Kolkata"` to ensure daily price updates (4:30 PM) and macro syncs (7:00 AM) align with IST market hours.
 
+### 6. Library Compatibility (v3.14)
+The `pandas-ta` library, while powerful, depends on `numba`, which currently does not provide pre-built wheels for Python 3.14 and fails to compile from source on most Windows environments.
+- **The Alternative**: Use the `ta` library (0.11.0). It is pure-python/numpy based and provides equivalent indicator coverage (RSI, MACD, etc.) without the heavy compilation requirement.
+
+### 7. Flexible Feature Storage
+Trading features vary by model. Storing them as individual columns leads to frequent schema migrations.
+- **The Hack**: Use a JSONB column (via `sqlalchemy.dialects.postgresql.JSON`) in SQLModel. This allows storing a flat dictionary of 40+ features (`rsi_14`, `ema_200`, etc.) while retaining the ability to query specific keys if needed.
+- **The Rule**: Sanitize features into a dict of native Python `float`s before storage; JSON serializers will fail on `np.float64` or `NaN`.
+
+### 8. Sentiment Ingestion Lifecycle
+News ingestion is fast, but scoring can be slow if done synchronously for every headline.
+- **The Workflow**: News is fetched every 30 mins. A separate `score_all_unscored()` pass runs immediately after, using the fast, rule-based VADER Sentiment analyzer.
+
 ## 📈 Database Patterns
 - **Postgres (Neon)**: The project uses Neon for hosted Postgres. Key configuration variables are managed via `.env`.
 - **Pre-ping & Recycle**: The engine includes `pool_pre_ping=True` and `pool_recycle=300` to handle stale connections in a serverless environment.

@@ -2,6 +2,40 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-03-06
+### Added
+- **Phase 3: Feature Engineering Store**:
+  - Implemented `FeatureVector` model using PostgreSQL JSONB column for flexible, high-performance feature storage.
+  - Built `TechnicalIndicatorService` computing 40+ indicators (RSI, MACD, BB, EMAs, ADX, ATR, OBV) using the `ta` library.
+  - Built `SentimentService` providing automated news headline scoring using VADER Sentiment.
+  - Built `MacroFeatureService` and `MarketContextService` for market-wide signal integration (NIFTY trend, FII/DII activity, VIX/USD/Crude changes).
+  - Built `FeatureComputationService` as a centralized orchestrator for per-ticker and per-date feature generation.
+  - Added dedicated Feature API routes (`/features/compute`, `/features/backfill`, `/features/{symbol}`).
+  - Integrated daily feature computation (4:45 PM IST) and automated sentiment scoring into the scheduler.
+
+### Fixed
+- **Dependency Compatibility**: Replaced `pandas-ta` with `ta` (0.11.0) because the `numba` dependency of `pandas-ta` fails to build on Python 3.14.
+- **JSON Serialization (Numpy)**: Implemented recursive type sanitization in `TechnicalIndicatorService` to ensure no `NaN` or `numpy.float64` objects break JSON serialization during DB storage.
+
+---
+
+## [1.3.0] - 2026-03-06
+### Added
+- **Phase 3: Feature Engineering Store**:
+  - Implemented `FeatureVector` model using PostgreSQL JSONB column for flexible, high-performance feature storage.
+  - Built `TechnicalIndicatorService` computing 40+ indicators (RSI, MACD, BB, EMAs, ADX, ATR, OBV) using the `ta` library.
+  - Built `SentimentService` providing automated news headline scoring using VADER Sentiment.
+  - Built `MacroFeatureService` and `MarketContextService` for market-wide signal integration (NIFTY trend, FII/DII activity, VIX/USD/Crude changes).
+  - Built `FeatureComputationService` as a centralized orchestrator for per-ticker and per-date feature generation.
+  - Added dedicated Feature API routes (`/features/compute`, `/features/backfill`, `/features/{symbol}`).
+  - Integrated daily feature computation (4:45 PM IST) and automated sentiment scoring into the scheduler.
+
+### Fixed
+- **Dependency Compatibility**: Replaced `pandas-ta` with `ta` (0.11.0) because the `numba` dependency of `pandas-ta` fails to build on Python 3.14.
+- **JSON Serialization (Numpy)**: Implemented recursive type sanitization in `TechnicalIndicatorService` to ensure no `NaN` or `numpy.float64` objects break JSON serialization during DB storage.
+
+---
+
 ## [1.2.0] - 2026-03-05
 ### Added
 - **Phase 2: Persistent Data Ingestion Pipeline**:
