@@ -12,7 +12,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.database import create_db_and_tables, engine
 from app.limiter import limiter
-from app.models import market_data, stock_data  # Import to register with SQLModel
+from app.models import feature_data, market_data, stock_data  # Import to register with SQLModel
 from app.routes import api_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
