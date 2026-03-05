@@ -12,6 +12,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.database import create_db_and_tables, engine
 from app.limiter import limiter
+from app.models import market_data, stock_data  # Import to register with SQLModel
 from app.routes import api_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -127,12 +128,24 @@ def rate_limit_predict(request: Request):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Handle startup and shutdown events for the FastAPI application.
+    """
+    logger.info("Starting up MarketSense API...")
     # Initialize Sentry for error tracking
     init_sentry()
-    # This runs at startup
+    # Initialize database
     create_db_and_tables()
+    
+    # Start background scheduler
+    from app.scheduler import start_scheduler, stop_scheduler
+    start_scheduler()
+    
     yield
-    # Optional shutdown logic can go here
+    
+    # Clean up and shutdown
+    logger.info("Shutting down MarketSense API...")
+    stop_scheduler()
 
 
 app = FastAPI(
