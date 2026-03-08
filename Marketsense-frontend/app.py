@@ -13,13 +13,13 @@ HEALTH_ENDPOINT = f"{BACKEND_URL}/health"
 
 # ── Pro Tips (shown during Engine Loader) ─────────────────────
 TIPS = [
-    "We always show a **Stop Loss**. Never invest without one.",
-    "Confidence above **75%** means the AI is very sure about its signal.",
-    "The **Bear Case** tells you what could go wrong — always read it.",
-    "Use **Today's Picks** for automated, beginner-friendly stock recommendations.",
-    "MarketSense tracks **40+ technical indicators** so you don't have to.",
-    "We monitor **FII & DII flows** and **India VIX** for macro-aware signals.",
-    "Train custom AI models for any NIFTY 50 stock in **Model Management**.",
+    "We always show a <strong>Stop Loss</strong>. Never invest without one.",
+    "Confidence above <strong>75%</strong> means the AI is very sure about its signal.",
+    "The <strong>Bear Case</strong> tells you what could go wrong — always read it.",
+    "Use <strong>Today's Picks</strong> for automated, beginner-friendly stock recommendations.",
+    "MarketSense tracks <strong>40+ technical indicators</strong> so you don't have to.",
+    "We monitor <strong>FII &amp; DII flows</strong> and <strong>India VIX</strong> for macro-aware signals.",
+    "Train custom AI models for any NIFTY 50 stock in <strong>Model Management</strong>.",
 ]
 
 
