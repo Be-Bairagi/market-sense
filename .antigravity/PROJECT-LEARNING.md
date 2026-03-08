@@ -124,3 +124,8 @@ Streamlit's markdown parser can be sensitive to indentation when using `unsafe_a
 - **The Lesson**: For repetitive, data-driven components like Stock Cards, **Native Streamlit Components** (`st.container(border=True)`, `st.metric`, `st.columns`) are vastly superior to custom HTML.
 - **Refinement**: Native components provide consistent padding, theme integration, and responsive behavior without the risk of "raw-text leakage" or layout breaks during window resizing.
 - **Pattern**: Use custom HTML only for unique, static branding elements (like the Loader); use native containers for everything else.
+
+### 23. Dashboard Information Architecture (Consolidation)
+When adding new macro-level views (like Market Pulse) to an application that already has a stock-specific charting dashboard, creating entirely separate sidebar pages can fragment the user experience.
+- **The Design**: Feature consolidation. The "Market Pulse" (Phase 3) was integrated directly into the top of the legacy `1_Dashboard.py` as an expanded `st.expander` section. 
+- **The UX Result**: Users see the 30-second macro snapshot immediately upon login, but can still scroll down (or collapse the expander) to use the detailed single-stock charting and prediction tools without navigating to a new page.

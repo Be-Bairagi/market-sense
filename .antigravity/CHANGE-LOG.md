@@ -7,8 +7,7 @@ All notable changes to the MarketSense project will be documented in this file, 
 - **UI Phase 3: Market Pulse**:
   - Implemented the `MarketPulseService` in the backend to calculate a 30-second macro snapshot.
   - Added new `GET /api/v1/market/pulse` endpoint returning Indices, VIX, FII/DII flows, and Sector Heatmap data.
-  - Renamed the frontend `1_Dashboard.py` to `1_Market_Pulse.py` to better reflect the new structure.
-  - Built a responsive 2x2 grid layout using native Streamlit containers and columns.
+  - Integrated a visually responsive 2x2 grid layout directly into the existing `1_Dashboard.py` inside an expandable "Market Pulse" container, ensuring original stock analysis tools remain intact.
   - Integrated smart tooltips to explain market terminology (VIX, FII, etc.) to beginners.
   - Implemented a graphical horizontal bar chart using Plotly to represent Sector Performance (Heatmap).
 
