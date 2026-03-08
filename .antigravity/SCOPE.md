@@ -161,7 +161,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 
 **Key Deliverables:**
 - **Page 1 — Market Pulse:** NIFTY/SENSEX summary, VIX interpretation, FII/DII bars, sector heatmap
-- **Page 2 — Today's Picks (Homepage):** 5 stock cards with signals, confidence bars, entry/target/stop-loss
+- [x] Page 2 — Today's Picks (Homepage): 5 stock cards with signals, confidence bars, entry/target/stop-loss
 - **Page 3 — Stock Deep Dive:** Multi-horizon tabs, news sentiment timeline, "Explain this to me", bear case
 - **Page 4 — My Watchlist:** User-added stocks with live prediction status
 - **Page 5 — Model Accuracy Tracker:** Win rate, sector breakdown, prediction vs actual charts

@@ -117,4 +117,10 @@ Long-running screener runs (scanning 50+ stocks) can timeout a standard HTTP req
 Blocking the entire application when a secondary service is down (like the backend engine) creates a poor user experience.
 - **The Design**: Instead of using `st.stop()` for failed health checks, implement a "Degraded Mode".
 - **The Workflow**: Display a non-blocking `st.warning` or custom HTML banner at the top of the page. This keeps the core UI accessible for navigation, allowing users to view cached data or "About" pages while the connection issue is resolved.
-- **The UX Fix**: Include a context-aware "Retry" button directly in the banner to allow users to re-trigger the health check without refreshing the entire browser page.
+---
+
+### 22. UI Complexity: Native Streamlit vs. Custom HTML
+Streamlit's markdown parser can be sensitive to indentation when using `unsafe_allow_html=True`. Excessive indentation in a multi-line HTML string often triggers it to treat the block as a `<pre>` code block.
+- **The Lesson**: For repetitive, data-driven components like Stock Cards, **Native Streamlit Components** (`st.container(border=True)`, `st.metric`, `st.columns`) are vastly superior to custom HTML.
+- **Refinement**: Native components provide consistent padding, theme integration, and responsive behavior without the risk of "raw-text leakage" or layout breaks during window resizing.
+- **Pattern**: Use custom HTML only for unique, static branding elements (like the Loader); use native containers for everything else.

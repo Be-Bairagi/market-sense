@@ -52,64 +52,70 @@ else:
         target_low = pick.get("target_low", 0)
         target_high = pick.get("target_high", 0)
         stop_loss = pick.get("stop_loss", 0)
+        close_price = pick.get("latest_close", 0) # Assumes backend provides this, otherwise 0
         drivers = pick.get("key_drivers", [])
         bear_case = pick.get("bear_case", "")
 
-        # Color coding
-        colors = {"BUY": "#16a34a", "HOLD": "#ca8a04", "AVOID": "#dc2626"}
-        bg_colors = {"BUY": "#f0fdf4", "HOLD": "#fefce8", "AVOID": "#fef2f2"}
+        # Styling logic
         signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
         risk_icons = {"LOW": "🟢", "MEDIUM": "🟡", "HIGH": "🔴"}
-
-        color = colors.get(direction, "#64748b")
-        bg = bg_colors.get(direction, "#f8fafc")
-        signal = signals.get(direction, "🟡")
-
-        # Card
-        st.markdown(f"""
-        <div style="
-            background: {bg};
-            border-left: 5px solid {color};
-            border-radius: 0.75rem;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1rem;
-        ">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <div>
-                    <span style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">
-                        #{rank} · {name}
-                    </span>
-                    <span style="color: #94a3b8; margin-left: 0.5rem;">{symbol}</span>
-                    <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 0.5rem;">
-                        {sector}
-                    </span>
-                </div>
-                <div>
-                    <span style="font-size: 2rem;">{signal}</span>
-                    <span style="font-size: 1.5rem; font-weight: 700; color: {color}; margin-left: 0.5rem;">
-                        {direction}
-                    </span>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Metrics row
-        m1, m2, m3, m4, m5 = st.columns(5)
-        m1.metric("Confidence", f"{confidence:.0%}")
-        m2.metric("Score", f"{composite:.3f}")
-        m3.metric("Target", f"₹{target_low:,.0f} – ₹{target_high:,.0f}")
-        m4.metric("Stop Loss", f"₹{stop_loss:,.0f}")
-        m5.metric("Risk", f"{risk_icons.get(risk, '🟡')} {risk}")
-
-        # Drivers + Bear case in an expander
-        with st.expander(f"📌 Why {symbol} today?"):
-            if drivers:
-                for d in drivers:
-                    st.markdown(f"- {d}")
-            if bear_case:
-                st.warning(f"🐻 **Bear Case:** {bear_case}")
-
+        
+        signal_icon = signals.get(direction, "🟡")
+        conf_pct = int(confidence * 100)
+        
+        # Native Streamlit Card
+        with st.container(border=True):
+            # Header Row
+            hdr1, hdr2 = st.columns([3, 1])
+            with hdr1:
+                st.subheader(f"#{rank} · {name} ({symbol})")
+                st.caption(f"**Sector:** {sector}")
+            with hdr2:
+                # Use a right-aligned metric-like display for the signal
+                signal_color = "green" if direction == "BUY" else "orange" if direction == "HOLD" else "red"
+                st.markdown(f"<h3 style='text-align: right; margin-top: 0; color: {signal_color};'>{signal_icon} {direction}</h3>", unsafe_allow_html=True)
+            
+            # Confidence Row
+            st.write(f"**AI Confidence:** {conf_pct}%")
+            safe_conf = min(max(float(confidence), 0.0), 1.0)
+            st.progress(safe_conf)
+            
+            st.write("")
+            
+            # Metrics Grid
+            st.markdown("##### Key Levels")
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Entry Zone (CMP)", f"₹{close_price:,.1f}" if close_price else "₹---")
+            
+            target_delta = f"{((target_low/close_price)-1)*100:.1f}%" if close_price else None
+            m2.metric("Target (Near)", f"₹{target_low:,.1f}", delta=target_delta, delta_color="normal")
+            
+            sl_delta = f"{((stop_loss/close_price)-1)*100:.1f}%" if close_price else None
+            m3.metric("Stop Loss", f"₹{stop_loss:,.1f}", delta=sl_delta, delta_color="inverse")
+            
+            m4.metric("Risk Profile", risk, delta=risk_icons.get(risk, ""), delta_color="off")
+            
+            st.markdown("---")
+            
+            # Drivers
+            st.markdown("##### Key Drivers")
+            if not drivers:
+                st.write("No specific drivers provided.")
+            for d in drivers[:3]:
+                st.markdown(f"- {d}")
+                
+            if bear_case and direction == "BUY":
+                st.warning(f"**Bear Case Risk:** {bear_case}")
+            
+            st.write("")
+            
+            # Action Button
+            col1, col2 = st.columns([4, 1])
+            with col2:
+                if st.button(f"Analyze {symbol} ↗", key=f"btn_analyze_{symbol}", use_container_width=True):
+                    st.session_state["selected_ticker"] = symbol
+                    st.info("Full analysis page coming soon!")
+        
         st.write("")
 
 # ── Historical Picks ──────────────────────────────────────────

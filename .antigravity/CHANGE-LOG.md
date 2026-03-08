@@ -2,6 +2,22 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-03-09
+### Added
+- **UI Phase 2: Today's Picks Redesign**:
+  - Completely rebuilt stock recommendation cards using native Streamlit components (`st.container`, `st.metric`, `st.progress`).
+  - Improved layout stability by removing custom HTML/CSS that was prone to rendering as raw text.
+  - Implemented color-coded signals (🟢 BUY, 🟡 HOLD, 🔴 AVOID) and confidence trackers.
+  - Integrated plain-English "Key Drivers" and "Bear Case" warnings for beginner-friendly guidance.
+  - Reorganized page structure: Today's Picks is now Page 2, and Accuracy Tracker is Page 8.
+- **Enhanced Stock Metrics**:
+  - Added "Key Levels" grid showing Entry Zone, Near Targets, and Stop Losses with clear labels.
+  - Added "Risk Profile" indicators (Low/Medium/High) for quick volatility assessment.
+
+### Fixed
+- **HTML Rendering Glitch**: Resolved issue where complex HTML blocks were interpreted as markdown code blocks by Streamlit.
+- **Page Reordering**: Fixed sidebar hierarchy to match the official project roadmap.
+
 ## [1.5.1] - 2026-03-09
 ### Added
 - **UI Branding Consistency**:
