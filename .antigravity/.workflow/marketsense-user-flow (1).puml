@@ -1,0 +1,430 @@
+@startuml MarketSense_User_Flow
+
+skinparam backgroundColor #F8FAFC
+skinparam defaultFontSize 12
+skinparam ArrowColor #3B7DD8
+skinparam ArrowFontColor #555555
+skinparam ArrowFontSize 10
+
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #3B7DD8
+  FontColor #1A1A2E
+  FontSize 11
+  DiamondBackgroundColor #FFF8E1
+  DiamondBorderColor #E8A020
+  DiamondFontColor #1A1A2E
+}
+
+skinparam note {
+  BackgroundColor #EEF4FF
+  BorderColor #3B7DD8
+  FontColor #333366
+  FontSize 10
+}
+
+skinparam swimlane {
+  BorderColor #BBCFE8
+  TitleBackgroundColor #E3EDF9
+  TitleFontSize 12
+  TitleFontStyle bold
+  TitleFontColor #1A1A2E
+}
+
+title <size:17><b>MarketSense - User Flow</b></size>\nAI-Powered Stock Market Companion for Beginner Indian Investors (NSE/BSE)
+
+|User|
+|Streamlit Frontend|
+|FastAPI Backend|
+|AI and ML Engine|
+|Data Layer|
+
+' ============================================================
+' 1. APP LAUNCH
+' ============================================================
+
+|User|
+start
+:Open MarketSense App;
+
+|Streamlit Frontend|
+:Show Engine Initialization Loader\n"Checking database, fetching news, computing signals..."\nRotating Pro Tips display during warmup;
+
+note right
+  UX Trust Signal:
+  The animated loader is intentional.
+  It shows the system is actively
+  working for the user.
+  Transparency builds trust.
+end note
+
+|FastAPI Backend|
+:GET /health
+Check DB, External APIs, System latency;
+
+|Data Layer|
+:Verify data freshness:
+- OHLCV prices (max 15 min stale)
+- India VIX, USD-INR, Brent Crude
+- FII/DII daily flows
+- News sentiment scores;
+
+|FastAPI Backend|
+if (All systems healthy?) then (YES)
+  :Return status: OK;
+else (NO - degraded)
+  :Return status: DEGRADED
+  + identify which source is stale;
+  |Streamlit Frontend|
+  :Show soft warning banner:
+  "Some data may be delayed.
+  Results are still shown.";
+endif
+
+' ============================================================
+' 2. PAGE 1 - MARKET PULSE
+' ============================================================
+
+|FastAPI Backend|
+:GET /api/v1/market/pulse;
+
+|Data Layer|
+:Fetch NIFTY 50 and SENSEX price and pct change
+Fetch India VIX level
+Fetch FII net buy/sell for today
+Fetch DII net buy/sell for today
+Fetch sector index pct changes;
+
+|Streamlit Frontend|
+:Render Page 1 - Market Pulse
+(30-second market overview);
+
+note right
+  Market Pulse Display:
+  NIFTY 50: 24,320  +0.8%  Mood: Bullish
+  India VIX: 13.2 => "Market is calm today"
+  FII: +1,240 Cr (Buying)
+  DII: -430 Cr (Selling)
+  Sector Heatmap: IT +1.4%  Pharma -0.6%
+
+  Every data point has a plain-English label.
+  No raw numbers shown without context.
+end note
+
+|User|
+:Reads 30-second market overview;
+
+if (Wants to explore a sector?) then (YES)
+  :Clicks sector tile in heatmap;
+  |FastAPI Backend|
+  :GET /api/v1/screen with sector filter;
+  |Streamlit Frontend|
+  :Show sector-filtered stock list with AI signals;
+  |User|
+  :Browses sector picks;
+endif
+
+' ============================================================
+' 3. PAGE 2 - TODAY'S PICKS (Core Feature)
+' ============================================================
+
+|User|
+:Navigate to Page 2 - Today's Picks
+(Core Feature / Morning Homepage);
+
+|FastAPI Backend|
+:GET /api/v1/stocks/top-picks;
+
+|AI and ML Engine|
+:Load pre-computed screener output
+Generated nightly at 5:00 PM IST post-close;
+
+note right
+  Nightly Screener Pipeline (APScheduler at 5 PM IST):
+
+  Step 1 - Score all NSE 500 stocks:
+    - Model confidence (weighted across horizons)
+    - Risk-adjusted return (target vs stop loss %)
+    - Momentum alignment across timeframes
+    - News + FII/DII sentiment score
+    - Sector trend alignment
+
+  Step 2 - Apply Beginner Safety Filters:
+    EXCLUDE: confidence below 65%
+    EXCLUDE: circuit-hit stocks
+    EXCLUDE: high VIX correlation (too volatile)
+    EXCLUDE: penny stocks under Rs50 or cap under Rs500Cr
+    PREFER: Large-cap and Mid-cap (NIFTY 500)
+
+  Step 3 - Sector Diversification:
+    Maximum 2 picks per sector
+
+  Step 4 - Store Top 5 Picks in DB with full metadata:
+    direction, confidence, entry zone,
+    target, stop loss, plain-English reason,
+    bear case, horizon tag
+end note
+
+|Streamlit Frontend|
+:Render 5 Stock Cards;
+
+note right
+  Each Stock Card shows:
+  ------------------------------------------
+  RELIANCE INDUSTRIES   Sector: Energy
+  ------------------------------------------
+  BUY   Confidence: 78%  [||||||||..]
+  ------------------------------------------
+  Entry: Rs2,840 - Rs2,860
+  Target: Rs2,990   Stop Loss: Rs2,780
+  ------------------------------------------
+  Why?
+   "More buyers than sellers right now"
+   "Low downside vs upside potential"
+  ------------------------------------------
+  Horizon: Short-term (1-5 days)
+  [View Deep Dive]
+end note
+
+|User|
+:Reviews 5 curated picks
+No chart-reading required;
+
+' ============================================================
+' 4. PAGE 3 - STOCK DEEP DIVE
+' ============================================================
+
+if (Clicks a stock card?) then (YES)
+
+  |User|
+  :Click card to open Page 3 - Stock Deep Dive;
+
+  |FastAPI Backend|
+  :GET /api/v1/stocks/SYMBOL/predict
+  GET /api/v1/stocks/SYMBOL/news
+  GET /api/v1/stocks/SYMBOL/history
+  GET /api/v1/stocks/SYMBOL/profile;
+
+  |AI and ML Engine|
+  :Load predictions for all horizons:
+  - Short-term  =>  XGBoost model
+  - Swing       =>  Random Forest model
+  - Long-term   =>  Prophet model
+  - Intraday    =>  LSTM (if data feed available);
+
+  :Generate plain-English explanation
+  from top 3 model key drivers;
+
+  |Streamlit Frontend|
+  :Render Deep Dive Page;
+
+  note right
+    Deep Dive Layout:
+    [Tabs] Intraday | Short | Swing | Long-term
+    --------------------------------------------------
+    Interactive price chart with prediction overlay
+    --------------------------------------------------
+    News Sentiment Timeline (last 7 days)
+      Positive / Neutral / Negative per day
+    --------------------------------------------------
+    "Explain It To Me" Section:
+      "Strong momentum - more buyers than sellers"
+      "Safe margins - risk/reward is favorable"
+      "Macro-Headwinds - crude oil rising, caution"
+    --------------------------------------------------
+    Bear Case (always alongside bull case):
+      "Global sell-off could reverse this trend"
+    --------------------------------------------------
+    Historical accuracy for this stock:
+      "Last 10 Short-term calls: 7 correct (70%)"
+    --------------------------------------------------
+    Tooltips on every technical term.
+    Entry + Target + Stop Loss always shown together.
+  end note
+
+  |User|
+  :Reads plain-English explanation and risk levels;
+
+  if (Wants a different horizon?) then (YES)
+    |User|
+    :Clicks Swing or Long-term tab;
+    |Streamlit Frontend|
+    :Reload prediction for selected horizon;
+    |User|
+    :Reviews new Entry, Target, Stop Loss;
+  endif
+
+  if (Wants to add to watchlist?) then (YES)
+    |User|
+    :Clicks Add to Watchlist;
+    |FastAPI Backend|
+    :POST /api/v1/watchlist
+    body: symbol and horizon;
+    |Data Layer|
+    :Persist symbol to watchlist table;
+    |Streamlit Frontend|
+    :Show confirmation: "Added to Watchlist";
+  endif
+
+endif
+
+' ============================================================
+' 5. PAGE 4 - MY WATCHLIST
+' ============================================================
+
+if (User opens Watchlist?) then (YES)
+
+  |User|
+  :Open Page 4 - My Watchlist;
+
+  |FastAPI Backend|
+  :GET /api/v1/watchlist
+  Returns all stocks with latest predictions;
+
+  |Data Layer|
+  :Fetch most recent prediction
+  for each watchlisted symbol;
+
+  |Streamlit Frontend|
+  :Render watchlist rows:
+  - Signal: BUY / HOLD / AVOID
+  - Confidence bar
+  - Entry / Target / Stop Loss
+  - Alert badge if confidence shifted 10%+;
+
+  |User|
+  :Scans watchlist for updated signals and alerts;
+
+  if (Alert badge visible?) then (YES)
+    |User|
+    :Clicks alert to read updated signal
+    and reason for the change;
+  endif
+
+  if (Wants to remove a stock?) then (YES)
+    |User|
+    :Clicks remove icon;
+    |FastAPI Backend|
+    :DELETE /api/v1/watchlist/SYMBOL;
+    |Data Layer|
+    :Remove symbol from watchlist table;
+    |Streamlit Frontend|
+    :Stock removed from list;
+  endif
+
+endif
+
+' ============================================================
+' 6. PAGE 5 - MODEL ACCURACY TRACKER
+' ============================================================
+
+if (User opens Accuracy Tracker?) then (YES)
+
+  |User|
+  :Open Page 5 - Model Accuracy Tracker;
+
+  |FastAPI Backend|
+  :GET /api/v1/accuracy;
+
+  |AI and ML Engine|
+  :Load from Prediction Archive DB:
+  - Overall directional accuracy %
+  - Win rate at 65%, 70%, 80% confidence bands
+  - Per-sector accuracy breakdown
+  - Per-horizon accuracy: Short, Swing, Long
+  - Accuracy trend over last 30 days;
+
+  |Streamlit Frontend|
+  :Render Accuracy Dashboard:
+  - "7 of last 10 Short-term picks were correct"
+  - Prediction vs Actual chart
+  - Breakdown by horizon and sector
+  - Model track record over time;
+
+  note right
+    Trust-Building Feature:
+    Full transparency on wins AND losses.
+    Users see the honest track record
+    before making any investment decision.
+    Champion vs Challenger model comparison
+    shown after each weekly Sunday retrain.
+  end note
+
+  |User|
+  :Reviews model track record;
+
+endif
+
+' ============================================================
+' 7. BACKGROUND AUTOMATION NOTE
+' ============================================================
+
+|AI and ML Engine|
+:Background Automation (always running, zero user action needed);
+
+note right
+  APScheduler Jobs:
+
+  Every 15 min (market hours 9:15 AM to 3:30 PM IST):
+    Price fetcher (yfinance/NSE API)
+    => Feature recomputation
+    => Prediction refresh for watchlisted stocks
+
+  Every 30 min:
+    News RSS ingestion
+    => FinBERT/VADER sentiment scoring
+    => Live signal update
+
+  Daily at 7:00 AM IST (pre-market):
+    USD/INR, Brent Crude, India VIX,
+    10Y G-Sec yield, FII/DII flows
+
+  Daily at 5:00 PM IST (post-close):
+    Full NSE 500 screener run
+    => Composite scoring => Beginner filter
+    => Sector diversification
+    => Store Top 5 Picks to DB
+    => Archive yesterday's predictions vs actuals
+
+  Weekly (Sunday midnight):
+    Retrain all 4 models on fresh data
+    => Champion/Challenger comparison
+    => Deploy new model only if accuracy improves
+
+  Every hour:
+    Stale data alert if any source goes silent
+    Auto-skip jobs on NSE holidays
+end note
+
+' ============================================================
+' 8. FINAL USER DECISION
+' ============================================================
+
+|User|
+:User now has:
+- BUY / HOLD / AVOID signal
+- Entry price, Target, Stop Loss in Rs
+- Plain-English reasoning with no jargon
+- Bear case and risk level understood
+- Confidence % with historical context;
+
+if (Ready to act on a signal?) then (INVEST)
+  :Takes informed investment decision
+  via their own broker app;
+  note right
+    MarketSense = Guidance only.
+    No real-money trading integration.
+    No financial advice, prediction only.
+    Stop Loss always given with every call.
+  end note
+else (WAIT or MONITOR)
+  :Monitors watchlist for
+  confidence change or better signal;
+endif
+
+:Returns next morning for fresh Top 5 Picks
+The cycle repeats automatically every day;
+
+stop
+
+@enduml

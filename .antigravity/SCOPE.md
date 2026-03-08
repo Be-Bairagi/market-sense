@@ -150,6 +150,14 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 **Goal:** Redesign Streamlit frontend to match the beginner-focused UX vision.
 **Estimated Effort:** 5–7 days
 **Detailed Plan:** [phase-7.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-7.md)
+**Detailed UI Breakdown:**
+- [Phase UI-1: Loader & Shell](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-1.md)
+- [Phase UI-2: Today's Picks](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-2.md)
+- [Phase UI-3: Market Pulse](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-3.md)
+- [Phase UI-4: Stock Deep Dive](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-4.md)
+- [Phase UI-5: My Watchlist](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-5.md)
+- [Phase UI-6: Accuracy Tracker](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-6.md)
+- [Phase UI-7: Polish & Performance](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-7.md)
 
 **Key Deliverables:**
 - **Page 1 — Market Pulse:** NIFTY/SENSEX summary, VIX interpretation, FII/DII bars, sector heatmap
