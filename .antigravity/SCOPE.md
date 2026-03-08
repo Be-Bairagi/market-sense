@@ -160,7 +160,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - [Phase UI-7: Polish & Performance](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-7.md)
 
 **Key Deliverables:**
-- **Page 1 — Market Pulse:** NIFTY/SENSEX summary, VIX interpretation, FII/DII bars, sector heatmap
+- [x] Page 1 — Market Pulse: NIFTY/SENSEX summary, VIX interpretation, FII/DII bars, sector heatmap
 - [x] Page 2 — Today's Picks (Homepage): 5 stock cards with signals, confidence bars, entry/target/stop-loss
 - **Page 3 — Stock Deep Dive:** Multi-horizon tabs, news sentiment timeline, "Explain this to me", bear case
 - **Page 4 — My Watchlist:** User-added stocks with live prediction status

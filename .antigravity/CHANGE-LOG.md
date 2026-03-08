@@ -2,6 +2,19 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-03-09
+### Added
+- **UI Phase 3: Market Pulse**:
+  - Implemented the `MarketPulseService` in the backend to calculate a 30-second macro snapshot.
+  - Added new `GET /api/v1/market/pulse` endpoint returning Indices, VIX, FII/DII flows, and Sector Heatmap data.
+  - Renamed the frontend `1_Dashboard.py` to `1_Market_Pulse.py` to better reflect the new structure.
+  - Built a responsive 2x2 grid layout using native Streamlit containers and columns.
+  - Integrated smart tooltips to explain market terminology (VIX, FII, etc.) to beginners.
+  - Implemented a graphical horizontal bar chart using Plotly to represent Sector Performance (Heatmap).
+
+### Fixed
+- **Uvicorn Ghost Process on Windows**: Resolved stubborn port-binding issue affecting hot-reloading by shifting frontend `BASE_URL` logic dynamically.
+
 ## [1.6.0] - 2026-03-09
 ### Added
 - **UI Phase 2: Today's Picks Redesign**:

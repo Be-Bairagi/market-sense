@@ -185,3 +185,16 @@ class DashboardService:
             logger.exception("Failed to trigger screener")
             return {"error": str(e)}
 
+    # ── Phase 3: Market Pulse ────────────────────────────────
+    @staticmethod
+    def fetch_market_pulse():
+        """GET /market/pulse — Phase 3 macro snapshot."""
+        try:
+            r = requests.get(f"{BASE_URL}/market/pulse", timeout=10)
+            if r.status_code == 404:
+                return {"error": "Backend endpoint /api/v1/market/pulse not found."}
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch market pulse")
+            return {"error": str(e)}
