@@ -158,33 +158,28 @@ if not st.session_state.get("backend_healthy", False):
     }
     .cause-icon { flex-shrink: 0; font-size: 1.1rem; margin-top: 0.1rem; }
     </style>
-    """, unsafe_allow_html=True)
 
-    st.markdown('<div class="status-page">', unsafe_allow_html=True)
-    st.markdown('<div class="status-icon">🔌</div>', unsafe_allow_html=True)
-    st.markdown('<div class="status-title">Unable to Connect</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="status-subtitle">'
-        'MarketSense could not reach the backend engine. '
-        'This usually resolves itself in a few moments.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("""
-    <div class="cause-card">
-        <h4>Possible causes</h4>
-        <div class="cause-item">
-            <span class="cause-icon">🖥️</span>
-            <span><strong>Backend server is not running</strong> — start it with <code>invoke run</code> in the backend directory.</span>
+    <div class="status-page">
+        <div class="status-icon">🔌</div>
+        <div class="status-title">Unable to Connect</div>
+        <div class="status-subtitle">
+            MarketSense could not reach the backend engine.
+            This usually resolves itself in a few moments.
         </div>
-        <div class="cause-item">
-            <span class="cause-icon">🌐</span>
-            <span><strong>Internet connection lost</strong> — check your Wi-Fi or network cable.</span>
-        </div>
-        <div class="cause-item">
-            <span class="cause-icon">⚙️</span>
-            <span><strong>Server error</strong> — the backend may have crashed. Check the terminal for errors.</span>
+        <div class="cause-card">
+            <h4>Possible causes</h4>
+            <div class="cause-item">
+                <span class="cause-icon">🖥️</span>
+                <span><strong>Backend server is not running</strong> — start it with <code>invoke run</code> in the backend directory.</span>
+            </div>
+            <div class="cause-item">
+                <span class="cause-icon">🌐</span>
+                <span><strong>Internet connection lost</strong> — check your Wi-Fi or network cable.</span>
+            </div>
+            <div class="cause-item">
+                <span class="cause-icon">⚙️</span>
+                <span><strong>Server error</strong> — the backend may have crashed. Check the terminal for errors.</span>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -197,7 +192,6 @@ if not st.session_state.get("backend_healthy", False):
             st.session_state.pop("health_data", None)
             st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
 
