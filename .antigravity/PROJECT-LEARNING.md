@@ -101,7 +101,10 @@ Long-running screener runs (scanning 50+ stocks) can timeout a standard HTTP req
 ### 19. Handling Null Macro Features in Predictors
 - External macro data (like VIX or USDINR) may be missing for current day if APIs fail or markets are closed but the local engine is running.
 - Comparison logic like `if vix < 12.0` will crash with `TypeError` if `vix` is `None`.
-- **Solution**: Always use `.get(key)` and explicitly handle `None` with a fallback default before comparison.
+### 20. Premium Loading & Perceived Performance
+- Standard spinners (`st.spinner`) are functional but don't communicate progress or brand value effectively.
+- **The UX Fix**: A multi-step sequence (Fake + Real) creates a sense of "Engine Initialization" which builds user trust.
+- **Tips section**: Utilizing the loading gap to educate users with "Pro Tips" increases feature discovery and reduces perceived waiting time.
 
 ## 📈 Database Patterns
 - **Postgres (Neon)**: The project uses Neon for hosted Postgres. Key configuration variables are managed via `.env`.

@@ -231,6 +231,7 @@ Each stock receives a composite score:
 - [x] Build "why this stock today?" explanation generator
 - [x] Log screener performance: how often top picks outperformed NIFTY
 - [x] Write tests for scoring, filtering, and output schema
+- [x] Build Premium Startup Loader & Rotating Tips (UX Upgrade)
 
 ### Output
 - Daily top-5 curated stock picks stored in DB

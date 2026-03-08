@@ -13,6 +13,11 @@ All notable changes to the MarketSense project will be documented in this file, 
   - Added `POST /screener/run` for manual background triggers.
   - Integrated `run_daily_screener` into the scheduler at 5:00 PM IST daily.
   - Created "Today's Picks" frontend page (`7_Todays_Picks.py`) with rich signal cards and historical view.
+- **Phase 5.1: Premium UI Enhancements**:
+  - Replaced the basic loading spinner with an industry-standard Startup Loader.
+  - Implemented a multi-step verification sequence (Connection -> Database -> Data Feeds -> Model Weights).
+  - Added a "Pro Tip" rotating carousel to showcase useful platform features during application startup.
+  - Improved app robustness by ensuring backend health checks are transparent and visually engaging.
 
 ### Fixed
 - **Explanation Service Null Reference**: Handled cases where `rsi_14` or other features might be `None` during screener scoring.
