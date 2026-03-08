@@ -54,22 +54,40 @@ class FeatureComputationService:
 
         latest_date = price_rows[-1].date
 
+        import time
+        start_time = time.time()
+        
         # 2. Compute technical indicators
+        logger.info(f"Computing technical features for {symbol}...")
         tech_features = TechnicalIndicatorService.compute_all(df)
-
+        logger.info(f"Technical features computed in {time.time() - start_time:.2f}s")
+        
         # 3. Compute sentiment features
+        step_start = time.time()
+        logger.info(f"Computing sentiment features for {symbol}...")
         sentiment_features = SentimentService.get_sentiment_summary(symbol)
+        logger.info(f"Sentiment features computed in {time.time() - step_start:.2f}s")
 
         # 4. Compute macro features
+        step_start = time.time()
+        logger.info("Computing macro features...")
         macro_features = MacroFeatureService.compute_macro_features()
+        logger.info(f"Macro features computed in {time.time() - step_start:.2f}s")
 
         # 5. Compute market context
+        step_start = time.time()
+        logger.info("Computing context features...")
         context_features = MarketContextService.compute_context_features()
+        logger.info(f"Context features computed in {time.time() - step_start:.2f}s")
 
         # 6. Assemble full feature vector
         all_features = {}
         all_features.update(tech_features)
-        all_features.update({f"sentiment_{k}": v for k, v in sentiment_features.items()})
+        
+        # Add sentiment as sentiment_
+        for k, v in sentiment_features.items():
+            all_features[f"sentiment_{k}"] = v
+            
         all_features.update(macro_features)
         all_features.update(context_features)
 
@@ -178,6 +196,7 @@ class FeatureComputationService:
 
                     if computed_count % 50 == 0:
                         db.commit()
+                        logger.info(f"Backfill progress for {symbol}: {computed_count} feature vectors stored.")
 
             db.commit()
 

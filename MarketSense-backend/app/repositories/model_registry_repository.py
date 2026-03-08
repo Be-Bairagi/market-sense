@@ -7,7 +7,7 @@ class ModelRegistryRepository:
     @staticmethod
     def deactivate_existing_models(db: Session, model_name: str):
         statement = select(TrainedModel).where(
-            TrainedModel.model_name == model_name, TrainedModel.is_active is True
+            TrainedModel.model_name == model_name, TrainedModel.is_active == True
         )
 
         models = db.exec(statement).all()
@@ -42,7 +42,7 @@ class ModelRegistryRepository:
                 select(TrainedModel)
                 .where(
                     TrainedModel.model_name == model_name,
-                    TrainedModel.is_active is True,
+                    TrainedModel.is_active == True,
                     TrainedModel.version == version,
                 )
             )
@@ -50,17 +50,12 @@ class ModelRegistryRepository:
             if result:
                 return result
 
-        # Try to find by base name - match models starting with the base name
-        # e.g., "AAPL_prophet" should match "AAPL_prophet_v10"
-        from sqlmodel import or_
+        # Try to find by base name
         statement = (
             select(TrainedModel)
             .where(
-                or_(
-                    TrainedModel.model_name == model_name,
-                    TrainedModel.model_name.startswith(model_name + "_v"),
-                ),
-                TrainedModel.is_active is True,
+                TrainedModel.model_name == model_name,
+                TrainedModel.is_active == True,
             )
             .order_by(TrainedModel.version.desc())
         )

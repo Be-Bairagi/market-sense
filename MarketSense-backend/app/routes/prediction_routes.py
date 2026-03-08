@@ -61,6 +61,30 @@ def predict_endpoint(request: Request,
     )
 
 
+@predict_router.get("/rich/{symbol}", summary="Get rich prediction with explanations")
+@limiter.limit("5/minute")
+def rich_predict_endpoint(
+    request: Request,
+    symbol: str,
+    model_type: str = Query("xgboost", description="Model type (xgboost or prophet)"),
+    api_key: str = Security(verify_api_key),
+    db: Session = Depends(get_session),
+):
+    """Returns standardized PredictionOutput with key drivers and risk assessment."""
+    symbol = validate_ticker(symbol)
+    
+    # Construct model name (match TrainingService sanitized name: RELIANCE_NS_xgboost)
+    safe_symbol = symbol.replace(".", "_")
+    model_name = f"{safe_symbol}_{model_type}"
+    
+    # For rich endpoint, default to 5 days for short_term xgboost
+    return PredictionService.predict(
+        db=db,
+        model_name=model_name,
+        n_days=5,
+    )
+
+
 def validate_n_days(n_days: int) -> int:
     """Validate n_days parameter."""
     if n_days < 1 or n_days > 365:

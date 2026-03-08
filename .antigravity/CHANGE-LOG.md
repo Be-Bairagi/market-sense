@@ -2,6 +2,37 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-03-08
+### Added
+- **Phase 4: Prediction Models (Short-Term XGBoost)**:
+  - Built `xgboost_trainer.py` — 3-way direction classifier (BUY/HOLD/AVOID, ±2% over 5 days) with walk-forward chronological split (80/20, no leakage).
+  - Built `xgboost_predictor.py` — loads trained model, computes live features, coerces dtypes, aligns columns with `feature_names_in_`, and returns a standardized `PredictionOutput`.
+  - Built `ExplanationService` — maps XGBoost feature importances to plain-English key drivers (e.g., "RSI shows oversold recovery potential") and generates bear-case risk narratives.
+  - Created `PredictionRecord` model for prediction accuracy tracking with `actual_outcome` field for future backtest scoring.
+  - Created `PredictionOutput` Pydantic schema — standardized response shape for all predictors.
+  - Added `GET /predict/rich/{symbol}` endpoint returning full prediction with key drivers, bear case, and risk level.
+  - Registered XGBoost in `predictor_registry` and extended `TrainingService` with `xgboost` branch.
+
+### Fixed
+- **SQLModel Boolean Filter Bug**: Changed `TrainedModel.is_active is True` to `== True` in `ModelRegistryRepository` — Python `is` performs identity comparison which silently bypasses the SQL filter.
+- **Model Name Mismatch**: Aligned dot-sanitization (`RELIANCE.NS` → `RELIANCE_NS`) across `TrainingService`, `PredictionService`, and the `/predict/rich` route.
+- **XGBoost Object-Dtype Crash**: Added `pd.to_numeric(errors='coerce').fillna(0)` in the predictor to handle `None`-valued macro/context features that become `object` dtype columns.
+- **Neon DB Connection Timeouts**: Added `connect_timeout=15` to `DATABASE_URL` to handle Neon cold-start latency.
+- **Feature Backfill Progress Logging**: Added batch-commit logging every 50 vectors to monitor long-running backfills.
+
+### Problems Faced & Solutions
+1. **Training Returns "0 samples"**:
+   - *Problem*: XGBoost training failed with "Insufficient historical features: 0" even after price data existed.
+   - *Solution*: The feature backfill hadn't been run after data ingestion. Established a strict workflow: data backfill → feature backfill → train.
+2. **Prediction Endpoint Returns 404**:
+   - *Problem*: `get_active_model()` returned `None` for models known to exist in the DB.
+   - *Solution*: Two bugs — (a) `is True` in SQLModel filters always passes, fixed to `== True`; (b) route used `RELIANCE.NS_xgboost` but DB stores `RELIANCE_NS_xgboost`.
+3. **XGBoost ValueError on Object Columns**:
+   - *Problem*: Macro features (`usd_inr_level`, `india_vix_level`, etc.) were stored as `None` → Pandas `object` dtype → XGBoost rejects non-numeric.
+   - *Solution*: Added `pd.to_numeric` coercion + `fillna(0)` in both trainer and predictor.
+
+---
+
 ## [1.3.0] - 2026-03-06
 ### Added
 - **Phase 3: Feature Engineering Store**:

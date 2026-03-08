@@ -51,6 +51,40 @@ Trading features vary by model. Storing them as individual columns leads to freq
 News ingestion is fast, but scoring can be slow if done synchronously for every headline.
 - **The Workflow**: News is fetched every 30 mins. A separate `score_all_unscored()` pass runs immediately after, using the fast, rule-based VADER Sentiment analyzer.
 
+### 9. XGBoost Label Construction
+XGBoost direction models require clear categorical targets.
+- **The Design**: Phase 4 uses a 3-way classification: `BUY` (+2% move), `HOLD` (-2% to +2%), and `AVOID` (<-2% move) over a 5-day rolling window. 
+- **The Code**: Labels are derived by looking `n` days ahead in the price series. This avoids "future-leakage" during training by strictly partitioning features and target prices based on indices.
+
+### 10. Explaining Black-Box Models
+ML models like XGBoost provide feature importance, but they don't 'speak' trader language.
+- **The Hack**: The `ExplanationService` maps top contributing feature names to human-readable phrases. 
+- **Pattern**: If `rsi_14` is a top driver and its value is < 30, it maps to "RSI shows oversold recovery potential" instead of "rsi_14: 28.5".
+
+### 11. Neon Serverless Connection Timeouts
+Neon databases can "cold-start" — the compute instance spins down after inactivity, causing the first connection to hang for 10–15 seconds.
+- **The Fix**: Always set `connect_timeout=15` in `DATABASE_URL`. Also keep `pool_pre_ping=True` and `pool_recycle=300` on the SQLAlchemy engine.
+- **Symptom**: Scripts, health checks, or training calls hang indefinitely without any error.
+
+### 12. SQLModel Boolean Filters: `is True` vs `== True`
+Python's `is True` performs identity comparison, not value comparison. In SQLModel/SQLAlchemy `where()` clauses, `TrainedModel.is_active is True` always evaluates to `True` (the Python object), bypassing the column filter entirely.
+- **The Rule**: Always use `== True` for boolean filters in SQLModel `.where()` clauses.
+- **Symptom**: `get_active_model()` returns `None` even when active models exist in the DB.
+
+### 13. XGBoost Object-Dtype Columns
+When macro/market-context features contain `None` values, Pandas stores them as `object` dtype. XGBoost rejects non-numeric dtypes with a `ValueError`.
+- **The Fix**: In the predictor, always coerce the feature DataFrame: `X = X.apply(pd.to_numeric, errors='coerce').fillna(0)`.
+- **In the trainer**: Use `df.fillna(0, inplace=True)` instead of `dropna()` to preserve training samples.
+
+### 14. Model Naming Sanitization
+Ticker symbols contain dots (e.g., `RELIANCE.NS`), but model filenames and registry names should be dot-free.
+- **The Convention**: `TrainingService` sanitizes `RELIANCE.NS` → `RELIANCE_NS`, producing model names like `RELIANCE_NS_xgboost`. The predictor and routes must use the same sanitization.
+- **Symptom**: 404 when predicting because `RELIANCE.NS_xgboost` doesn't match the registered name `RELIANCE_NS_xgboost`.
+
+### 15. Training Depends on Feature Backfill
+XGBoost training pulls from the `feature_vectors` table. If features haven't been backfilled after a price data ingestion, training fails with "Insufficient historical features: 0".
+- **The Workflow**: Always run data backfill → feature backfill → train, in that order.
+
 ## 📈 Database Patterns
 - **Postgres (Neon)**: The project uses Neon for hosted Postgres. Key configuration variables are managed via `.env`.
 - **Pre-ping & Recycle**: The engine includes `pool_pre_ping=True` and `pool_recycle=300` to handle stale connections in a serverless environment.

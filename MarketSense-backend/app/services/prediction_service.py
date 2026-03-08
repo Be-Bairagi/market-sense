@@ -1,8 +1,8 @@
-# app/services/prediction_service.py
-
+import datetime as dt
 import logging
 
 from app.features.predictors.registry import get_predictor
+from app.models.prediction_data import PredictionRecord
 from app.repositories.model_registry_repository import ModelRegistryRepository
 from fastapi import HTTPException
 from sqlmodel import Session
@@ -51,7 +51,31 @@ class PredictionService:
             n_days=n_days,
         )
 
-        logger.info(f"Prediction successful: model={model_name}, n_days={n_days}")
+        # If it's a rich prediction (dict with direction), save to DB
+        if isinstance(predictions, dict) and "direction" in predictions:
+            try:
+                # Save predicted record for accuracy tracking
+                record = PredictionRecord(
+                    symbol=predictions["symbol"],
+                    horizon=predictions["horizon"],
+                    direction=predictions["direction"],
+                    confidence=predictions["confidence"],
+                    target_low=predictions["target_low"],
+                    target_high=predictions["target_high"],
+                    stop_loss=predictions["stop_loss"],
+                    risk_level=predictions["risk_level"],
+                    key_drivers=predictions["key_drivers"],
+                    bear_case=predictions["bear_case"],
+                    model_name=model.model_name,
+                    valid_until=predictions["valid_until"]
+                )
+                db.add(record)
+                db.commit()
+            except Exception as e:
+                logger.error(f"Failed to save prediction record: {e}")
+                db.rollback()
+
+        logger.info(f"Prediction successful: model={model_name}")
 
         return {
             "model": {

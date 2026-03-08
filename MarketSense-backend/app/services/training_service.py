@@ -3,6 +3,7 @@ import os
 
 import joblib
 from app.features.trainers.prophet_trainer import train_prophet_model
+from app.features.trainers.xgboost_trainer import train_xgboost_model
 from app.schemas.model_registry_schemas import MLFramework, TrainedModelCreate
 from app.services.fetch_data_service import FetchDataService
 from app.services.model_registry_service import ModelRegistryService
@@ -23,15 +24,21 @@ class TrainingService:
 
         # STEP 1: Fetch data (use original ticker for yfinance)
         logger.debug(f"Fetching training data for {ticker}")
-        training_df = FetchDataService.fetch_stock_data(
-            FetchDataService, ticker, period, "1d", True
-        )
-
+        
         # STEP 2: Train based on model type
         logger.debug(f"Training {model_type} model")
         if model_type == "prophet":
+            training_df = FetchDataService.fetch_stock_data(
+                FetchDataService, ticker, period, "1d", True
+            )
             model, metrics = train_prophet_model(training_df)
             framework = MLFramework.prophet
+            save_obj = model
+        elif model_type == "xgboost":
+            model, metrics = train_xgboost_model(ticker)
+            framework = MLFramework.xgboost
+            # Bundle model with its metrics (needed for explanations in predictor)
+            save_obj = {"model": model, "metrics": metrics}
         else:
             raise ValueError(f"Model '{model_type}' not supported")
 
@@ -45,7 +52,7 @@ class TrainingService:
         # model.save(model_path)
         model_path = os.path.join(model_dir, file_name)
 
-        joblib.dump(model, model_path)
+        joblib.dump(save_obj, model_path)
         logger.debug(f"Model saved to {model_path}")
 
         # STEP 4: Register model in DB (use sanitized ticker in model name)
