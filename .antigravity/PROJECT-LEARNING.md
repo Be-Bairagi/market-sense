@@ -112,3 +112,9 @@ Long-running screener runs (scanning 50+ stocks) can timeout a standard HTTP req
 
 ## 🧹 Data Quality
 - **DataCleanerService**: A centralized gatekeeper. Never store raw data directly. Always run it through the cleaner to handle missing values (ffill) and identify outliers (>20% price moves).
+
+### 21. Graceful Degradation (Soft Banners vs. Hard Errors)
+Blocking the entire application when a secondary service is down (like the backend engine) creates a poor user experience.
+- **The Design**: Instead of using `st.stop()` for failed health checks, implement a "Degraded Mode".
+- **The Workflow**: Display a non-blocking `st.warning` or custom HTML banner at the top of the page. This keeps the core UI accessible for navigation, allowing users to view cached data or "About" pages while the connection issue is resolved.
+- **The UX Fix**: Include a context-aware "Retry" button directly in the banner to allow users to re-trigger the health check without refreshing the entire browser page.

@@ -34,7 +34,7 @@ def check_backend_health():
         return False, None
 
 
-def premium_health_check_ui():
+def health_check_ui():
     """Engine Initialization Loader — centered card with branding, spinner, and tips."""
     placeholder = st.empty()
     tip = random.choice(TIPS)
@@ -62,7 +62,7 @@ def premium_health_check_ui():
         }}
         .loader-brand-icon {{ font-size: 2.2rem; }}
         .loader-brand-text {{
-            font-size: 1.6rem; font-weight: 800; color: #2563eb;
+            font-size: 1.6rem; font-weight: 800; color: #000000;
         }}
         /* ── Card Body ── */
         .loader-card-body {{
@@ -132,76 +132,45 @@ st.set_page_config(
 
 # Health check on startup
 if "health_check_done" not in st.session_state:
-    healthy, health_data = premium_health_check_ui()
+    healthy, health_data = health_check_ui()
     st.session_state["backend_healthy"] = healthy
     st.session_state["health_data"] = health_data
     st.session_state["health_check_done"] = True
 
 # ── Service Status Page (shown when backend is unreachable) ──
+# ── Graceful Degradation (Soft Banner when backend is down) ──
 if not st.session_state.get("backend_healthy", False):
     st.markdown("""
     <style>
-    .status-page {
-        display: flex; flex-direction: column; align-items: center;
-        justify-content: center; min-height: 70vh; text-align: center;
-        padding: 2rem;
+    .degraded-banner {
+        background: #fffbeb; border: 1px solid #fde68a;
+        border-radius: 0.75rem; padding: 1rem 1.5rem;
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
-    .status-icon { font-size: 5rem; margin-bottom: 1rem; }
-    .status-title {
-        font-size: 2rem; font-weight: 800; color: #1e293b;
-        margin-bottom: 0.5rem;
-    }
-    .status-subtitle {
-        font-size: 1.1rem; color: #64748b; margin-bottom: 2rem;
-        max-width: 500px;
-    }
-    .cause-card {
-        background: #f8fafc; border: 1px solid #e2e8f0;
-        border-radius: 1rem; padding: 1.5rem; max-width: 550px;
-        width: 100%; text-align: left; margin-bottom: 1.5rem;
-    }
-    .cause-card h4 { color: #334155; margin: 0 0 0.75rem 0; font-size: 1rem; }
-    .cause-item {
-        display: flex; align-items: flex-start; gap: 0.6rem;
-        margin-bottom: 0.6rem; color: #475569; font-size: 0.95rem;
-    }
-    .cause-icon { flex-shrink: 0; font-size: 1.1rem; margin-top: 0.1rem; }
+    .degraded-content { display: flex; align-items: center; gap: 0.75rem; }
+    .degraded-icon { font-size: 1.25rem; }
+    .degraded-text { color: #92400e; font-weight: 500; font-size: 0.95rem; }
     </style>
-
-    <div class="status-page">
-        <div class="status-icon">🔌</div>
-        <div class="status-title">Unable to Connect</div>
-        <div class="status-subtitle">
-            MarketSense could not reach the backend engine.
-            This usually resolves itself in a few moments.
-        </div>
-        <div class="cause-card">
-            <h4>Possible causes</h4>
-            <div class="cause-item">
-                <span class="cause-icon">🖥️</span>
-                <span><strong>Backend server is not running</strong> — start it with <code>invoke run</code> in the backend directory.</span>
-            </div>
-            <div class="cause-item">
-                <span class="cause-icon">🌐</span>
-                <span><strong>Internet connection lost</strong> — check your Wi-Fi or network cable.</span>
-            </div>
-            <div class="cause-item">
-                <span class="cause-icon">⚙️</span>
-                <span><strong>Server error</strong> — the backend may have crashed. Check the terminal for errors.</span>
-            </div>
+    <div class="degraded-banner">
+        <div class="degraded-content">
+            <span class="degraded-icon">⚠️</span>
+            <span class="degraded-text">
+                <strong>Offline Mode:</strong> Backend engine is unreachable. Some features (Predictions, Data Pipeline) are limited.
+            </span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    col_l, col_c, col_r = st.columns([2, 1, 2])
-    with col_c:
-        if st.button("🔄 Retry", type="primary", use_container_width=True, key="retry_health"):
+    # Retry button in a small column to keep it neat
+    col_retry, _ = st.columns([1, 4])
+    with col_retry:
+        if st.button("🔄 Retry Connection", type="secondary", use_container_width=True, key="retry_health_banner"):
             st.session_state.pop("health_check_done", None)
             st.session_state.pop("backend_healthy", None)
             st.session_state.pop("health_data", None)
             st.rerun()
 
-    st.stop()
 
 
 # ── Custom CSS ────────────────────────────────────────────────

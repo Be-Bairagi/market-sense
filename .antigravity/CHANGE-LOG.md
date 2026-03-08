@@ -2,6 +2,16 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.5.1] - 2026-03-09
+### Added
+- **UI Branding Consistency**:
+  - Updated "MarketSense" loader text to black (#000000) for better contrast and brand presence.
+  - Renamed initialization UI function to `health_check_ui` across the codebase.
+- **Graceful Degradation Mode**:
+  - Replaced the blocking "Unable to Connect" hard error page with a soft, non-blocking warning banner.
+  - Users can now explore the application (About, Settings, etc.) even when the backend engine is unreachable.
+  - Added a "Retry Connection" button to the top-level warning banner.
+
 ## [1.5.0] - 2026-03-08
 ### Added
 - **Phase 5: Stock Screening Engine**:

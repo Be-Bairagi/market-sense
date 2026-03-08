@@ -146,7 +146,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 
 ---
 
-### Phase 7 — Frontend Overhaul (Beginner-Friendly UI)
+### Phase 7 — Frontend Overhaul (Beginner-Friendly UI) [/]
 **Goal:** Redesign Streamlit frontend to match the beginner-focused UX vision.
 **Estimated Effort:** 5–7 days
 **Detailed Plan:** [phase-7.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-7.md)
@@ -167,7 +167,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - **Page 5 — Model Accuracy Tracker:** Win rate, sector breakdown, prediction vs actual charts
 - Tooltip glossary for technical terms
 - Mobile-friendly layout pass
-- Loading states and error handling for all API calls
+- [x] Loading states and error handling for all API calls (Startup Loader + Offline Banner)
 
 ---
 
