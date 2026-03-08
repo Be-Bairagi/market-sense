@@ -49,49 +49,49 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 
 ---
 
-### Phase 1 — Codebase Cleanup & Indian Market Foundation
+### Phase 1 — Codebase Cleanup & Indian Market Foundation ✅
 **Goal:** Fix technical debt, eliminate duplicate code, and make the codebase India-ready.
 **Estimated Effort:** 2–3 days
 **Detailed Plan:** [phase-1.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-1.md)
 
 **Key Deliverables:**
-- Remove duplicate service files (`data_fetcher.py`, `yfinance_data_fetcher.py`, legacy `prophet_service.py`)
-- Fix the double-training call bug in Model Management page
-- Update ticker validation to support NSE format (`RELIANCE.NS`, `INFY.NS`)
-- Replace hardcoded US tickers with NSE/BSE stock lists in frontend
-- Fix frontend clients calling non-existent endpoints (`/validate`)
-- Add API versioning (`/api/v1/`) to all routes
+- [x] Remove duplicate service files (`data_fetcher.py`, `yfinance_data_fetcher.py`, legacy `prophet_service.py`)
+- [x] Fix the double-training call bug in Model Management page
+- [x] Update ticker validation to support NSE format (`RELIANCE.NS`, `INFY.NS`)
+- [x] Replace hardcoded US tickers with NSE/BSE stock lists in frontend
+- [x] Fix frontend clients calling non-existent endpoints (`/validate`)
+- [x] Add API versioning (`/api/v1/`) to all routes
 
 ---
 
-### Phase 2 — Data Ingestion & Storage Pipeline
+### Phase 2 — Data Ingestion & Storage Pipeline ✅
 **Goal:** Reliable, persisted, automatically-updated data for Indian stocks.
 **Estimated Effort:** 5–7 days
 **Detailed Plan:** [phase-2.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-2.md)
 
 **Key Deliverables:**
-- Create `stock_prices` DB table for OHLCV persistence
-- Build automated backfill for NIFTY 50 stocks (5-year history)
-- Add FII/DII daily activity ingestion
-- Add macro data feeds (USD/INR, Brent crude, India VIX)
-- Add news headline ingestion via RSS feeds
-- Data quality checks and retry logic
-- Scheduler for automated data refresh (APScheduler)
+- [x] Create `stock_prices` DB table for OHLCV persistence
+- [x] Build automated backfill for NIFTY 50 stocks (5-year history)
+- [x] Add FII/DII daily activity ingestion
+- [x] Add macro data feeds (USD/INR, Brent crude, India VIX)
+- [x] Add news headline ingestion via RSS feeds
+- [x] Data quality checks and retry logic
+- [x] Scheduler for automated data refresh (APScheduler)
 
 ---
 
-### Phase 3 — Feature Engineering Store
+### Phase 3 — Feature Engineering Store ✅
 **Goal:** Transform raw data into model-ready features. Build a reusable feature store.
 **Estimated Effort:** 4–5 days
 **Detailed Plan:** [phase-3.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-3.md)
 
 **Key Deliverables:**
-- Technical indicators: RSI, MACD, Bollinger Bands, ATR, EMA (9/21/50/200), OBV
-- Volume signals: delivery % z-score, volume spike ratio
-- Market context: NIFTY 50 trend, India VIX level, sector relative strength
-- Sentiment: news headline scoring (VADER → FinBERT)
-- Feature store schema (per stock, per timestamp, per horizon)
-- Incremental feature update pipeline
+- [x] Technical indicators: RSI, MACD, Bollinger Bands, ATR, EMA (9/21/50/200), OBV
+- [x] Volume signals: delivery % z-score, volume spike ratio
+- [x] Market context: NIFTY 50 trend, India VIX level, sector relative strength
+- [x] Sentiment: news headline scoring (VADER → FinBERT)
+- [x] Feature store schema (per stock, per timestamp, per horizon)
+- [x] Incremental feature update pipeline
 
 ---
 
@@ -101,7 +101,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 **Detailed Plan:** [phase-4.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-4.md)
 
 **Key Deliverables:**
-- **4A** — Short-term XGBoost (1–5 day direction prediction) — **build first**
+- [x] **4A** — Short-term XGBoost (1–5 day direction prediction) — **build first (DONE)**
 - **4B** — Upgrade existing Prophet to use feature store + compute real metrics
 - **4C** — Swing Random Forest (1–4 week horizon)
 - Walk-forward backtesting framework (shared across all models)
@@ -111,18 +111,18 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 
 ---
 
-### Phase 5 — Stock Screening Engine
+### Phase 5 — Stock Screening Engine ✅
 **Goal:** Nightly scan of NIFTY 50/500 stocks → surface top 5 actionable picks.
 **Estimated Effort:** 3–4 days
 **Detailed Plan:** [phase-5.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-5.md)
 
 **Key Deliverables:**
-- Composite scoring function (model confidence + risk-adjusted return + momentum)
-- Filter pipeline (circuit limits, volatility, liquidity, market cap)
-- Post-close screener job (4:00 PM IST)
-- Sector diversification in picks
-- "Why this stock today?" explanation generator
-- Top-picks DB table with full reasoning
+- [x] Composite scoring function (model confidence + risk-adjusted return + momentum)
+- [x] Filter pipeline (circuit limits, volatility, liquidity, market cap)
+- [x] Post-close screener job (4:00 PM IST - updated to 5:00 PM IST)
+- [x] Sector diversification in picks
+- [x] "Why this stock today?" explanation generator
+- [x] Top-picks DB table with full reasoning
 
 ---
 

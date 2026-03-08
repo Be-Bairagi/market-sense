@@ -7,9 +7,9 @@ This checklist should be completed after every major feature/phase implementatio
 - [ ] **Commit Message**: Use clear, descriptive messages (e.g., `Phase 5: Stock Screening Engine complete. Integrated composite scoring...`).
 - [ ] **Branching**: (If applicable) Ensure you are on the correct feature branch or main.
 
-## 2. Update Project Roadmap (`.antigravity/ROADMAP.md`)
-- [ ] **Check Off Tasks**: Mark completed items with `[x]`.
-- [ ] **Update Status**: Change the phase header to include a `✅` and updated title (e.g., `## Phase 4 (Executed as Phase 5) — Stock Screening Engine ✅`).
+## 2. Update Project Scope (`.antigravity/SCOPE.md`)
+- [ ] **Check Off Tasks**: Mark completed items with `[x]` in the relevant phase section.
+- [ ] **Update Status**: Change the phase header to include a `✅` (e.g., `### Phase 5 — Stock Screening Engine ✅`).
 - [ ] **Identify Next Steps**: Ensure the next phase/tasks are clearly defined for the user.
 
 ## 3. Update Change-log (`.antigravity/CHANGE-LOG.md`)
