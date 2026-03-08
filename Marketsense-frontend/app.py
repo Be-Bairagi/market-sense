@@ -11,6 +11,17 @@ from services.dashboard_service import DashboardService
 BACKEND_URL = "http://localhost:8000"
 HEALTH_ENDPOINT = f"{BACKEND_URL}/health"
 
+# ── Pro Tips (shown during Engine Loader) ─────────────────────
+TIPS = [
+    "We always show a **Stop Loss**. Never invest without one.",
+    "Confidence above **75%** means the AI is very sure about its signal.",
+    "The **Bear Case** tells you what could go wrong — always read it.",
+    "Use **Today's Picks** for automated, beginner-friendly stock recommendations.",
+    "MarketSense tracks **40+ technical indicators** so you don't have to.",
+    "We monitor **FII & DII flows** and **India VIX** for macro-aware signals.",
+    "Train custom AI models for any NIFTY 50 stock in **Model Management**.",
+]
+
 
 def check_backend_health():
     """Check if backend is available."""
@@ -24,20 +35,10 @@ def check_backend_health():
 
 
 def premium_health_check_ui():
-    """Enhanced industry-standard loading screen with rotating tips."""
-    tips = [
-        "Use the **Todays Picks** page for automated, beginner-friendly stock recommendations.",
-        "You can train custom AI models for any NIFTY 50 stock in the **Model Management** section.",
-        "Check **Model Performance** to see accuracy and backtests for all trained models.",
-        "MarketSense tracks **40+ technical indicators** including RSI, MACD, and Bollinger Bands.",
-        "We monitor **FII & DII flows** and **India VIX** to provide a macro-aware trading signal.",
-        "Clear BUY/HOLD/AVOID signals help you navigate markets without complex jargon.",
-        "The **Data Pipeline** section allows you to trigger fresh ingestion and feature computation."
-    ]
-    
+    """Engine Initialization Loader — multi-step animated sequence with rotating tips."""
     placeholder = st.empty()
-    tip = random.choice(tips)
-    
+    tip = random.choice(TIPS)
+
     with placeholder.container():
         st.markdown("""
         <style>
@@ -49,14 +50,13 @@ def premium_health_check_ui():
         }
         .loader-logo { font-size: 3.5rem; margin-bottom: 1rem; animation: pulse 2s infinite ease-in-out; }
         @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
+            0%   { transform: scale(0.95); opacity: 0.8; }
+            50%  { transform: scale(1.05); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.8; }
         }
         .loading-title { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
-        .loading-step { font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; height: 1.5rem; font-weight: 500; }
-        .tip-box { 
-            background: #f0f7ff; border-radius: 1rem; padding: 1.2rem; 
+        .tip-box {
+            background: #f0f7ff; border-radius: 1rem; padding: 1.2rem;
             border-left: 5px solid #2563eb; text-align: left; width: 100%;
         }
         .tip-header { color: #2563eb; font-weight: 700; margin-bottom: 0.3rem; font-size: 0.9rem; letter-spacing: 0.05rem; text-transform: uppercase; }
@@ -64,18 +64,18 @@ def premium_health_check_ui():
             width: 100%; background: #e2e8f0; border-radius: 999px; height: 6px; margin-bottom: 2rem; overflow: hidden;
         }
         .progress-bar-fill {
-            height: 100%; background: linear-gradient(90deg, #2563eb, #3b82f6); width: 0%; transition: width 0.4s ease;
+            height: 100%; background: linear-gradient(90deg, #2563eb, #3b82f6); width: 0%; transition: width 0.5s ease;
         }
         </style>
         """, unsafe_allow_html=True)
-        
+
         st.markdown('<div class="premium-loader">', unsafe_allow_html=True)
         st.markdown('<div class="loader-logo">🚀</div>', unsafe_allow_html=True)
         st.markdown('<div class="loading-title">MarketSense Engine</div>', unsafe_allow_html=True)
-        
+
         status_text = st.empty()
         progress_bar = st.empty()
-        
+
         st.markdown(f"""
         <div class="tip-box">
             <div class="tip-header">💡 Pro Tip</div>
@@ -84,20 +84,23 @@ def premium_health_check_ui():
         """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Sequence of checks
+        # Animated step sequence (~3 s total: 5 × 0.6 s)
         steps = [
-            ("📡 Establishing connection...", 20),
-            ("🗄️ Checking database integrity...", 45),
-            ("🌐 Testing external data feeds...", 70),
-            ("🧠 Loading model weights...", 90),
-            ("✅ System Ready", 100)
+            ("📡 Connecting to market data...",           20),
+            ("🧠 Loading AI prediction models...",        40),
+            ("📰 Fetching today's news sentiment...",     60),
+            ("🔍 Running stock screener...",               85),
+            ("✅ Your picks are ready.",                  100),
         ]
-        
-        # Real check in background
+
+        # Real health check runs while the animation plays
         healthy, health_data = check_backend_health()
-        
+
         for msg, progress in steps:
-            status_text.markdown(f'<div style="text-align:center; color:#64748b; margin-bottom:0.5rem;">{msg}</div>', unsafe_allow_html=True)
+            status_text.markdown(
+                f'<div style="text-align:center; color:#64748b; margin-bottom:0.5rem;">{msg}</div>',
+                unsafe_allow_html=True,
+            )
             progress_bar.markdown(f"""
             <div style="width:100%; max-width:400px; margin:0 auto 2rem auto;">
                 <div class="progress-bar-container">
@@ -105,11 +108,18 @@ def premium_health_check_ui():
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            time.sleep(0.3)
-            
+            time.sleep(0.6)
+
     placeholder.empty()
     return healthy, health_data
 
+
+# ── Page Config (must be the very first st.* call) ───────────
+st.set_page_config(
+    page_title="MarketSense — AI Stock Predictor",
+    page_icon="📈",
+    layout="wide",
+)
 
 # Health check on startup
 if "health_check_done" not in st.session_state:
@@ -118,42 +128,33 @@ if "health_check_done" not in st.session_state:
     st.session_state["health_data"] = health_data
     st.session_state["health_check_done"] = True
 
-# If backend is down, show error page
+# ── Soft degradation banner (replaces old hard 503 block) ────
 if not st.session_state.get("backend_healthy", False):
-    st.set_page_config(page_title="Service Unavailable", page_icon="⚠️")
     st.markdown("""
-    <style>
-    .error-container {
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        min-height: 60vh; text-align: center;
-    }
-    .error-code { font-size: 6rem; font-weight: bold; color: #dc2626; margin-bottom: 1rem; }
-    .error-title { font-size: 1.5rem; color: #1f2937; margin-bottom: 0.5rem; }
-    .error-message { color: #6b7280; margin-bottom: 2rem; }
-    </style>
+    <div style="
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-left: 5px solid #f59e0b;
+        border-radius: 0.75rem; padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;
+    ">
+        <span style="font-size:1.5rem;">⚠️</span>
+        <div>
+            <strong style="color:#92400e;">Backend connection issue</strong><br>
+            <span style="color:#78350f; font-size:0.9rem;">
+                Some features may be unavailable. The app will show cached data where possible.
+            </span>
+        </div>
+    </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="error-container">', unsafe_allow_html=True)
-    st.markdown('<div class="error-code">503</div>', unsafe_allow_html=True)
-    st.markdown('<div class="error-title">Service Temporarily Unavailable</div>', unsafe_allow_html=True)
-    st.markdown('<div class="error-message">Unable to connect to the backend.<br>Ensure the server is running on http://localhost:8000</div>', unsafe_allow_html=True)
+    col_retry, _ = st.columns([1, 4])
+    with col_retry:
+        if st.button("🔄 Retry Connection", type="primary", key="retry_health"):
+            st.session_state.pop("health_check_done", None)
+            st.session_state.pop("backend_healthy", None)
+            st.session_state.pop("health_data", None)
+            st.rerun()
 
-    if st.button("🔄 Retry Connection", type="primary"):
-        st.session_state.pop("health_check_done", None)
-        st.session_state.pop("backend_healthy", None)
-        st.session_state.pop("health_data", None)
-        st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.stop()
-
-# ── Page Config ───────────────────────────────────────────────
-st.set_page_config(
-    page_title="MarketSense — AI Stock Predictor",
-    page_icon="📈",
-    layout="wide",
-)
 
 # ── Custom CSS ────────────────────────────────────────────────
 st.markdown("""
