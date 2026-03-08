@@ -35,80 +35,89 @@ def check_backend_health():
 
 
 def premium_health_check_ui():
-    """Engine Initialization Loader — multi-step animated sequence with rotating tips."""
+    """Engine Initialization Loader — centered card with branding, spinner, and tips."""
     placeholder = st.empty()
     tip = random.choice(TIPS)
 
     with placeholder.container():
-        st.markdown("""
-        <style>
-        .premium-loader {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 3rem; text-align: center; background: #ffffff; border-radius: 1.5rem;
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1); margin: 5vh auto; max-width: 600px;
-            border: 1px solid #e2e8f0;
-        }
-        .loader-logo { font-size: 3.5rem; margin-bottom: 1rem; animation: pulse 2s infinite ease-in-out; }
-        @keyframes pulse {
-            0%   { transform: scale(0.95); opacity: 0.8; }
-            50%  { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-        .loading-title { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
-        .tip-box {
-            background: #f0f7ff; border-radius: 1rem; padding: 1.2rem;
-            border-left: 5px solid #2563eb; text-align: left; width: 100%;
-        }
-        .tip-header { color: #2563eb; font-weight: 700; margin-bottom: 0.3rem; font-size: 0.9rem; letter-spacing: 0.05rem; text-transform: uppercase; }
-        .progress-bar-container {
-            width: 100%; background: #e2e8f0; border-radius: 999px; height: 6px; margin-bottom: 2rem; overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%; background: linear-gradient(90deg, #2563eb, #3b82f6); width: 0%; transition: width 0.5s ease;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-        st.markdown('<div class="premium-loader">', unsafe_allow_html=True)
-        st.markdown('<div class="loader-logo">🚀</div>', unsafe_allow_html=True)
-        st.markdown('<div class="loading-title">MarketSense Engine</div>', unsafe_allow_html=True)
-
-        status_text = st.empty()
-        progress_bar = st.empty()
-
         st.markdown(f"""
-        <div class="tip-box">
-            <div class="tip-header">💡 Pro Tip</div>
-            <div style="color: #475569; font-size: 0.95rem;">{tip}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        <style>
+        .loader-overlay {{
+            display: flex; align-items: center; justify-content: center;
+            min-height: 80vh; padding: 2rem;
+        }}
+        .loader-card {{
+            background: #ffffff; border-radius: 1.25rem;
+            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.12);
+            border: 1px solid #e2e8f0; max-width: 460px; width: 100%;
+            overflow: hidden;
+        }}
+        /* ── Card Header ── */
+        .loader-card-header {{
+            padding: 2rem 2rem 1.25rem 2rem; text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+        }}
+        .loader-brand {{
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }}
+        .loader-brand-icon {{ font-size: 2.2rem; }}
+        .loader-brand-text {{
+            font-size: 1.6rem; font-weight: 800; color: #2563eb;
+        }}
+        /* ── Card Body ── */
+        .loader-card-body {{
+            padding: 2rem; display: flex; align-items: center;
+            justify-content: center; gap: 1rem;
+        }}
+        .circular-spinner {{
+            width: 28px; height: 28px; border: 3px solid #e2e8f0;
+            border-top: 3px solid #2563eb; border-radius: 50%;
+            animation: spin 0.8s linear infinite; flex-shrink: 0;
+        }}
+        @keyframes spin {{
+            0%   {{ transform: rotate(0deg); }}
+            100% {{ transform: rotate(360deg); }}
+        }}
+        .loader-status {{
+            font-size: 1.05rem; color: #64748b; font-weight: 500;
+        }}
+        /* ── Card Footer ── */
+        .loader-card-footer {{
+            padding: 1.25rem 2rem; background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+        }}
+        .tip-label {{
+            color: #2563eb; font-weight: 700; font-size: 0.75rem;
+            letter-spacing: 0.06rem; text-transform: uppercase;
+            margin-bottom: 0.3rem;
+        }}
+        .tip-text {{ color: #475569; font-size: 0.9rem; line-height: 1.45; }}
+        </style>
 
-        # Animated step sequence (~3 s total: 5 × 0.6 s)
-        steps = [
-            ("📡 Connecting to market data...",           20),
-            ("🧠 Loading AI prediction models...",        40),
-            ("📰 Fetching today's news sentiment...",     60),
-            ("🔍 Running stock screener...",               85),
-            ("✅ Your picks are ready.",                  100),
-        ]
-
-        # Real health check runs while the animation plays
-        healthy, health_data = check_backend_health()
-
-        for msg, progress in steps:
-            status_text.markdown(
-                f'<div style="text-align:center; color:#64748b; margin-bottom:0.5rem;">{msg}</div>',
-                unsafe_allow_html=True,
-            )
-            progress_bar.markdown(f"""
-            <div style="width:100%; max-width:400px; margin:0 auto 2rem auto;">
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: {progress}%;"></div>
+        <div class="loader-overlay">
+            <div class="loader-card">
+                <div class="loader-card-header">
+                    <div class="loader-brand">
+                        <span class="loader-brand-icon">🚀</span>
+                        <span class="loader-brand-text">MarketSense</span>
+                    </div>
+                </div>
+                <div class="loader-card-body">
+                    <div class="circular-spinner"></div>
+                    <span class="loader-status">Loading...</span>
+                </div>
+                <div class="loader-card-footer">
+                    <div class="tip-label">💡 Pro Tip</div>
+                    <div class="tip-text">{tip}</div>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
-            time.sleep(0.6)
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Real health check runs while the card is displayed
+        healthy, health_data = check_backend_health()
+        # Hold the card visible for a moment so the user sees the branding
+        time.sleep(2.5)
 
     placeholder.empty()
     return healthy, health_data
