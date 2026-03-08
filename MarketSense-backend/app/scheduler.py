@@ -3,12 +3,13 @@ import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from app.database import engine
-from sqlmodel import Session
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from app.services.data_ingestion_service import DataIngestionService
 from app.services.feature_computation_service import FeatureComputationService
 from app.services.sentiment_service import SentimentService
 from app.data.nifty50 import NIFTY_50_STOCKS
+from app.services.screener_service import ScreenerService
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,17 @@ def compute_daily_features():
         try:
             FeatureComputationService.compute_features(stock["symbol"])
         except Exception as e:
-            logger.error(f"Feature computation failed for {stock['symbol']}: {e}")
+            logger.error("Feature computation failed for %s: %s", stock["symbol"], e)
     logger.info("Finished scheduled feature computation.")
+
+def run_daily_screener():
+    """Daily job to run the stock screener after features are computed."""
+    logger.info("Starting scheduled screener run...")
+    try:
+        picks = ScreenerService.run_screener()
+        logger.info("Screener completed: %d picks stored.", len(picks))
+    except Exception as e:
+        logger.error("Screener job failed: %s", e)
 
 def start_scheduler():
     """Register and start all background jobs."""
@@ -88,8 +98,17 @@ def start_scheduler():
             replace_existing=True
         )
 
+        # 5. Stock screener: Daily at 5:00 PM IST (after feature computation)
+        scheduler.add_job(
+            run_daily_screener,
+            CronTrigger(hour=17, minute=0),
+            id="screener_update",
+            name="Daily Stock Screener",
+            replace_existing=True
+        )
+
         scheduler.start()
-        logger.info("Background scheduler started with 4 jobs (IST timezone).")
+        logger.info("Background scheduler started with 5 jobs (IST timezone).")
 
 def stop_scheduler():
     """Shut down the scheduler."""

@@ -85,6 +85,19 @@ Ticker symbols contain dots (e.g., `RELIANCE.NS`), but model filenames and regis
 XGBoost training pulls from the `feature_vectors` table. If features haven't been backfilled after a price data ingestion, training fails with "Insufficient historical features: 0".
 - **The Workflow**: Always run data backfill → feature backfill → train, in that order.
 
+### 16. Composite Scoring Normalization
+Calculating a 0-1 score from diverse metrics (confidence, upside%, RSI, sentiment) requires careful normalization.
+- **The Hack**: Map each sub-metric to a 0-1 range first. For upside, use `min(upside / 0.05, 1.0)` assuming a 5% move is a "perfect" score. For RSI, use range-based mapping (e.g., 30-50 is better than > 70).
+- **The Weighting**: Assign heavier weights to the model's confidence but use technical/sentiment indicators as "sanity checks" to boost or dampen the final rank.
+
+### 17. Sector Diversification Logic
+A naive "top 5" screener often picks 5 stocks from the same trending sector (e.g., all Bank Nifty).
+- **The Solution**: Use a "Cap & Fill" approach. Cap picks at 2 per sector. If you run out of 5 picks, start ignoring the cap for the next best stocks. This ensures at least 3 distinct sectors are represented in the top 5.
+
+### 18. Manual Trigger vs. Scheduled Job
+Long-running screener runs (scanning 50+ stocks) can timeout a standard HTTP request.
+- **The Fix**: Use `BackgroundTasks` in FastAPI for the `POST /screener/run` endpoint. It returns an immediate "Started" response while the logic runs in the background, mirroring the `APScheduler` behavior.
+
 ## 📈 Database Patterns
 - **Postgres (Neon)**: The project uses Neon for hosted Postgres. Key configuration variables are managed via `.env`.
 - **Pre-ping & Recycle**: The engine includes `pool_pre_ping=True` and `pool_recycle=300` to handle stale connections in a serverless environment.

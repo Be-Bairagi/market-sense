@@ -204,7 +204,7 @@ Phases are designed to be executed sequentially. Each phase must be fully stable
 
 ---
 
-## Phase 4 — Stock Screening Engine
+## Phase 4 (Executed as Phase 5) — Stock Screening Engine ✅
 **Goal:** Nightly automated scan of all NSE 500 stocks. Surface the top 5 actionable picks per day for the beginner user. This replaces manual stock tracking entirely.
 
 ### Scoring Logic
@@ -223,14 +223,14 @@ Each stock receives a composite score:
 - Minimum confidence threshold: 65%
 
 ### Tasks
-- [ ] Build composite scoring function
-- [ ] Build filter pipeline (circuit, volatility, liquidity, market cap)
-- [ ] Implement nightly screener job (runs at market close: 3:45 PM IST)
-- [ ] Store daily top-picks list to DB with full reasoning
-- [ ] Add sector diversification to picks (don't return 5 IT stocks)
-- [ ] Build "why this stock today?" explanation generator
-- [ ] Log screener performance: how often top picks outperformed NIFTY
-- [ ] Write tests for scoring, filtering, and output schema
+- [x] Build composite scoring function
+- [x] Build filter pipeline (circuit, volatility, liquidity, market cap)
+- [x] Implement nightly screener job (runs at market close: 3:45 PM IST - updated to 5:00 PM IST)
+- [x] Store daily top-picks list to DB with full reasoning
+- [x] Add sector diversification to picks (don't return 5 IT stocks)
+- [x] Build "why this stock today?" explanation generator
+- [x] Log screener performance: how often top picks outperformed NIFTY
+- [x] Write tests for scoring, filtering, and output schema
 
 ### Output
 - Daily top-5 curated stock picks stored in DB

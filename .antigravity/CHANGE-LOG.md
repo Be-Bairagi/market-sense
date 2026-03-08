@@ -2,6 +2,24 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-03-08
+### Added
+- **Phase 5: Stock Screening Engine**:
+  - Built `ScreenerService` with composite scoring (weighted: 50% confidence, 20% risk-reward, 15% momentum, 15% sentiment).
+  - Implemented filter pipeline: excludes AVOID signals, low confidence (<65%), penny stocks (<₹50), and high volatility (ATR >5% of price).
+  - Implemented sector diversification: caps at 2 picks per sector to ensure at least 3 distinct sectors in the top 5.
+  - Created `DailyPick` model and `daily_picks` table for persistence.
+  - Added `GET /screener/today` and `GET /screener/history` endpoints.
+  - Added `POST /screener/run` for manual background triggers.
+  - Integrated `run_daily_screener` into the scheduler at 5:00 PM IST daily.
+  - Created "Today's Picks" frontend page (`7_Todays_Picks.py`) with rich signal cards and historical view.
+
+### Fixed
+- **Explanation Service Null Reference**: Handled cases where `rsi_14` or other features might be `None` during screener scoring.
+- **Screener Ticker Sanitization**: Ensured consistent dot-to-underscore mapping (`RELIANCE.NS` → `RELIANCE_NS`) when pulling models from the registry.
+
+---
+
 ## [1.4.0] - 2026-03-08
 ### Added
 - **Phase 4: Prediction Models (Short-Term XGBoost)**:
