@@ -78,12 +78,15 @@ def predict_xgboost(model_path: str, n_days: int = 5) -> PredictionOutput:
     direction = directions.get(direction_idx, "HOLD")
     
     # 3. Targets and Risk
-    curr_price = features.get("current_close", 0.0)
+    curr_price = features.get("current_close") or 0.0
     target_low = curr_price * 0.98
     target_high = curr_price * 1.05
     
     # Simple risk mapping
-    vix = features.get("india_vix_level", 15.0)
+    vix = features.get("india_vix_level")
+    if vix is None:
+        vix = 15.0
+    
     risk = "MEDIUM"
     if vix < 12.0: risk = "LOW"
     elif vix > 20.0: risk = "HIGH"
