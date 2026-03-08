@@ -128,32 +128,77 @@ if "health_check_done" not in st.session_state:
     st.session_state["health_data"] = health_data
     st.session_state["health_check_done"] = True
 
-# ── Soft degradation banner (replaces old hard 503 block) ────
+# ── Service Status Page (shown when backend is unreachable) ──
 if not st.session_state.get("backend_healthy", False):
     st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        border-left: 5px solid #f59e0b;
-        border-radius: 0.75rem; padding: 1rem 1.5rem;
-        margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;
-    ">
-        <span style="font-size:1.5rem;">⚠️</span>
-        <div>
-            <strong style="color:#92400e;">Backend connection issue</strong><br>
-            <span style="color:#78350f; font-size:0.9rem;">
-                Some features may be unavailable. The app will show cached data where possible.
-            </span>
+    <style>
+    .status-page {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; min-height: 70vh; text-align: center;
+        padding: 2rem;
+    }
+    .status-icon { font-size: 5rem; margin-bottom: 1rem; }
+    .status-title {
+        font-size: 2rem; font-weight: 800; color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    .status-subtitle {
+        font-size: 1.1rem; color: #64748b; margin-bottom: 2rem;
+        max-width: 500px;
+    }
+    .cause-card {
+        background: #f8fafc; border: 1px solid #e2e8f0;
+        border-radius: 1rem; padding: 1.5rem; max-width: 550px;
+        width: 100%; text-align: left; margin-bottom: 1.5rem;
+    }
+    .cause-card h4 { color: #334155; margin: 0 0 0.75rem 0; font-size: 1rem; }
+    .cause-item {
+        display: flex; align-items: flex-start; gap: 0.6rem;
+        margin-bottom: 0.6rem; color: #475569; font-size: 0.95rem;
+    }
+    .cause-icon { flex-shrink: 0; font-size: 1.1rem; margin-top: 0.1rem; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="status-page">', unsafe_allow_html=True)
+    st.markdown('<div class="status-icon">🔌</div>', unsafe_allow_html=True)
+    st.markdown('<div class="status-title">Unable to Connect</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="status-subtitle">'
+        'MarketSense could not reach the backend engine. '
+        'This usually resolves itself in a few moments.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("""
+    <div class="cause-card">
+        <h4>Possible causes</h4>
+        <div class="cause-item">
+            <span class="cause-icon">🖥️</span>
+            <span><strong>Backend server is not running</strong> — start it with <code>invoke run</code> in the backend directory.</span>
+        </div>
+        <div class="cause-item">
+            <span class="cause-icon">🌐</span>
+            <span><strong>Internet connection lost</strong> — check your Wi-Fi or network cable.</span>
+        </div>
+        <div class="cause-item">
+            <span class="cause-icon">⚙️</span>
+            <span><strong>Server error</strong> — the backend may have crashed. Check the terminal for errors.</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    col_retry, _ = st.columns([1, 4])
-    with col_retry:
-        if st.button("🔄 Retry Connection", type="primary", key="retry_health"):
+    col_l, col_c, col_r = st.columns([2, 1, 2])
+    with col_c:
+        if st.button("🔄 Retry", type="primary", use_container_width=True, key="retry_health"):
             st.session_state.pop("health_check_done", None)
             st.session_state.pop("backend_healthy", None)
             st.session_state.pop("health_data", None)
             st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.stop()
 
 
 # ── Custom CSS ────────────────────────────────────────────────
