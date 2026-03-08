@@ -1,8 +1,9 @@
 # app.py
+import random
+import time
 from datetime import datetime
-
-import requests
 import streamlit as st
+import requests
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 
@@ -22,10 +23,97 @@ def check_backend_health():
         return False, None
 
 
+def premium_health_check_ui():
+    """Enhanced industry-standard loading screen with rotating tips."""
+    tips = [
+        "Use the **Todays Picks** page for automated, beginner-friendly stock recommendations.",
+        "You can train custom AI models for any NIFTY 50 stock in the **Model Management** section.",
+        "Check **Model Performance** to see accuracy and backtests for all trained models.",
+        "MarketSense tracks **40+ technical indicators** including RSI, MACD, and Bollinger Bands.",
+        "We monitor **FII & DII flows** and **India VIX** to provide a macro-aware trading signal.",
+        "Clear BUY/HOLD/AVOID signals help you navigate markets without complex jargon.",
+        "The **Data Pipeline** section allows you to trigger fresh ingestion and feature computation."
+    ]
+    
+    placeholder = st.empty()
+    tip = random.choice(tips)
+    
+    with placeholder.container():
+        st.markdown("""
+        <style>
+        .premium-loader {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 3rem; text-align: center; background: #ffffff; border-radius: 1.5rem;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1); margin: 5vh auto; max-width: 600px;
+            border: 1px solid #e2e8f0;
+        }
+        .loader-logo { font-size: 3.5rem; margin-bottom: 1rem; animation: pulse 2s infinite ease-in-out; }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .loading-title { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+        .loading-step { font-size: 1rem; color: #64748b; margin-bottom: 1.5rem; height: 1.5rem; font-weight: 500; }
+        .tip-box { 
+            background: #f0f7ff; border-radius: 1rem; padding: 1.2rem; 
+            border-left: 5px solid #2563eb; text-align: left; width: 100%;
+        }
+        .tip-header { color: #2563eb; font-weight: 700; margin-bottom: 0.3rem; font-size: 0.9rem; letter-spacing: 0.05rem; text-transform: uppercase; }
+        .progress-bar-container {
+            width: 100%; background: #e2e8f0; border-radius: 999px; height: 6px; margin-bottom: 2rem; overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%; background: linear-gradient(90deg, #2563eb, #3b82f6); width: 0%; transition: width 0.4s ease;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="premium-loader">', unsafe_allow_html=True)
+        st.markdown('<div class="loader-logo">🚀</div>', unsafe_allow_html=True)
+        st.markdown('<div class="loading-title">MarketSense Engine</div>', unsafe_allow_html=True)
+        
+        status_text = st.empty()
+        progress_bar = st.empty()
+        
+        st.markdown(f"""
+        <div class="tip-box">
+            <div class="tip-header">💡 Pro Tip</div>
+            <div style="color: #475569; font-size: 0.95rem;">{tip}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # Sequence of checks
+        steps = [
+            ("📡 Establishing connection...", 20),
+            ("🗄️ Checking database integrity...", 45),
+            ("🌐 Testing external data feeds...", 70),
+            ("🧠 Loading model weights...", 90),
+            ("✅ System Ready", 100)
+        ]
+        
+        # Real check in background
+        healthy, health_data = check_backend_health()
+        
+        for msg, progress in steps:
+            status_text.markdown(f'<div style="text-align:center; color:#64748b; margin-bottom:0.5rem;">{msg}</div>', unsafe_allow_html=True)
+            progress_bar.markdown(f"""
+            <div style="width:100%; max-width:400px; margin:0 auto 2rem auto;">
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: {progress}%;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            time.sleep(0.3)
+            
+    placeholder.empty()
+    return healthy, health_data
+
+
 # Health check on startup
 if "health_check_done" not in st.session_state:
-    with st.spinner("Checking backend services..."):
-        healthy, health_data = check_backend_health()
+    healthy, health_data = premium_health_check_ui()
     st.session_state["backend_healthy"] = healthy
     st.session_state["health_data"] = health_data
     st.session_state["health_check_done"] = True

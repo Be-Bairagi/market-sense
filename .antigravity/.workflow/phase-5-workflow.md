@@ -23,6 +23,11 @@ This workflow covers the nightly automated scan and ranking of NIFTY 50 stocks.
 
 1. **Service Layer**: Add `fetch_todays_picks`, `fetch_picks_history`, and `trigger_screener` to `DashboardService`.
 2. **UI Page**: Create `pages/7_Todays_Picks.py` showcasing the top 5 stock cards with signal colors, metrics, and "Why?" expanders.
+3. **UX Upgrade**: Enhance `app.py` with the premium startup loader and rotating pro tips.
+
+## 3. Logic Fixes & Edge Cases
+- [x] **Null Macro Handling**: Ensure `xgboost_predictor.py` handles `None` for VIX/Macro features during scoring.
+- [x] **Ticker Sanitization**: Map `RELIANCE.NS` to `RELIANCE_NS` for model registry lookups.
 
 ## 3. Verification
 
