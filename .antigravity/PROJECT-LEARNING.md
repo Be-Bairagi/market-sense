@@ -98,6 +98,11 @@ A naive "top 5" screener often picks 5 stocks from the same trending sector (e.g
 Long-running screener runs (scanning 50+ stocks) can timeout a standard HTTP request.
 - **The Fix**: Use `BackgroundTasks` in FastAPI for the `POST /screener/run` endpoint. It returns an immediate "Started" response while the logic runs in the background, mirroring the `APScheduler` behavior.
 
+### 19. Handling Null Macro Features in Predictors
+- External macro data (like VIX or USDINR) may be missing for current day if APIs fail or markets are closed but the local engine is running.
+- Comparison logic like `if vix < 12.0` will crash with `TypeError` if `vix` is `None`.
+- **Solution**: Always use `.get(key)` and explicitly handle `None` with a fallback default before comparison.
+
 ## 📈 Database Patterns
 - **Postgres (Neon)**: The project uses Neon for hosted Postgres. Key configuration variables are managed via `.env`.
 - **Pre-ping & Recycle**: The engine includes `pool_pre_ping=True` and `pool_recycle=300` to handle stale connections in a serverless environment.

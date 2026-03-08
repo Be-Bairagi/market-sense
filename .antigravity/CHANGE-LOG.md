@@ -17,6 +17,8 @@ All notable changes to the MarketSense project will be documented in this file, 
 ### Fixed
 - **Explanation Service Null Reference**: Handled cases where `rsi_14` or other features might be `None` during screener scoring.
 - **Screener Ticker Sanitization**: Ensured consistent dot-to-underscore mapping (`RELIANCE.NS` → `RELIANCE_NS`) when pulling models from the registry.
+- **XGBoost Predictor Null Comparison**: Fixed `TypeError` when comparing `NoneType` macro features (like VIX) by adding explicit null checks and defaults.
+- **Verification Success**: Today's Picks UI verified with `RELIANCE.NS` as the first automated pick.
 
 ---
 
