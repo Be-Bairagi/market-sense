@@ -10,7 +10,19 @@ st.set_page_config(
 )
 
 st.title("🏆 Today's Top Picks")
-st.write("AI-curated daily stock picks — scored, filtered, and diversified automatically.")
+st.markdown("""
+**New to the market?** No problem. Our AI scans the NIFTY 50 and NIFTY 500 stocks every evening, 
+analyzing over 40+ signals per stock to bring you the top 5 most stable and promising opportunities.
+""")
+
+with st.expander("🤔 Why should I follow these picks?"):
+    st.markdown("""
+    - **Scored & Ranked**: Each stock is given a 'Composite Score' based on its trend, volume, and AI confidence.
+    - **Diversified**: We try to pick stocks from different industries (sectors) to minimize your risk.
+    - **Safety First**: Every pick comes with a **Stop Loss** — a price at which the AI recommends exiting if things don't go as planned.
+    - **Transparent**: We show you the 'Key Drivers' (the reasons) why the AI liked the stock.
+    """)
+
 st.markdown("---")
 
 # ── Controls ──────────────────────────────────────────────────
@@ -68,8 +80,8 @@ else:
             # Header Row
             hdr1, hdr2 = st.columns([3, 1])
             with hdr1:
-                st.subheader(f"#{rank} · {name} ({symbol})")
-                st.caption(f"**Sector:** {sector}")
+                st.subheader(f"#{rank} · {name}")
+                st.caption(f"**Symbol:** {symbol} · **Sector:** {sector}")
             with hdr2:
                 # Use a right-aligned metric-like display for the signal
                 signal_color = "green" if direction == "BUY" else "orange" if direction == "HOLD" else "red"

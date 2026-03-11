@@ -5,7 +5,8 @@ import plotly.graph_objects as go
 import streamlit as st
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
-from app import health_check_ui
+from components.pulse import render_pulse_skeleton, render_market_pulse_cards
+from utils.health import check_backend_health
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,10 @@ if 'current_data' not in st.session_state:
     st.session_state.current_data = None
 if 'current_ticker' not in st.session_state:
     st.session_state.current_ticker = None
+if 'show_market_pulse' not in st.session_state:
+    st.session_state.show_market_pulse = False
+if 'pulse_data' not in st.session_state:
+    st.session_state.pulse_data = None
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -25,144 +30,94 @@ st.set_page_config(
     layout="wide",
 )
 
-# Render offline banner if backend is unreachable
-health_check_ui()
+# Silent health check for Dashboard (avoids the blocking brand-loader with 2.5s delay)
+if "health_check_done" not in st.session_state:
+    healthy, health_data = check_backend_health()
+    st.session_state["backend_healthy"] = healthy
+    st.session_state["health_data"] = health_data
+    st.session_state["health_check_done"] = True
 
 st.title("📊 MarketSense Dashboard")
 
-# ── Market Pulse (Macro Snapshot) ─────────────────────────────
-with st.expander("⏱️ Market Pulse (Macro Snapshot)", expanded=True):
-    with st.spinner("Taking the market's pulse..."):
-        pulse_data = DashboardService.fetch_market_pulse()
-    
-    if pulse_data.get("error"):
-        # The instruction implies removing a specific 404/uvicorn check.
-        # Since the current error handling is generic, we'll keep it generic
-        # and assume any specific check was implicitly handled or removed.
-        st.error(f"❌ Could not load market pulse: {pulse_data['error']}")
-    else:    
-        # ── 2x2 Grid Layout ───────────────────────────────────────────
-        colP1, colP2 = st.columns(2)
-        colP3, colP4 = st.columns(2)
+# ── Market Pulse Header with View Button ─────────────────────────────
+pulse_header_col1, pulse_header_col2 = st.columns([5, 1])
+with pulse_header_col1:
+    st.header("⏱️ Market Pulse")
+with pulse_header_col2:
+    if st.button("View" if not st.session_state.show_market_pulse else "Hide", 
+                 key="toggle_pulse", type="primary" if not st.session_state.show_market_pulse else "secondary",
+                 use_container_width=True):
+        st.session_state.show_market_pulse = not st.session_state.show_market_pulse
+        st.rerun()
+
+# ── Market Pulse Body (Open/Close controlled by session state) ───────
+if st.session_state.show_market_pulse:
+    # We use an expander structure but control its contents 100%
+    with st.expander("Macro Snapshot Details", expanded=True):
+        market_pulse_desc = """
+        **Is the market "friend or foe" today?** We analyze core Indian indices, volatility, 
+        and institutional flows to give you a 30-second snapshot of the current macro climate.
+        """
+        _, pulse_toggle_col = st.columns([7, 3])
+        with pulse_toggle_col:
+            # Button group for mode selection — renders first so beginner_mode is defined
+            mode_selection = st.segmented_control(
+                "View Mode",
+                options=["💡 Beginner", "🧠 Expert"],
+                default="💡 Beginner",
+                label_visibility="collapsed",
+                help="Choose 'Beginner' for simple explanations or 'Expert' for technical focus."
+            )
+            beginner_mode = (mode_selection == "💡 Beginner")
+        if beginner_mode:
+            st.markdown(market_pulse_desc)
         
-        # --- 1. Index Overview ---
-        with colP1:
-            with st.container(border=True):
-                st.subheader("📈 Index Overview", help="Tracks the overall performance of the Indian market.")
-                indices = pulse_data.get("indices", [])
-                if not indices:
-                    st.info("No index data available yet.")
-                else:
-                    i1, i2 = st.columns(2)
-                    if len(indices) > 0:
-                        idx = indices[0]
-                        color = "normal" if idx["change_pct"] > 0 else "inverse"
-                        i1.metric(
-                            label=f"{idx['name']} ({idx['mood']})",
-                            value=f"{idx['value']:,.0f}",
-                            delta=f"{idx['change_pct']:.2f}%",
-                            delta_color=color
-                        )
-                    if len(indices) > 1:
-                        idx = indices[1]
-                        color = "normal" if idx["change_pct"] > 0 else "inverse"
-                        i2.metric(
-                            label=f"{idx['name']} ({idx['mood']})",
-                            value=f"{idx['value']:,.0f}",
-                            delta=f"{idx['change_pct']:.2f}%",
-                            delta_color=color
-                        )
-        
-        # --- 2. India VIX Interpreter ---
-        with colP2:
-            with st.container(border=True):
-                st.subheader("📉 Fear Gauge (India VIX)", help="VIX measures expected market volatility. Low numbers indicate calm, high numbers indicate fear.")
-                vix = pulse_data.get("vix", {})
-                if not vix:
-                    st.info("VIX data not available.")
-                else:
-                    v_val = vix.get("value", 0)
-                    v_stat = vix.get("status", "Unknown")
-                    v_chg = vix.get("change_pct", 0)
-                    
-                    st.metric(
-                        label=f"Current Status: **{v_stat}**",
-                        value=f"{v_val:.2f}",
-                        delta=f"{v_chg:.2f}%",
-                        delta_color="inverse" # VIX going up is usually bad
-                    )
-                    # Render a progress bar indicating danger level
-                    safe_vix = min(max(v_val / 30.0, 0.0), 1.0) # Assume 30 is max fearful
-                    st.progress(safe_vix, text="Anxiety Level")
-        
-        # --- 3. Institutional Flow ---
-        with colP3:
-            with st.container(border=True):
-                st.subheader("🏦 Institutional Flow (Last 5 Days)", help="Shows whether big institutions (FIIs and DIIs) are buying or selling overall.")
-                flows = pulse_data.get("fii_dii", {})
-                if not flows:
-                    st.info("Institutional data not available.")
-                else:
-                    fii = flows.get("fii_net", 0)
-                    dii = flows.get("dii_net", 0)
-                    
-                    f1, f2 = st.columns(2)
-                    f1.metric("FII Net", f"₹{fii:,.0f} Cr", delta="Buying" if fii > 0 else "Selling", delta_color="normal" if fii>0 else "inverse")
-                    f2.metric("DII Net", f"₹{dii:,.0f} Cr", delta="Buying" if dii > 0 else "Selling", delta_color="normal" if dii>0 else "inverse")
-                    
-                    st.write(f"*Last updated: {flows.get('last_updated', 'N/A')}*")
-        
-        # --- 4. Sector Heatmap ---
-        with colP4:
-            with st.container(border=True):
-                st.subheader("📊 Sector Heatmap", help="Shows which sectors are performing best/worst based on automated analysis.")
-                sectors = pulse_data.get("sectors", [])
-                if not sectors:
-                    st.info("Sector data building...")
-                else:
-                    df = pd.DataFrame(sectors)
-                    df = df.sort_values(by="change_pct", ascending=True)
-                    
-                    fig = go.Figure(go.Bar(
-                        x=df['change_pct'],
-                        y=df['name'],
-                        orientation='h',
-                        marker=dict(
-                            color=df['change_pct'],
-                            colorscale=[[0, '#ef4444'], [0.5, '#e2e8f0'], [1, '#10b981']],
-                            cmin=-2, cmax=2,
-                        ),
-                        text=df.apply(lambda row: f"{row['change_pct']}% ({row['stock_count']} stocks)", axis=1),
-                        textposition="auto"
-                    ))
-                    fig.update_layout(
-                        margin=dict(l=0, r=0, t=10, b=0),
-                        height=200,
-                        xaxis=dict(visible=False),
-                        yaxis=dict(tickfont=dict(size=10)),
-                        plot_bgcolor="rgba(0,0,0,0)",
-                        paper_bgcolor="rgba(0,0,0,0)",
-                    )
-                    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        CARD_HEIGHT = 380 if beginner_mode else 250
+
+        # Non-blocking Fetch: If data not in state, show skeleton and fetch
+        if st.session_state.pulse_data is None:
+            # 1. Show Skeleton
+            render_pulse_skeleton(CARD_HEIGHT)
+            # 2. Fetch Data
+            st.session_state.pulse_data = DashboardService.fetch_market_pulse()
+            # 3. Rerun to show actual content
+            st.rerun()
+        else:
+            # Check for error in state before rendering cards
+            if st.session_state.pulse_data.get("error"):
+                st.error(f"❌ Could not load market pulse: {st.session_state.pulse_data['error']}")
+                if st.button("🔄 Retry", key="retry_pulse"):
+                    st.session_state.pulse_data = None
+                    st.rerun()
+            else:
+                # Render the actual cards using the modular component
+                render_market_pulse_cards(st.session_state.pulse_data, beginner_mode, CARD_HEIGHT)
+                
+                # Option to refresh data
+                if st.button("🔄 Refresh Pulse Data", key="refresh_pulse"):
+                    st.session_state.pulse_data = None
+                    st.rerun()
 
 st.markdown("---")
 
 # ── Sidebar Controls ──────────────────────────────────────────
 st.sidebar.header("🔎 Stock Selection")
 
-# NIFTY 50 tickers with names
-ticker_options = [f"{s} — {NIFTY_50_MAP[s]}" for s in NIFTY_50_SYMBOLS]
+# NIFTY 50 tickers with names (Name first for beginners)
+ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
 selected_option = st.sidebar.selectbox(
     "Select Stock:", ticker_options, index=0
 )
-ticker = selected_option.split(" — ")[0]  # Extract symbol
+ticker = selected_option.split(" (")[-1].rstrip(")")  # Extract symbol from "Name (SYMBOL)"
 
 # Comparison multi-select
-compare_tickers = st.sidebar.multiselect(
+compare_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
+selected_compares = st.sidebar.multiselect(
     "Compare Stocks (optional):",
-    NIFTY_50_SYMBOLS,
+    compare_options,
     default=[]
 )
+compare_tickers = [opt.split(" (")[-1].rstrip(")") for opt in selected_compares]
 
 # Period & interval
 period = st.sidebar.selectbox(
@@ -192,6 +147,17 @@ st.sidebar.markdown("---")
 fetch_data_btn = st.sidebar.button("📊 Fetch Data", use_container_width=True)
 predict_btn = st.sidebar.button("🤖 Run Prediction", use_container_width=True)
 
+# ── Beginner Glossary ─────────────────────────────────────────
+with st.sidebar.expander("📖 Jargon Buster (Glossary)"):
+    st.markdown("""
+    - **VIX**: The 'Fear Gauge'. High = nervous market.
+    - **FII/DII**: Big institutional investors. Their buying moves the market.
+    - **NIFTY 50**: Index of top 50 Indian companies.
+    - **RSI**: Measures if a stock is 'oversold' (potentially cheap) or 'overbought' (potentially expensive).
+    - **Stop Loss**: A safety net price to sell and limit losses.
+    - **MACD**: Shows if the stock price momentum is increasing or decreasing.
+    """)
+
 # ── Main Panel: Chart ─────────────────────────────────────────
 if fetch_data_btn:
     with st.spinner(f"Loading {ticker} data..."):
@@ -211,7 +177,7 @@ if fetch_data_btn:
                 # ── Single stock: candlestick + volume ────
                 df = all_data[ticker]
                 name = NIFTY_50_MAP.get(ticker, ticker)
-                st.subheader(f"📈 {name} ({ticker})")
+                st.subheader(f"📈 {name}")
 
                 if all(col in df.columns for col in ['Open', 'High', 'Low', 'Close']):
                     fig = go.Figure(data=[
@@ -256,7 +222,7 @@ if fetch_data_btn:
                         if t in all_data and 'Close' in all_data[t].columns:
                             fig_cmp.add_trace(go.Scatter(
                                 x=all_data[t]['Date'], y=all_data[t]['Close'],
-                                mode='lines', name=t,
+                                mode='lines', name=NIFTY_50_MAP.get(t, t),
                                 line=dict(color=colors[i % len(colors)], width=2)
                             ))
                     fig_cmp.update_layout(

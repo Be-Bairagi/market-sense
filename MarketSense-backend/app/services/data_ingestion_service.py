@@ -74,8 +74,8 @@ class DataIngestionService:
             return False
 
     @staticmethod
-    def update_macro_data():
-        """Fetch and store latest macro indicators."""
+    def update_macro_data(period: str = "5d"):
+        """Fetch and store macro indicators for the given period."""
         from app.database import engine
         indicators = {
             "USD_INR": "USDINR=X",
@@ -86,19 +86,29 @@ class DataIngestionService:
         with Session(engine) as db:
             for name, ticker in indicators.items():
                 try:
-                    data = yf.download(ticker, period="5d", progress=False)
+                    data = yf.download(ticker, period=period, progress=False)
                     if not data.empty:
-                        last_row = data.iloc[-1]
-                        date_val = data.index[-1].date()
+                        rows_added = 0
+                        for idx, row in data.iterrows():
+                            date_val = idx.date() if isinstance(idx, datetime) else pd.to_datetime(idx).date()
+                            
+                            # Check if already exists
+                            existing = db.exec(select(MacroData).where(
+                                MacroData.indicator == name,
+                                MacroData.date == date_val
+                            )).first()
+                            
+                            if not existing:
+                                new_macro = MacroData(
+                                    indicator=name,
+                                    date=date_val,
+                                    value=float(row["Close"])
+                                )
+                                db.add(new_macro)
+                                rows_added += 1
                         
-                        # Store latest
-                        new_macro = MacroData(
-                            indicator=name,
-                            date=date_val,
-                            value=float(last_row["Close"])
-                        )
-                        db.add(new_macro)
-                        logger.info(f"Updated macro indicator {name}: {last_row['Close']}")
+                        if rows_added > 0:
+                            logger.info(f"Updated macro indicator {name}: Added {rows_added} new rows.")
                 except Exception as e:
                     logger.error(f"Failed to update macro {name}: {e}")
             

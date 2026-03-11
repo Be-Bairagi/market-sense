@@ -6,6 +6,7 @@ import streamlit as st
 import requests
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
+from utils.health import check_backend_health
 
 # Backend configuration
 BACKEND_URL = "http://localhost:8000"
@@ -22,16 +23,6 @@ TIPS = [
     "Train custom AI models for any NIFTY 50 stock in <strong>Model Management</strong>.",
 ]
 
-
-def check_backend_health():
-    """Check if backend is available."""
-    try:
-        response = requests.get(HEALTH_ENDPOINT, timeout=5)
-        if response.status_code == 200:
-            return True, response.json()
-        return False, None
-    except Exception:
-        return False, None
 
 
 def health_check_ui():
@@ -263,9 +254,9 @@ st.write("Pick a NIFTY 50 stock and get an instant AI signal.")
 qcol1, qcol2 = st.columns([2, 1])
 
 with qcol1:
-    quick_options = [f"{s} — {NIFTY_50_MAP[s]}" for s in NIFTY_50_SYMBOLS[:10]]
+    quick_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS[:10]]
     quick_selected = st.selectbox("Stock", quick_options, index=0, key="quick_ticker")
-    quick_symbol = quick_selected.split(" — ")[0]
+    quick_symbol = quick_selected.split(" (")[-1].rstrip(")")
 
 with qcol2:
     st.write("")  # spacer
@@ -290,13 +281,14 @@ if quick_predict:
             border-left: 5px solid {colors.get(direction, '#64748b')};
             border-radius: 0.75rem; padding: 1.5rem; margin: 1rem 0;
         ">
+            <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem;">{NIFTY_50_MAP.get(quick_symbol, quick_symbol)}</div>
             <span style="font-size: 2.5rem;">{signals.get(direction, '🟡')}</span>
             <span style="font-size: 2rem; font-weight: 700; color: {colors.get(direction, '#64748b')}; margin-left: 0.5rem;">
                 {direction}
             </span>
-            <span style="color: #64748b; margin-left: 1rem;">
+            <div style="color: #64748b; margin-top: 0.5rem;">
                 Confidence: {confidence:.0%} · {result.get('horizon', 'short_term')}
-            </span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
