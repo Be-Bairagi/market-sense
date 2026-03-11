@@ -118,7 +118,7 @@ if submitted:
             result = ModelService.train_model(ticker, period, model_key)
 
         progress_bar.progress(90)
-        status_text.info("💾 Saving model artifact...")
+        status_text.info("💾 Evaluating & saving model artifact...")
 
         if not result.get("error"):
             progress_bar.progress(100)
@@ -127,17 +127,26 @@ if submitted:
             progress_bar.empty()
             status_text.empty()
 
-            st.success("✅ Model trained successfully!")
+            is_warmstart = result.get("warm_start", False)
+            if is_warmstart:
+                st.success("✅ Model updated via incremental warm-start!")
+                st.info(
+                    "♻️ New trees were appended on top of the existing model. "
+                    "The previous active `.pkl` has been replaced."
+                )
+            else:
+                st.success("✅ Model trained successfully from scratch!")
 
             # ── Training Summary ────
             st.markdown("### 📊 Training Summary")
-            c1, c2, c3 = st.columns(3)
+            c1, c2, c3, c4 = st.columns(4)
             c1.metric("Model", result.get("model_name", model_key))
             c2.metric("Ticker", ticker)
             c3.metric("Version", result.get("version", "N/A"))
+            c4.metric("Type", "Warm-start ♻️" if is_warmstart else "Fresh 🆕")
 
             st.write(f"**Trained:** {datetime.now().strftime('%d-%m-%Y %H:%M')}")
-            st.write(f"**Artifact:** {result.get('artifact_path', 'N/A')}")
+            st.write(f"**Artifact:** `{result.get('artifact_path', 'N/A')}`")
 
             # ── Metrics ────
             metrics = result.get("training_metrics", {})
@@ -148,15 +157,18 @@ if submitted:
                     m1.metric("Accuracy", f"{metrics.get('accuracy', 'N/A')}")
                     m2.metric("Train Size", f"{metrics.get('train_size', 'N/A')}")
                     m3.metric("Test Size", f"{metrics.get('test_size', 'N/A')}")
+                    if metrics.get("start_date") and metrics.get("end_date"):
+                        st.caption(
+                            f"Data range: {metrics['start_date']} → {metrics['end_date']}"
+                        )
 
-                    # Feature importance chart
                     top_features = metrics.get("top_features", {})
                     if top_features:
                         st.markdown("### 🔍 Top Feature Importances")
                         import pandas as pd
                         df_feat = pd.DataFrame(
                             sorted(top_features.items(), key=lambda x: x[1], reverse=True)[:15],
-                            columns=["Feature", "Importance"]
+                            columns=["Feature", "Importance"],
                         )
                         fig = px.bar(
                             df_feat, x="Importance", y="Feature",
@@ -173,7 +185,44 @@ if submitted:
                     m1.metric("MAE", f"{metrics.get('MAE', 'N/A')}")
                     m2.metric("RMSE", f"{metrics.get('RMSE', 'N/A')}")
                     m3.metric("R²", f"{metrics.get('R2', 'N/A')}")
+                    if metrics.get("start_date") and metrics.get("end_date"):
+                        st.caption(
+                            f"Data range: {metrics['start_date']} → {metrics['end_date']}"
+                        )
+
+            # Reset model cache so the dashboard sidebar reloads
+            st.session_state.pop("available_models", None)
+            st.session_state.pop("models_ticker", None)
+            st.session_state.models_loaded = False
+
+        elif result.get("error") == "no_improvement":
+            # ── Metric guard triggered ────
+            progress_bar.empty()
+            status_text.empty()
+            st.warning(
+                "⚠️ **Retraining aborted** — the new model performed worse than "
+                "the current active version. Your existing model is unchanged."
+            )
+            col_old, col_new = st.columns(2)
+            old_m = result.get("old_metrics", {})
+            new_m = result.get("new_metrics", {})
+            with col_old:
+                st.markdown("**🏆 Current active model:**")
+                if model_type == "XGBoost":
+                    st.metric("Accuracy", f"{old_m.get('accuracy', 'N/A')}")
+                else:
+                    st.metric("R²", f"{old_m.get('R2', 'N/A')}")
+                    st.metric("MAE", f"{old_m.get('MAE', 'N/A')}")
+            with col_new:
+                st.markdown("**❌ New model (rejected):**")
+                if model_type == "XGBoost":
+                    st.metric("Accuracy", f"{new_m.get('accuracy', 'N/A')}")
+                else:
+                    st.metric("R²", f"{new_m.get('R2', 'N/A')}")
+                    st.metric("MAE", f"{new_m.get('MAE', 'N/A')}")
         else:
+            progress_bar.empty()
+            status_text.empty()
             st.error(f"❌ Training failed: {result.get('error')}")
 
     except requests.exceptions.RequestException as e:

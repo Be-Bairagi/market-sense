@@ -5,14 +5,21 @@ from sqlmodel import Session, select
 class ModelRegistryRepository:
 
     @staticmethod
-    def deactivate_existing_models(db: Session, model_name: str):
+    def deactivate_existing_models(
+        db: Session, model_name: str
+    ) -> list["TrainedModel"]:
+        """Mark all active models for *model_name* as inactive.
+
+        Returns the list of deactivated models so the caller can clean up
+        their ``.pkl`` files from disk.
+        """
         statement = select(TrainedModel).where(
             TrainedModel.model_name == model_name, TrainedModel.is_active == True
         )
-
         models = db.exec(statement).all()
         for model in models:
             model.is_active = False
+        return list(models)
 
     @staticmethod
     def create(db: Session, model: TrainedModel) -> TrainedModel:

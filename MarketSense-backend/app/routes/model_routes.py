@@ -36,7 +36,24 @@ def register_trained_model(
 ):
     return service.register_model(db=db, payload=payload)
 
-
 @router.get("/get-all", response_model=List[TrainedModelRead])
 def fetch_all_models(db: Session = Depends(get_session)):
     return ModelRegistryService.list_all_models(db)
+
+
+@router.get("/available", summary="List available trained models for a ticker")
+def get_available_models(
+    ticker: str = Query(
+        ...,
+        description="Stock ticker (e.g. AAPL, RELIANCE.NS). "
+                    "Returns matching models from DB and local models/ folder.",
+    ),
+    db: Session = Depends(get_session),
+):
+    """Returns a merged, sorted list of available models for the given ticker.
+
+    Sources: DB ``trained_models`` table + local ``models/`` directory.
+    Active DB models are listed first, followed by file-only models.
+    """
+    models = ModelRegistryService.get_available_models_for_ticker(ticker, db)
+    return {"ticker": ticker, "count": len(models), "models": models}

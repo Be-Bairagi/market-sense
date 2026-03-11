@@ -25,17 +25,44 @@ class DashboardService:
         return response.json() if response.ok else {"error": "Data fetch failed"}
 
     @staticmethod
-    def fetch_predictions(model_type: str, ticker: str, predict_days: int):
-        model = helpers.to_snake_case(model_type)
-        model_name = f"{ticker}_{model}"
-        response = requests.get(
-            f"{BASE_URL}/predict",
-            params={"model_name": model_name, "n_days": predict_days},
-            headers=HEADERS,
-            timeout=10,
-        )
-        response.raise_for_status()
-        return response.json() if response.ok else {"error": "Prediction fetch failed"}
+    def fetch_predictions(
+        model_type: str,
+        ticker: str,
+        predict_days: int,
+        model_name_override: str = None,
+    ):
+        """Call GET /predict with a specific model name.
+
+        If *model_name_override* is provided it is used directly (e.g.
+        ``AAPL_prophet_v12``).  Otherwise the model name is constructed from
+        *ticker* + *model_type* as before.
+        """
+        try:
+            if model_name_override:
+                model_name = model_name_override
+            else:
+                model = helpers.to_snake_case(model_type)
+                model_name = f"{ticker}_{model}"
+            response = requests.get(
+                f"{BASE_URL}/predict",
+                params={"model_name": model_name, "n_days": predict_days},
+                headers=HEADERS,
+                timeout=30,
+            )
+            response.raise_for_status()
+            return response.json() if response.ok else {"error": "Prediction fetch failed"}
+        except requests.exceptions.HTTPError as e:
+            detail = ""
+            try:
+                detail = e.response.json().get("detail", "")
+            except Exception:
+                pass
+            logger.error("Prediction failed: %s", detail or e)
+            return {"error": detail or str(e)}
+        except Exception as e:
+            logger.exception("Failed to fetch predictions")
+            return {"error": str(e)}
+
 
     # ── Phase 2: Data pipeline ───────────────────────────────
     @staticmethod
@@ -116,6 +143,22 @@ class DashboardService:
             return r.json()
         except Exception as e:
             logger.exception("Failed to trigger feature backfill for %s: %s", symbol, e)
+            return {"error": str(e)}
+
+    # ── Phase 3b: Model availability ─────────────────────────
+    @staticmethod
+    def fetch_available_models(ticker: str):
+        """GET /models/available?ticker=... — merged DB + file model list."""
+        try:
+            r = requests.get(
+                f"{BASE_URL}/models/available",
+                params={"ticker": ticker},
+                timeout=10,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch available models for %s", ticker)
             return {"error": str(e)}
 
     # ── Phase 4: Rich prediction ─────────────────────────────
