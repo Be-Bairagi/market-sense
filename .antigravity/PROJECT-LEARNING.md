@@ -129,3 +129,22 @@ Streamlit's markdown parser can be sensitive to indentation when using `unsafe_a
 When adding new macro-level views (like Market Pulse) to an application that already has a stock-specific charting dashboard, creating entirely separate sidebar pages can fragment the user experience.
 - **The Design**: Feature consolidation. The "Market Pulse" (Phase 3) was integrated directly into the top of the legacy `1_Dashboard.py` as an expanded `st.expander` section. 
 - **The UX Result**: Users see the 30-second macro snapshot immediately upon login, but can still scroll down (or collapse the expander) to use the detailed single-stock charting and prediction tools without navigating to a new page.
+
+### 24. Dynamic Model Selection: DB as Single Source of Truth
+When presenting available trained models to the user, resist the temptation to scan the filesystem for `.pkl` files as an alternative/fallback. The filesystem and DB can diverge.
+- **The Rule**: Only the DB is authoritative. After implementing lifecycle management (old `.pkl` auto-deleted on new version activation), the filesystem will accurately mirror the DB — but the query is still the DB query.
+- **The UX Pattern**: Show all versions (active + inactive) in the selector. This gives the user insight into model history without extra clicks.
+- **Session State Invalidation**: After training a new model in Model Management, always clear `st.session_state.available_models` and `st.session_state.models_ticker` so the Dashboard sidebar reloads fresh on next navigation.
+
+### 25. XGBoost Warm-Start via `xgb_model=` Argument
+XGBoost supports incremental training by accepting an existing booster as the starting point for `fit()`.
+- **The API**: `model.fit(X_new, y_new, xgb_model=existing_booster)` — this appends `n_estimators` new trees on top of the existing booster.
+- **The Gotcha**: To recover the old booster from a bundle (dict with `"model"` key or a raw classifier), always check `isinstance(bundle, dict)` first.
+- **The Fallback**: If fewer than 10 new feature rows exist since the last training date, warm-start is skipped and the full dataset is used (prevents pointless no-op updates).
+
+### 26. Model Lifecycle Management: Deleting `.pkl` on Version Activation
+Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM objects become detached (or unexpectedly expired) after a `db.commit()`, making `.file_path` inaccessible.
+- **The Pattern**: In `register_model()`, collect `[m.file_path for m in deactivated]` *before* calling `ModelRegistryRepository.create()` which triggers the commit.
+- **File Deletion Timing**: Delete files *after* the DB commit succeeds, never before. If the DB commit fails, you'd lose the file with no rollback possible.
+- **Metric Guard Abort Signal**: Return `HTTP 409` with a structured body `{"error": "no_improvement", "old_metrics": {...}, "new_metrics": {...}}` so the frontend can display a meaningful comparison rather than a generic error.
+

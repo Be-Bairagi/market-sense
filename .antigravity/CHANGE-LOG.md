@@ -2,7 +2,42 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] - 2026-03-12
+### Added
+- **Dynamic Model Selector (Dashboard)**:
+  - Replaced the static "Model Type" dropdown (XGBoost / Prophet) with a dynamic "Select Model" selectbox.
+  - New `GET /api/v1/models/available?ticker=` backend endpoint returns all DB-registered models for a ticker (active + inactive, sorted active first).
+  - Model labels display framework, version, and `✅ Active` / `⏸ Inactive` status.
+  - "Run Prediction" button is disabled when no models are available for the selected ticker.
+  - Predictions now pass the exact `model_name_full` (e.g. `RELIANCE_NS_prophet_v3`) directly to `/predict`.
+
+- **Incremental / Warm-Start Retraining**:
+  - **XGBoost**: native warm-start via `xgb_model=` param — new trees are appended on top of the existing booster rather than training from scratch.
+  - **Prophet**: extended dataset retraining (old data range + new data) — standard incremental update pattern as Prophet has no hot-start API.
+  - Both trainers accept `existing_model_path` to load context from the current active model.
+
+- **Metric Guard on Retrain**:
+  - New model replaces the active one only if metrics meet tolerance: accuracy/R² must not degrade by more than 1%.
+  - Backend returns HTTP 409 with `"error": "no_improvement"` payload containing old vs. new metrics when aborted.
+  - Model Management page shows a side-by-side metric comparison table when retrain is blocked.
+
+- **Model Lifecycle — `models/` = Active Models Only**:
+  - `register_model()` now deletes the previous active `.pkl` from disk when activating a new version.
+  - `get_available_models_for_ticker()` is DB-only — no more filesystem scanning.
+  - DB is the single source of truth for active/inactive status and versioning.
+  - Model Management Training Summary now shows a `Warm-start ♻️` / `Fresh 🆕` type badge and data-range captions.
+
+### Changed
+- `ModelRegistryRepository.deactivate_existing_models()` now returns the deactivated model list (enables file path collection for cleanup).
+- `DashboardService.fetch_predictions()` now accepts `model_name_override` to bypass name construction.
+- `TrainingService.train_and_register()` now orchestrates: active model lookup → trainer call → metric guard → save → register.
+
+### Fixed
+- **Old `.pkl` accumulation**: Old model files are now deleted from `models/` when a new version is activated, keeping the folder clean.
+- **Duplicate code in Dashboard.py**: Leftover old prediction handler removed; single clean handler for both Prophet and XGBoost.
+
 ## [1.7.0] - 2026-03-09
+
 ### Added
 - **UI Phase 3: Market Pulse**:
   - Implemented the `MarketPulseService` in the backend to calculate a 30-second macro snapshot.

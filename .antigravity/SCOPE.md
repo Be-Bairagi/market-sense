@@ -105,9 +105,11 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - **4B** — Upgrade existing Prophet to use feature store + compute real metrics
 - **4C** — Swing Random Forest (1–4 week horizon)
 - Walk-forward backtesting framework (shared across all models)
-- Prediction output schema matching roadmap spec (direction, confidence, targets, risk, key drivers)
-- Plain-English explanation generator from key drivers
+- [x] Prediction output schema matching roadmap spec (direction, confidence, targets, risk, key drivers)
+- [x] Plain-English explanation generator from key drivers
 - Confidence calibration
+- [x] **Incremental / warm-start retraining** (XGBoost warm-start + Prophet extended dataset)
+- [x] **Metric guard on retrain** (HTTP 409 if new model is worse than active model)
 
 ---
 
@@ -165,9 +167,11 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - **Page 3 — Stock Deep Dive:** Multi-horizon tabs, news sentiment timeline, "Explain this to me", bear case
 - **Page 4 — My Watchlist:** User-added stocks with live prediction status
 - **Page 5 — Model Accuracy Tracker:** Win rate, sector breakdown, prediction vs actual charts
-- Tooltip glossary for technical terms
+- [x] Tooltip glossary for technical terms
 - Mobile-friendly layout pass
 - [x] Loading states and error handling for all API calls (Startup Loader + Offline Banner)
+- [x] **Dynamic Model Selector**: DB-driven model dropdown replacing static Model Type selector
+- [x] **Model Lifecycle**: `models/` folder = active models only; old `.pkl` auto-deleted on new version activation
 
 ---
 
