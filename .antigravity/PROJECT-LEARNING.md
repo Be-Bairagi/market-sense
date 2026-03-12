@@ -148,3 +148,17 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 - **File Deletion Timing**: Delete files *after* the DB commit succeeds, never before. If the DB commit fails, you'd lose the file with no rollback possible.
 - **Metric Guard Abort Signal**: Return `HTTP 409` with a structured body `{"error": "no_improvement", "old_metrics": {...}, "new_metrics": {...}}` so the frontend can display a meaningful comparison rather than a generic error.
 
+### 27. Structured Error Propagation in Training Pipeline
+- When backend training fails (due to data gaps, timeouts, or policy guards), use structured JSON responses instead of generic 500 errors.
+- **The Pattern**: Wrap the training call in a `try-except` block. Catch `HTTPException` and re-raise, catch `ValueError` (for validation) and return 400, catch everything else and return 500 with a descriptive `detail`.
+- **Frontend Sync**: The frontend `ModelService` should always try to parse the JSON body of error responses to extract the `detail` or custom error fields (like `old_metrics`), enabling rich UI feedback for "soft" failures like the metric guard.
+
+
+### 28. Concurrent API Fetching for Streamlit Performance
+- **The Problem**: A "Stock Deep Dive" page requiring data from multiple disparate sources (Profile, News, Accuracy, Prices) can take 5-10 seconds to load if called sequentially.
+- **The Solution**: Use `concurrent.futures.ThreadPoolExecutor` to fire all API requests in parallel. Streamlit's overhead is minimal, and the total load time becomes equal to the longest single request.
+- **Implementation**: Wrap API calls in `executor.submit()` and collect results via `.result()`.
+
+### 29. Automated `StockMeta` Caching
+- **The Hack**: Instead of requiring a manual "Add Stock" step, the `StockService` automatically looks up metadata in the DB. On a cache miss, it fetches from `yfinance.info` and persists it immediately.
+- **Benefit**: This creates a self-populating "Symbol Catalog" as users search for new stocks, ensuring rich metadata is always available for previously viewed tickers.

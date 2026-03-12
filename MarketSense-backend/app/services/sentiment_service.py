@@ -89,3 +89,39 @@ class SentimentService:
             "headline_count_24h": len(headlines_24h),
             "headline_count_3d": len(headlines_3d),
         }
+    @staticmethod
+    def get_rich_headlines(symbol: str, limit: int = 5) -> list:
+        """Get the most recent headlines for a symbol with sentiment flags."""
+        from app.database import engine
+
+        with Session(engine) as db:
+            query = (
+                select(NewsHeadline)
+                .where(NewsHeadline.symbol == symbol)
+                .order_by(NewsHeadline.published_at.desc())
+                .limit(limit)
+            )
+            headlines = db.exec(query).all()
+
+        rich_headlines = []
+        for h in headlines:
+            score = h.sentiment_score or 0.0
+            if score >= 0.05:
+                sentiment = "positive"
+                icon = "🟢"
+            elif score <= -0.05:
+                sentiment = "negative"
+                icon = "🔴"
+            else:
+                sentiment = "neutral"
+                icon = "🟡"
+
+            rich_headlines.append({
+                "headline": h.headline,
+                "url": h.url,
+                "published_at": h.published_at.isoformat(),
+                "sentiment": sentiment,
+                "score": round(score, 2),
+                "icon": icon
+            })
+        return rich_headlines

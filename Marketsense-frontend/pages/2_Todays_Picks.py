@@ -125,8 +125,9 @@ else:
             col1, col2 = st.columns([4, 1])
             with col2:
                 if st.button(f"Analyze {symbol} ↗", key=f"btn_analyze_{symbol}", use_container_width=True):
-                    st.session_state["selected_ticker"] = symbol
-                    st.info("Full analysis page coming soon!")
+                    # Set query param and switch page
+                    st.query_params["symbol"] = symbol
+                    st.switch_page("pages/3_Stock_Deep_Dive.py")
         
         st.write("")
 

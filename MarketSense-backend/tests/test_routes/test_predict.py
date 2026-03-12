@@ -22,7 +22,7 @@ class TestPredictionEndpoint:
             mock_predict.return_value = sample_prediction_data
             
             response = test_client.get(
-                "/predict?model_name=AAPL_prophet&n_days=7",
+                "/api/v1/predict?model_name=AAPL_prophet&n_days=7",
                 headers=auth_headers
             )
         
@@ -41,7 +41,7 @@ class TestPredictionEndpoint:
         Then validation error
         """
         response = test_client.get(
-            "/predict?model_name=AAPL_prophet&n_days=0",
+            "/api/v1/predict?model_name=AAPL_prophet&n_days=0",
             headers=auth_headers
         )
         
@@ -56,7 +56,7 @@ class TestPredictionEndpoint:
         Then returns 422 validation error
         """
         response = test_client.get(
-            "/predict?model_name=AAPL_prophet&n_days=-5",
+            "/api/v1/predict?model_name=AAPL_prophet&n_days=-5",
             headers=auth_headers
         )
         
@@ -71,7 +71,7 @@ class TestPredictionEndpoint:
         Then returns 422 validation error
         """
         response = test_client.get(
-            "/predict?model_name=AAPL_prophet&n_days=400",
+            "/api/v1/predict?model_name=AAPL_prophet&n_days=400",
             headers=auth_headers
         )
         
@@ -85,7 +85,7 @@ class TestPredictionEndpoint:
         When calling prediction endpoint
         Then returns 401 Unauthorized
         """
-        response = test_client.get("/predict?model_name=AAPL_prophet&n_days=7")
+        response = test_client.get("/api/v1/predict?model_name=AAPL_prophet&n_days=7")
         
         assert response.status_code == 401
 
@@ -98,7 +98,7 @@ class TestPredictionEndpoint:
         Then returns 400 with validation error
         """
         response = test_client.get(
-            "/predict?model_name=invalid&n_days=7",
+            "/api/v1/predict?model_name=invalid&n_days=7",
             headers=auth_headers
         )
         
@@ -113,7 +113,7 @@ class TestPredictionEndpoint:
         Then returns 422 validation error
         """
         response = test_client.get(
-            "/predict?n_days=7",
+            "/api/v1/predict?n_days=7",
             headers=auth_headers
         )
         
@@ -128,7 +128,7 @@ class TestPredictionEndpoint:
         Then returns 422 validation error
         """
         response = test_client.get(
-            "/predict?model_name=AAPL_prophet",
+            "/api/v1/predict?model_name=AAPL_prophet",
             headers=auth_headers
         )
         

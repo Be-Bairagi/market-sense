@@ -2,7 +2,28 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
-## [1.8.0] - 2026-03-12
+## [1.9.0] - 2026-03-12
+### Added
+- **UI Phase 7: Stock Deep Dive**:
+  - New modular analysis page with Short-term, Swing, and Long-term prediction tabs.
+  - Interactive Plotly chart with 6-month historical data.
+  - Sentiment Timeline showing recent headlines with color-coded sentiment icons (🟢/🟡/🔴).
+  - "Explain this to me" and "Bear Case" sections providing plain-English logic and risk assessment.
+  - Integrated "Accuracy" view showing historical win rate and past prediction trials for specific tickers.
+- **Stock Intelligence Backend**:
+  - `StockService`: Automated company profile fetching and caching using `yfinance`.
+  - `AccuracyService`: Per-stock historical metrics computation from `PredictionRecord`.
+  - Rich headlines endpoint with VADER sentiment icons and scores.
+  - New versioned API routes under `/api/v1/stocks/`.
+
+### Changed
+- **Optimized Frontend Loading**: Implemented `ThreadPoolExecutor` to fetch profile, news, accuracy, and prices concurrently, reducing page load time by ~60%.
+- **Seamless Navigation**: Linked "Today's Picks" cards to the Deep Dive page via query parameters.
+
+### Fixed
+- **Prediction Test Pathing**: Updated `test_predict.py` requests to include `/api/v1` prefix, resolving 404 errors in CI.
+- **Missing Dependencies**: Installed `httpx` in the virtual environment to support async testing.
+
 ### Added
 - **Dynamic Model Selector (Dashboard)**:
   - Replaced the static "Model Type" dropdown (XGBoost / Prophet) with a dynamic "Select Model" selectbox.

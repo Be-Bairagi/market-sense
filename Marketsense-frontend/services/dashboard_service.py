@@ -241,3 +241,49 @@ class DashboardService:
         except Exception as e:
             logger.exception("Failed to fetch market pulse")
             return {"error": str(e)}
+    # ── Phase 7: Stock Intelligence ──────────────────────────
+    @staticmethod
+    def fetch_stock_profile(symbol: str):
+        """GET /stocks/{symbol}/profile — company meta data."""
+        try:
+            r = requests.get(
+                f"{BASE_URL}/stocks/{symbol}/profile",
+                headers=HEADERS,
+                timeout=10,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch profile for %s", symbol)
+            return {"error": str(e)}
+
+    @staticmethod
+    def fetch_stock_news(symbol: str, limit: int = 5):
+        """GET /stocks/{symbol}/news — rich headlines with sentiment."""
+        try:
+            r = requests.get(
+                f"{BASE_URL}/stocks/{symbol}/news",
+                params={"limit": limit},
+                headers=HEADERS,
+                timeout=10,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch news for %s", symbol)
+            return {"error": str(e)}
+
+    @staticmethod
+    def fetch_stock_accuracy(symbol: str):
+        """GET /stocks/{symbol}/accuracy — historical prediction trials."""
+        try:
+            r = requests.get(
+                f"{BASE_URL}/stocks/{symbol}/accuracy",
+                headers=HEADERS,
+                timeout=10,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch accuracy for %s", symbol)
+            return {"error": str(e)}

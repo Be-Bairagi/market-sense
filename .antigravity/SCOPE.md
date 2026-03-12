@@ -1,7 +1,7 @@
 # 🤖 MarketSense — Revised Agent Roadmap (SCOPE)
 
-> **Last Updated:** 2026-03-04
-> **Current State:** ~15% implemented (see [map-project.md](file:///d:/Final%20Year%20Project/.antigravity/map-project.md))
+> **Last Updated:** 2026-03-12
+> **Current State:** ~78% implemented (Phase 7: Page 3 Complete)
 > **Original Roadmap:** [ROADMAP.md](file:///d:/Final%20Year%20Project/.antigravity/ROADMAP.md)
 > **Detailed Phase Plans:** [`.plans/`](file:///d:/Final%20Year%20Project/.antigravity/.plans/)
 
@@ -102,7 +102,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 
 **Key Deliverables:**
 - [x] **4A** — Short-term XGBoost (1–5 day direction prediction) — **build first (DONE)**
-- **4B** — Upgrade existing Prophet to use feature store + compute real metrics
+- [x] **4B** — Upgrade existing Prophet to use feature store + compute real metrics
 - **4C** — Swing Random Forest (1–4 week horizon)
 - Walk-forward backtesting framework (shared across all models)
 - [x] Prediction output schema matching roadmap spec (direction, confidence, targets, risk, key drivers)
@@ -164,7 +164,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 **Key Deliverables:**
 - [x] Page 1 — Market Pulse: NIFTY/SENSEX summary, VIX interpretation, FII/DII bars, sector heatmap
 - [x] Page 2 — Today's Picks (Homepage): 5 stock cards with signals, confidence bars, entry/target/stop-loss
-- **Page 3 — Stock Deep Dive:** Multi-horizon tabs, news sentiment timeline, "Explain this to me", bear case
+- [x] Page 3 — Stock Deep Dive: Multi-horizon tabs, news sentiment timeline, "Explain this to me", bear case
 - **Page 4 — My Watchlist:** User-added stocks with live prediction status
 - **Page 5 — Model Accuracy Tracker:** Win rate, sector breakdown, prediction vs actual charts
 - [x] Tooltip glossary for technical terms
