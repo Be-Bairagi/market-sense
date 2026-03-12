@@ -19,6 +19,8 @@ def train_model(
         return TrainingService.train_and_register(
             db=db, model_type=model.lower(), ticker=ticker, period=period
         )
+    except HTTPException:
+        raise  # Re-raise structured HTTP errors (400 validation, 409 metric guard)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

@@ -52,12 +52,39 @@ class ModelService:
                 f"{BASE_URL}/train",
                 params={"model": model_type, "ticker": ticker, "period": period},
                 headers={"X-API-Key": API_KEY},
+                timeout=600,  # training can take a while
             )
-            response.raise_for_status()
-            return response.json()
+
+            # Always try to parse JSON first — even on 4xx responses the backend
+            # returns a structured body (e.g. 400 detail string or 409 no_improvement).
+            try:
+                body = response.json()
+            except Exception:
+                body = {"error": f"Non-JSON response (HTTP {response.status_code})"}
+
+            if response.status_code == 200:
+                return body
+
+            if response.status_code == 409:
+                # Metric guard fired — return the structured body so the UI can
+                # show old vs new metrics.
+                detail = body.get("detail", body)
+                if isinstance(detail, dict):
+                    return detail  # {"error": "no_improvement", "old_metrics": ..., "new_metrics": ...}
+                return {"error": "no_improvement", "message": str(detail)}
+
+            # 400 or other 4xx/5xx
+            detail = body.get("detail", body)
+            if isinstance(detail, dict):
+                return {"error": detail.get("error", "training_failed"), **detail}
+            return {"error": str(detail)}
+
+        except requests.exceptions.Timeout:
+            return {"error": "Training timed out (> 10 min). The model may still be training in the background."}
         except Exception as e:
             logger.exception(f"Failed to train '{model_type}' model")
             return {"error": f"Failed to train '{model_type}' model: {str(e)}"}
+
 
     @staticmethod
     def get_all_models():

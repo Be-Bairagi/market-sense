@@ -13,9 +13,25 @@ from sqlmodel import Session, select
 
 logger = logging.getLogger(__name__)
 
-# Metric improvement tolerance — new model must be within this fraction of old
-# to be considered "not worse".  0.01 = 1 % grace margin.
+# Metric improvement tolerance — new model must be within this fraction of old.
 METRIC_TOLERANCE = 0.01
+
+# Map Prophet training-form period strings to yfinance-compatible period values.
+# The form offers: 1mo / 3mo / 6mo / 1y / 2y / 5y
+# FetchDataService.limit_map only caches for: 7d / 30d / 90d / 1y / 5y
+# For non-cached periods we fall straight through to yfinance which accepts them natively.
+PROPHET_PERIOD_MAP: dict[str, str] = {
+    "1mo":  "1mo",   # ~21 trading days  — yfinance accepts natively
+    "3mo":  "3mo",   # ~63 trading days
+    "6mo":  "6mo",   # ~126 trading days
+    "1y":   "1y",
+    "2y":   "2y",
+    "5y":   "5y",
+    # Aliases that may arrive from older callers
+    "30d":  "30d",
+    "90d":  "90d",
+    "180d": "6mo",
+}
 
 
 class TrainingService:
@@ -74,11 +90,29 @@ class TrainingService:
 
         # ── STEP 1: Train ────────────────────────────────────────────────────
         if model_type == "prophet":
-            # For Prophet: always fetch the full requested period so the
-            # trainer gets old + new data combined (Prophet re-trains on all)
-            training_df = FetchDataService.fetch_stock_data(
-                FetchDataService, ticker, period, "1d", True
+            # Map the form period to a yfinance-compatible string.
+            fetch_period = PROPHET_PERIOD_MAP.get(period, period)
+            logger.info("Prophet fetch period: %s (from form period: %s)", fetch_period, period)
+
+            # IMPORTANT: bypass DB cache for training — the cache may only hold
+            # a short recent window. Always go directly to yfinance for the full
+            # historical range needed by the trainer.
+            fetch_svc = FetchDataService()
+            training_df = fetch_svc._fetch_from_yfinance(
+                ticker, fetch_period, "1d", raw=True
             )
+
+            if training_df is None or (hasattr(training_df, "empty") and training_df.empty):
+                raise ValueError(
+                    f"No training data returned for {ticker} with period={fetch_period}. "
+                    "Check the ticker symbol and internet connection."
+                )
+
+            logger.info(
+                "Fetched %d rows for Prophet training (%s, period=%s)",
+                len(training_df), ticker, fetch_period,
+            )
+
             model, metrics = train_prophet_model(
                 training_df, existing_model_path=existing_model_path
             )
