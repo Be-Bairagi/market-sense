@@ -162,3 +162,13 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 ### 29. Automated `StockMeta` Caching
 - **The Hack**: Instead of requiring a manual "Add Stock" step, the `StockService` automatically looks up metadata in the DB. On a cache miss, it fetches from `yfinance.info` and persists it immediately.
 - **Benefit**: This creates a self-populating "Symbol Catalog" as users search for new stocks, ensuring rich metadata is always available for previously viewed tickers.
+
+### 30. Confidence Drift Tracking (The "Why" Behind Alerts)
+- **The Concept**: Users ignore static watchlists. They pay attention to *change*.
+- **The Logic**: When a stock is added to the watchlist, we capture the AI's confidence score at that exact moment as a `confidence_at_add` baseline.
+- **The Calculation**: Whenever the watchlist is fetched, we compute `current_confidence - confidence_at_add`. If the absolute drift is ≥ 10%, we trigger a visual "Amber Alert".
+- **Benefit**: This provides an immediate psychological trigger for users to check "What changed?" in the Deep Dive analysis, moving the system from passive information to active guidance.
+
+### 31. Unique Constraints in SQLModel
+- **The Problem**: Users might click "Add" multiple times or from different pages, leading to duplicate tracking of the same stock.
+- **The Solution**: Use `__table_args__ = (UniqueConstraint("symbol", "horizon"),)` in the model. This moves the validation logic to the DB layer, preventing data corruption regardless of frontend race conditions.

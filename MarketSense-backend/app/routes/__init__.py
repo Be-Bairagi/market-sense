@@ -1,6 +1,6 @@
 from app.routes import (data_routes, evaluate, feature_routes, fetch_data_route,
                         model_routes, prediction_routes, screener_routes,
-                        train_routes, market_routes, stock_routes)
+                        train_routes, market_routes, stock_routes, watchlist_routes)
 from fastapi import APIRouter
 
 api_router = APIRouter()
@@ -16,5 +16,6 @@ api_router.include_router(
     prediction_routes.predict_router, prefix="/predict", tags=["Prediction"]
 )
 api_router.include_router(stock_routes.router, prefix="/stocks", tags=["Stocks Deep Dive"])
+api_router.include_router(watchlist_routes.router, prefix="/watchlist", tags=["Watchlist"])
 api_router.include_router(evaluate.router, prefix="/evaluate", tags=["Evaluation"])
 api_router.include_router(screener_routes.router, prefix="/screener", tags=["Screener"])

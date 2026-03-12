@@ -287,3 +287,50 @@ class DashboardService:
         except Exception as e:
             logger.exception("Failed to fetch accuracy for %s", symbol)
             return {"error": str(e)}
+
+    # ── Phase 7.4: Watchlist ─────────────────────────────────
+    @staticmethod
+    def fetch_watchlist():
+        """GET /watchlist — retrieve enriched watchlist."""
+        try:
+            r = requests.get(
+                f"{BASE_URL}/watchlist",
+                headers=HEADERS,
+                timeout=15,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch watchlist")
+            return {"error": str(e)}
+
+    @staticmethod
+    def add_to_watchlist(symbol: str, horizon: str = "short_term"):
+        """POST /watchlist — add a stock to tracker."""
+        try:
+            r = requests.post(
+                f"{BASE_URL}/watchlist",
+                params={"symbol": symbol, "horizon": horizon},
+                headers=HEADERS,
+                timeout=10,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to add %s to watchlist", symbol)
+            return {"error": str(e)}
+
+    @staticmethod
+    def remove_from_watchlist(symbol: str):
+        """DELETE /watchlist/{symbol} — remove a stock from tracker."""
+        try:
+            r = requests.delete(
+                f"{BASE_URL}/watchlist/{symbol}",
+                headers=HEADERS,
+                timeout=10,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to remove %s from watchlist", symbol)
+            return {"error": str(e)}

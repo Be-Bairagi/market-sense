@@ -2,7 +2,26 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
-## [1.9.0] - 2026-03-12
+## [1.10.0] - 2026-03-12
+### Added
+- **UI Phase 7.4: My Watchlist**:
+  - Personalized dashboard for tracking favorite stocks.
+  - Sidebar search with live preview (Signal, Confidence, Risk) before adding.
+  - Real-time "Confidence Drift" alerts (Amber badge) when AI confidence shifts by ≥10% from the add-time baseline.
+  - Integrated "Why the alert?" expanders explaining sentiment shifts.
+  - Drill-down to "Stock Deep Dive" for full intelligence on watched symbols.
+- **Watchlist Engine (Backend)**:
+  - `WatchlistService`: Handles enriched retrieval with drift calculation and alert logic.
+  - `WatchlistItem` model: Persists user-saved tickers with baseline confidence/price tracking.
+  - New REST API endpoints: `GET /watchlist`, `POST /watchlist`, `DELETE /watchlist/{symbol}`.
+
+### Changed
+- **Auto-Provisioning**: backend `main.py` updated to register `watchlist_data` models for automatic table creation.
+- **Frontend Sync**: `DashboardService` extended with `fetch_watchlist`, `add_to_watchlist`, and `remove_from_watchlist`.
+
+### Fixed
+- **Soft-Conflict Resolution**: Prevented duplicate watchlist entries using `UniqueConstraint("symbol", "horizon")` in the database.
+
 ### Added
 - **UI Phase 7: Stock Deep Dive**:
   - New modular analysis page with Short-term, Swing, and Long-term prediction tabs.
