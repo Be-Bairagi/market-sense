@@ -40,3 +40,41 @@ def to_snake_case(text: str) -> str:
         .lower()
         .strip("_")
     )
+
+def format_currency(value: float) -> str:
+    """Format a numeric value as Indian Rupee (₹) with appropriate suffixes."""
+    if value is None:
+        return "₹0.00"
+    
+    if value >= 10000000:  # Cr
+        return f"₹{value / 10000000:.2f} Cr"
+    elif value >= 100000:  # L
+        return f"₹{value / 100000:.2f} L"
+    else:
+        return f"₹{value:,.2f}"
+
+def get_signal_icon(signal: str) -> str:
+    """Return an emoji icon based on the signal direction."""
+    if not signal:
+        return "⚪"
+    
+    s = signal.upper()
+    if "BUY" in s:
+        return "🟢"
+    elif "AVOID" in s or "SELL" in s:
+        return "🔴"
+    else:
+        return "🟡"
+
+def get_sentiment_color(sentiment: str) -> str:
+    """Return a CSS color name or hex code based on sentiment."""
+    if not sentiment:
+        return "grey"
+    
+    s = sentiment.lower()
+    if s == "positive":
+        return "green"
+    elif s == "negative":
+        return "red"
+    else:
+        return "orange"
