@@ -41,8 +41,9 @@ with col_ctrl2:
 # ── Fetch & Display Picks ─────────────────────────────────────
 data = DashboardService.fetch_todays_picks()
 
-if data.get("error"):
-    st.warning(f"⚠️ Could not load picks: {data['error']}")
+if not isinstance(data, dict) or data.get("error"):
+    err = data.get("error", "Unknown error") if isinstance(data, dict) else "Invalid response"
+    st.warning(f"⚠️ Could not load picks: {err}")
     st.info("The screener may not have run yet. Click **Run Screener Now** above.")
 elif not data.get("picks"):
     st.info("📭 No picks available yet. The screener runs daily at 5:00 PM IST after market close.")

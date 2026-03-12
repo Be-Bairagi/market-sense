@@ -86,8 +86,12 @@ def main():
     with st.spinner("Syncing your watchlist..."):
         watchlist = DashboardService.fetch_watchlist()
 
-    if "error" in watchlist:
+    if isinstance(watchlist, dict) and "error" in watchlist:
         st.error(f"Failed to load watchlist: {watchlist['error']}")
+        return
+    
+    if not isinstance(watchlist, list):
+        st.error("Invalid response from watchlist service")
         return
 
     if not watchlist:

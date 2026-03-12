@@ -135,7 +135,7 @@ st.sidebar.header("🤖 Prediction")
 if st.session_state.models_ticker != ticker:
     with st.spinner("Loading models..."):
         resp = DashboardService.fetch_available_models(ticker)
-    if resp.get("error"):
+    if not isinstance(resp, dict) or resp.get("error"):
         st.session_state.available_models = []
     else:
         st.session_state.available_models = resp.get("models", [])
@@ -308,8 +308,8 @@ if predict_btn:
                 predict_days=predict_days,
                 model_name_override=model_name_full,
             )
-            if response.get("error"):
-                err = response["error"]
+            if not isinstance(response, dict) or response.get("error"):
+                err = response.get("error", "Unknown error") if isinstance(response, dict) else "Invalid response"
                 if "No active model found" in str(err):
                     st.error(
                         f"🤖 Model **{model_name_full}** is not active. "
@@ -389,8 +389,8 @@ if predict_btn:
                 model_name_override=model_name_full,
             )
 
-        if result.get("error"):
-            err = result["error"]
+        if not isinstance(result, dict) or result.get("error"):
+            err = result.get("error", "Unknown error") if isinstance(result, dict) else "Invalid response"
             if "No active model" in str(err):
                 st.error(
                     f"🤖 Model **{model_name_full}** is not active. "

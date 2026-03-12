@@ -81,8 +81,9 @@ def render_prediction_tab(symbol, model_type, horizon_label):
     """Render a specific prediction horizon tab."""
     prediction = DashboardService.fetch_rich_prediction(symbol, model_type=model_type)
     
-    if "error" in prediction:
-        st.error(f"Failed to fetch {horizon_label} prediction: {prediction['error']}")
+    if not isinstance(prediction, dict) or "error" in prediction:
+        err = prediction.get("error", "Unknown error") if isinstance(prediction, dict) else "Invalid response"
+        st.error(f"Failed to fetch {horizon_label} prediction: {err}")
         return
 
     pred_data = prediction.get("predictions", {})
@@ -232,19 +233,22 @@ def main():
         st.subheader("System Reliability Tracker")
         accuracy = data["accuracy"]
         
-        col_a1, col_a2 = st.columns(2)
-        with col_a1:
-            st.metric("Ticker Win Rate", f"{accuracy.get('win_rate', 0)}%")
-        with col_a2:
-            st.metric("Total Predictions", accuracy.get("total_samples", 0))
-            
-        history = accuracy.get("history", [])
-        if history:
-            df_hist = pd.DataFrame(history)
-            df_hist.columns = ["Date", "Horizon", "Direction", "Conf %", "Outcome", "Model"]
-            st.table(df_hist)
+        if not isinstance(accuracy, dict) or "error" in accuracy:
+            st.info("Performance metrics currently unavailable for this stock.")
         else:
-            st.info("No prediction history available for this stock yet.")
+            col_a1, col_a2 = st.columns(2)
+            with col_a1:
+                st.metric("Ticker Win Rate", f"{accuracy.get('win_rate', 0)}%")
+            with col_a2:
+                st.metric("Total Predictions", accuracy.get("total_samples", 0))
+                
+            history = accuracy.get("history", [])
+            if history:
+                df_hist = pd.DataFrame(history)
+                df_hist.columns = ["Date", "Horizon", "Direction", "Conf %", "Outcome", "Model"]
+                st.table(df_hist)
+            else:
+                st.info("No prediction history available for this stock yet.")
 
 if __name__ == "__main__":
     main()

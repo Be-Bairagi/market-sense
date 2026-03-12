@@ -54,7 +54,11 @@ class DashboardService:
         except requests.exceptions.HTTPError as e:
             detail = ""
             try:
-                detail = e.response.json().get("detail", "")
+                json_resp = e.response.json()
+                if isinstance(json_resp, dict):
+                    detail = json_resp.get("detail", "")
+                else:
+                    detail = str(json_resp)
             except Exception:
                 pass
             logger.error("Prediction failed: %s", detail or e)
@@ -177,7 +181,11 @@ class DashboardService:
         except requests.exceptions.HTTPError as e:
             detail = ""
             try:
-                detail = e.response.json().get("detail", "")
+                json_resp = e.response.json()
+                if isinstance(json_resp, dict):
+                    detail = json_resp.get("detail", "")
+                else:
+                    detail = str(json_resp)
             except Exception:
                 pass
             logger.error("Rich prediction failed: %s", detail or e)
