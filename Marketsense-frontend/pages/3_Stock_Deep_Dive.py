@@ -88,6 +88,15 @@ def render_prediction_tab(symbol, model_type, horizon_label):
 
     pred_data = prediction.get("predictions", {})
     
+    if isinstance(pred_data, list):
+        st.info("Time-series forecast applied from Prophet model.")
+        if pred_data:
+            latest = pred_data[-1]
+            st.markdown(f"### 📈 Projected Value by {latest.get('date', 'N/A')}: **{format_currency(latest.get('value', 0))}**")
+            df_forecast = pd.DataFrame(pred_data)
+            st.line_chart(df_forecast.set_index('date')['value'], use_container_width=True)
+        return
+    
     col1, col2, col3 = st.columns([1, 1, 1])
     
     with col1:

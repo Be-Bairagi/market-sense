@@ -21,7 +21,7 @@ class AccuracyService:
             statement = (
                 select(PredictionRecord)
                 .where(PredictionRecord.symbol == symbol)
-                .order_by(PredictionRecord.created_at.desc())
+                .order_by(PredictionRecord.predicted_at.desc())
                 .limit(limit)
             )
             records = db.exec(statement).all()
@@ -42,7 +42,7 @@ class AccuracyService:
             # Note: actual_outcome is populated by a background job (Phase 8 logic)
             # For Phase 7, we show the history even if outcome is pending.
             item = {
-                "date": r.created_at.strftime("%Y-%m-%d"),
+                "date": r.predicted_at.strftime("%Y-%m-%d"),
                 "horizon": r.horizon,
                 "direction": r.direction,
                 "confidence": r.confidence,
