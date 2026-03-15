@@ -104,30 +104,30 @@ def health_check_ui():
 
         <style>
         /* Force equal height for columns and containers */
-        [data-testid="stHorizontalBlock"] {
+        [data-testid="stHorizontalBlock"] {{
             align-items: stretch;
-        }
-        [data-testid="stVerticalBlockBorderWrapper"] {
+        }}
+        [data-testid="stVerticalBlockBorderWrapper"] {{
             height: 100% !important;
             display: flex;
             flex-direction: column;
-        }
-        .feature-card {
+        }}
+        .feature-card {{
             height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-        }
-        .logo-container img {
+        }}
+        .logo-container img {{
             border-radius: 1.5rem;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
             border: 1px solid #f1f5f9;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .logo-container img:hover {
+        }}
+        .logo-container img:hover {{
             transform: scale(1.02) translateY(-10px);
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
-        }
+        }}
         </style>
         """, unsafe_allow_html=True)
 
