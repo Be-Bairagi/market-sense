@@ -56,7 +56,7 @@ python -m venv venv_311
 venv_311\Scripts\pip.exe install -r requirements.txt
 
 # Run Streamlit
-venv_311\Scripts\streamlit.exe run app.py
+venv_311\Scripts\streamlit.exe run Home.py
 
 # Lint
 venv_311\Scripts\flake8.exe .
@@ -169,7 +169,7 @@ MarketSense-backend/
 └── .flake8
 
 Marketsense-frontend/
-├── app.py                  # Streamlit app entry
+├── Home.py                 # Streamlit app entry
 ├── pages/                  # Streamlit pages
 │   ├── 1_Dashboard.py
 │   ├── 2_Model_Performance.py
