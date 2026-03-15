@@ -163,7 +163,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 
 **Key Deliverables:**
 - [x] Page 1 — Market Pulse & Data Dashboard: Focus on pure data and macro trends.
-- [x] Page 2 — Model Management: Streamlined training workflow with background data preparation.
+- [x] Page 2 — Model Management: Streamlined training workflow with background data preparation & intelligent status polling.
 - [x] Page 3 — Market Predictions: Dedicated AI analysis section for active models.
 - [x] Page 4 — Market Insights: Merged My Watchlist + Today's Picks with native UI.
 - [ ] Page 5 — Accuracy Tracker: Prediction vs actual charts & sector win rate (In Progress).

@@ -116,3 +116,70 @@ class TechnicalIndicatorService:
                 sanitized[k] = float(v)
 
         return sanitized
+
+    @staticmethod
+    def compute_all_history(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Efficiently compute technical indicators for an entire history.
+        Returns a DataFrame where each row contains features for that date.
+        """
+        if df.empty or len(df) < 14:
+            return pd.DataFrame()
+
+        close = df["Close"]
+        high = df["High"]
+        low = df["Low"]
+        volume = df["Volume"].astype(float)
+
+        hist_df = pd.DataFrame(index=df.index)
+
+        # --- Momentum ---
+        hist_df["rsi_14"] = ta.momentum.RSIIndicator(close, window=14).rsi()
+        
+        macd_ind = ta.trend.MACD(close, window_slow=26, window_fast=12, window_sign=9)
+        hist_df["macd_line"] = macd_ind.macd()
+        hist_df["macd_signal"] = macd_ind.macd_signal()
+        hist_df["macd_histogram"] = macd_ind.macd_diff()
+
+        stoch = ta.momentum.StochasticOscillator(high, low, close, window=14, smooth_window=3)
+        hist_df["stochastic_k"] = stoch.stoch()
+        hist_df["stochastic_d"] = stoch.stoch_signal()
+
+        # --- Trend ---
+        for period in [9, 21, 50, 200]:
+            hist_df[f"ema_{period}"] = ta.trend.EMAIndicator(close, window=period).ema_indicator()
+
+        hist_df["adx_14"] = ta.trend.ADXIndicator(high, low, close, window=14).adx()
+
+        # EMA Crossovers
+        hist_df["ema_9_21_crossover"] = (hist_df["ema_9"] > hist_df["ema_21"]).astype(float)
+        hist_df["ema_50_200_crossover"] = (hist_df["ema_50"] > hist_df["ema_200"]).astype(float)
+
+        # --- Volatility ---
+        bb = ta.volatility.BollingerBands(close, window=20, window_dev=2)
+        bb_high = bb.bollinger_hband()
+        bb_low = bb.bollinger_lband()
+        hist_df["bollinger_high"] = bb_high
+        hist_df["bollinger_low"] = bb_low
+        hist_df["bollinger_position"] = (close - bb_low) / (bb_high - bb_low).replace(0, 1)
+
+        hist_df["atr_14"] = ta.volatility.AverageTrueRange(high, low, close, window=14).average_true_range()
+
+        # --- Volume ---
+        hist_df["obv"] = ta.volume.OnBalanceVolumeIndicator(close, volume).on_balance_volume()
+        
+        vol_20d_avg = volume.rolling(20).mean()
+        hist_df["volume_spike_ratio"] = volume / vol_20d_avg.replace(0, 1)
+
+        # --- Derived ---
+        high_52w = high.rolling(252, min_periods=1).max()
+        low_52w = low.rolling(252, min_periods=1).min()
+        hist_df["proximity_52w_high"] = (close - low_52w) / (high_52w - low_52w).replace(0, 1)
+
+        # Gap up/down %
+        prev_close = close.shift(1)
+        hist_df["gap_percent"] = ((df["Open"] - prev_close) / prev_close.replace(0, 1)) * 100
+        
+        hist_df["current_close"] = close
+
+        return hist_df.fillna(0)

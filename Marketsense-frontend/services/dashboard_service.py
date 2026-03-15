@@ -107,6 +107,17 @@ class DashboardService:
             logger.exception("Failed to trigger backfill for %s: %s", symbol, e)
             return {"error": str(e)}
 
+    @staticmethod
+    def fetch_ticker_data_status(symbol: str):
+        """GET /data/{symbol}/status — specific stock data coverage."""
+        try:
+            r = requests.get(f"{BASE_URL}/data/{symbol}/status", timeout=10)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch data status for %s", symbol)
+            return {"error": str(e)}
+
     # ── Phase 3: Feature engineering ─────────────────────────
     @staticmethod
     def fetch_feature_status():
@@ -147,6 +158,21 @@ class DashboardService:
             return r.json()
         except Exception as e:
             logger.exception("Failed to trigger feature backfill for %s: %s", symbol, e)
+            return {"error": str(e)}
+
+    @staticmethod
+    def fetch_ticker_feature_status(symbol: str, horizon: str = "short_term"):
+        """GET /features/{symbol}/status — specific stock feature coverage."""
+        try:
+            r = requests.get(
+                f"{BASE_URL}/features/{symbol}/status",
+                params={"horizon": horizon},
+                timeout=10,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            logger.exception("Failed to fetch feature status for %s", symbol)
             return {"error": str(e)}
 
     # ── Phase 3b: Model availability ─────────────────────────

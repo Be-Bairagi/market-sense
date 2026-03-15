@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.14.0] - 2026-03-15
+### Added
+- **Intelligent Training Initialization**: Model Management now polls for data sufficiency (300 days) and feature vectors (100+) before starting training.
+- **Vectorized Feature Backfill**: Replaced day-by-day technical indicator calculation with an efficient broad-dataset pass, speeding up feature backfills by ~50x.
+- **Stock-Specific Coverage Endpoints**: New `/api/v1/data/{symbol}/status` and `/api/v1/features/{symbol}/status` routes for granular sync tracking.
+
+### Changed
+- **Optimized Scheduler**: Daily price updates now fetch up to 1 year of history, preventing data gaps during market holidays.
+- **UI Layout Refinement**: Training success notifications moved below the training section for a more logical UX flow.
+
+### Fixed
+- **XGBoost Data Starvation**: Resolved "Insufficient historical features" errors by ensuring prerequisites are fully populated via the new polling logic.
+
+
 ## [1.13.0] - 2026-03-15
 ### Added
 - **Market Predictions Page**: Dedicated page for AI analysis, separating signal generation from data visualization.

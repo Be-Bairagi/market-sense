@@ -22,8 +22,8 @@ def update_nifty50_prices():
     """Daily job to update NIFTY 50 prices."""
     logger.info("Starting scheduled NIFTY 50 price update...")
     for stock in NIFTY_50_STOCKS:
-        # For daily updates, we can use a shorter period
-        DataIngestionService.backfill_stock(stock["symbol"], years=0) 
+        # Fetch at least some history to ensure we don't miss days (e.g., weekends/holidays)
+        DataIngestionService.backfill_stock(stock["symbol"], years=1) 
     logger.info("Finished scheduled price update.")
 
 def update_market_context():

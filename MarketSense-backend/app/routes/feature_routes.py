@@ -77,3 +77,29 @@ def feature_status():
         "symbols": symbols,
         "system_status": "Healthy",
     }
+
+
+@router.get("/{symbol}/status")
+def get_symbol_feature_status(symbol: str, horizon: str = "short_term"):
+    """Check how many feature vectors we have for a specific symbol."""
+    with Session(engine) as db:
+        count = len(
+            db.exec(
+                select(FeatureVector.id).where(
+                    FeatureVector.symbol == symbol, FeatureVector.horizon == horizon
+                )
+            ).all()
+        )
+        latest = db.exec(
+            select(FeatureVector.date)
+            .where(FeatureVector.symbol == symbol, FeatureVector.horizon == horizon)
+            .order_by(FeatureVector.date.desc())
+        ).first()
+
+    return {
+        "symbol": symbol,
+        "horizon": horizon,
+        "count": count,
+        "latest_date": latest,
+        "sufficient_for_training": count >= 100,
+    }

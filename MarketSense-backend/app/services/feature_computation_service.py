@@ -152,24 +152,25 @@ class FeatureComputationService:
             "Close": p.close, "Volume": p.volume,
         } for p in price_rows], index=[p.date for p in price_rows])
 
-        # Compute features on full dataset (sliding window of 200+ rows)
-        # For backfill, we compute for the last N dates where we have enough history
-        dates_to_compute = df.index[200:]  # Skip first 200 days (need for EMA200)
-        computed_count = 0
-
-        # Get macro and context once (they don't change per-date in backfill)
+        # Compute technical features for the entire history in one pass
+        tech_df = TechnicalIndicatorService.compute_all_history(df)
+        
+        # Get common features (macro, sentiment, context) once
         macro_features = MacroFeatureService.compute_macro_features()
         context_features = MarketContextService.compute_context_features()
         sentiment_features = SentimentService.get_sentiment_summary(symbol)
 
+        # Iterate over dates where we have enough history (EMA200 needs 200 rows)
+        dates_to_compute = df.index[200:]
+        computed_count = 0
+
         with Session(engine) as db:
             for target_date in dates_to_compute:
-                # Slice up to this date
-                sub_df = df.loc[:target_date]
-                tech_features = TechnicalIndicatorService.compute_all(sub_df)
+                # Get technical indicators for this date
+                tech_row = tech_df.loc[target_date].to_dict()
 
                 all_features = {}
-                all_features.update(tech_features)
+                all_features.update(tech_row)
                 all_features.update({f"sentiment_{k}": v for k, v in sentiment_features.items()})
                 all_features.update(macro_features)
                 all_features.update(context_features)
@@ -194,7 +195,7 @@ class FeatureComputationService:
                     db.add(fv)
                     computed_count += 1
 
-                    if computed_count % 50 == 0:
+                    if computed_count % 100 == 0:
                         db.commit()
                         logger.info(f"Backfill progress for {symbol}: {computed_count} feature vectors stored.")
 

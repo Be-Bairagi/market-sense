@@ -24,13 +24,6 @@ st.set_page_config(
 st.title("⚙️ Model Management")
 st.write("Configure and train AI models for stock price prediction.")
 
-# ── Notifications ─────────────────────────────────────────────
-if "training_success_notice" in st.session_state:
-    st.success(st.session_state.training_success_notice, icon="✅")
-    if st.button("Clear Notification"):
-        del st.session_state.training_success_notice
-        st.rerun()
-
 st.divider()
 
 # ── Compact Configuration Row ────────────────────────────────
@@ -76,19 +69,51 @@ if train_submitted:
             # 1. Automatic Prerequisite Check & Initialization
             status.write("🔍 Initializing training data & features...")
             
-            # For XGBoost, we definitely need price data and features in the DB
-            # We trigger backfills regardless - the backend handles deduplication and skip-if-exists
-            sync_resp = DashboardService.backfill_data(ticker)
-            if sync_resp.get("error"):
-                status.write(f"⚠️ Price sync notice: {sync_resp['error']}")
-            
+            # --- Sub-step: Data Coverage ---
+            data_status = DashboardService.fetch_ticker_data_status(ticker)
+            if not data_status.get("sufficient_for_features", False):
+                status.write(f"📥 Insufficient price data ({data_status.get('count', 0)}/300 days). Triggering backfill...")
+                DashboardService.backfill_data(ticker)
+                
+                # Poll for up to 60 seconds
+                for i in range(12):
+                    time.sleep(5)
+                    data_status = DashboardService.fetch_ticker_data_status(ticker)
+                    status.write(f"⏳ Synchronizing price data... {data_status.get('count', 0)}/300 days")
+                    if data_status.get("sufficient_for_features"):
+                        status.write("✅ Price data synchronized.")
+                        break
+                else:
+                    status.update(label="❌ Data synchronization timed out", state="error")
+                    st.error(f"Could not fetch enough historical data for {ticker}. Please try again later.")
+                    st.stop()
+            else:
+                status.write("✅ Historical price data sufficient.")
+
+            # --- Sub-step: Feature Store ---
             if model_type == "XGBoost":
-                feat_resp = DashboardService.backfill_features(ticker)
-                if feat_resp.get("error"):
-                    status.write(f"⚠️ Feature computation notice: {feat_resp['error']}")
+                feat_status = DashboardService.fetch_ticker_feature_status(ticker)
+                if not feat_status.get("sufficient_for_training", False):
+                    status.write(f"🏗️ Insufficient features ({feat_status.get('count', 0)}/100 vectors). Computing...")
+                    DashboardService.backfill_features(ticker)
+                    
+                    # Poll for up to 60 seconds
+                    for i in range(12):
+                        time.sleep(5)
+                        feat_status = DashboardService.fetch_ticker_feature_status(ticker)
+                        status.write(f"⏳ Computing feature vectors... {feat_status.get('count', 0)}/100")
+                        if feat_status.get("sufficient_for_training"):
+                            status.write("✅ Feature store ready.")
+                            break
+                    else:
+                        status.update(label="❌ Feature computation timed out", state="error")
+                        st.error(f"XGBoost training requires 100+ daily feature vectors. Only {feat_status.get('count', 0)} computed so far.")
+                        st.stop()
+                else:
+                    status.write("✅ Feature store ready.")
             
-            # Short pause to let backend background tasks initialize
-            time.sleep(1.5)
+            # Final short pause for stability
+            time.sleep(1)
             
             # 2. Actual Training Call
             status.write("🧠 Executing model training...")
@@ -146,6 +171,13 @@ if train_submitted:
         st.error(f"An unexpected error occurred: {e}")
 
 st.divider()
+
+# ── Notifications ─────────────────────────────────────────────
+if "training_success_notice" in st.session_state:
+    st.success(st.session_state.training_success_notice, icon="✅")
+    if st.button("Clear Notification"):
+        del st.session_state.training_success_notice
+        st.rerun()
 
 # ── Section 2: Model Registry ────────────────────────────────
 st.subheader("🗂️ Model Registry")

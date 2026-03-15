@@ -199,3 +199,16 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 ### 38. IA Separation: Data vs. Analysis
 - **The Insight**: A dashboard that tries to show historical data AND future predictions leads to a cramped UI.
 - **The Change**: Extracting **Market Predictions** to its own page allowed for a more "Analysis-focused" UI (area charts, detailed signal metrics) without compromising the "Monitoring-focused" Dashboard (candlesticks, volume).
+
+### 39. Intelligent Polling for Training Dependencies
+- **The Problem**: Manual triggers for data sync and feature computation are error-prone. Implementation of automated triggers is good, but without waiting for completion, training often fails mid-way due to O-sample errors.
+- **The Solution**: Implementation of status-based polling in the UI ensures the "Initialization" phase actually waits for sufficient data (300 days) and features (100 vectors) before proceeding.
+- **The UX**: Provides real-time progress feedback (e.g., "Synchronizing... 150/300 days") instead of a static spinner.
+
+### 40. Efficient Bulk Indicator Computation
+- **The Problem**: Standard technical indicator computation for backfills (day-by-day in a loop) is extremely slow due to repeated DataFrame slicing and library overhead.
+- **The Solution**: Implementation of a vectorized `compute_all_history` method using the `ta` library's underlying series-based operations. This allows processing 5 years of history in O(1s) vs O(100s).
+
+### 41. Granular Coverage Monitoring Endpoints
+- **The Need**: Generic "System Healthy" status is insufficient for complex pipelines. 
+- **The Solution**: Adding stock-specific coverage endpoints (e.g., `GET /data/{symbol}/status`) allows the frontend to be "smart" about prerequisites, skipping expensive backfills if data is already sufficient and providing accurate progress bars.

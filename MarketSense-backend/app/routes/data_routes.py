@@ -54,3 +54,20 @@ def get_macro_data(db: Session = Depends(get_session)):
             seen.add(r.indicator)
             
     return latest_indicators
+
+@router.get("/{symbol}/status")
+def get_symbol_data_status(symbol: str, db: Session = Depends(get_session)):
+    """Check how many days of data we have for a specific symbol."""
+    count = db.exec(
+        select(func.count(StockPrice.id)).where(StockPrice.symbol == symbol)
+    ).one()
+    latest = db.exec(
+        select(StockPrice.date).where(StockPrice.symbol == symbol).order_by(StockPrice.date.desc())
+    ).first()
+    
+    return {
+        "symbol": symbol,
+        "count": count,
+        "latest_date": latest,
+        "sufficient_for_features": count >= 300
+    }
