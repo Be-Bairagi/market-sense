@@ -23,6 +23,16 @@ st.markdown(
 st.markdown("---")
 
 # ── Sidebar ───────────────────────────────────────────────────
+with st.sidebar:
+    st.header("👤 Personalization")
+    st.session_state.user_mode = st.radio(
+        "Select Your Experience Level:",
+        ["💡 Beginner", "🧠 Expert"],
+        index=0 if st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner" else 1,
+        help="Beginner mode provides more explanations and tips."
+    )
+    st.divider()
+
 st.sidebar.header("📊 Model Evaluation Settings")
 
 # Fetch available models dynamically
@@ -75,22 +85,25 @@ if refresh and "No models" not in selected_model:
             # ── KPI Section ────
             st.subheader(f"📈 Performance Overview — {ticker}")
 
+            is_beginner = st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner"
+            
             if is_xgboost:
                 kpi1, kpi2, kpi3 = st.columns(3)
+                label_acc = "Forecasting Success Rate" if is_beginner else "Directional Accuracy"
                 kpi1.metric(
-                    "Directional Accuracy",
+                    label_acc,
                     f"{metrics.get('accuracy', metrics.get('R2', 0)):.1%}"
                     if isinstance(metrics.get('accuracy', metrics.get('R2', 0)), float)
                     else str(metrics.get('accuracy', 'N/A'))
                 )
-                kpi2.metric("Data Points", metrics.get("data_points", "N/A"))
-                kpi3.metric("Model Type", "XGBoost Classifier")
+                kpi2.metric("Days Tested" if is_beginner else "Data Points", metrics.get("data_points", "N/A"))
+                kpi3.metric("AI Type" if is_beginner else "Model Type", "XGBoost Classifier")
             else:
                 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-                kpi1.metric("MAE", format_currency(metrics.get('MAE', 0)))
-                kpi2.metric("RMSE", format_currency(metrics.get('RMSE', 0)))
-                kpi3.metric("R² Score", f"{metrics.get('R2', 0):.3f}")
-                kpi4.metric("Data Points", metrics.get("data_points", "N/A"))
+                kpi1.metric("Avg. Price Error" if is_beginner else "MAE", format_currency(metrics.get('MAE', 0)))
+                kpi2.metric("Precision Score" if is_beginner else "RMSE", format_currency(metrics.get('RMSE', 0)))
+                kpi3.metric("Reliability Score" if is_beginner else "R² Score", f"{metrics.get('R2', 0):.3f}")
+                kpi4.metric("Days Tested" if is_beginner else "Data Points", metrics.get("data_points", "N/A"))
 
             st.markdown("---")
 

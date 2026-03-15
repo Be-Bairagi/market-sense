@@ -88,6 +88,16 @@ if st.session_state.show_market_pulse:
 st.divider()
 
 # ── Sidebar Controls ──────────────────────────────────────────
+with st.sidebar:
+    st.header("👤 Personalization")
+    st.session_state.user_mode = st.radio(
+        "Select Your Experience Level:",
+        ["💡 Beginner", "🧠 Expert"],
+        index=0 if st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner" else 1,
+        help="Beginner mode provides more explanations and tips."
+    )
+    st.divider()
+
 st.sidebar.header("🔎 Stock Selection")
 ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
 selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=0)

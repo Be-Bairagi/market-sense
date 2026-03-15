@@ -43,6 +43,16 @@ st.title("🏹 Market Insight")
 st.header("📌 My Watchlist")
 
 # Sidebar for Watchlist management
+with st.sidebar:
+    st.header("👤 Personalization")
+    st.session_state.user_mode = st.radio(
+        "Select Your Experience Level:",
+        ["💡 Beginner", "🧠 Expert"],
+        index=0 if st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner" else 1,
+        help="Beginner mode provides more explanations and tips."
+    )
+    st.divider()
+
 st.sidebar.header("🔍 Add to Watchlist")
 search_symbol = st.sidebar.text_input("Search Ticker (e.g. RELIANCE.NS)", "").upper()
 if search_symbol:
