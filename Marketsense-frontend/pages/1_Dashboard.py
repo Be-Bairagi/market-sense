@@ -59,16 +59,7 @@ if st.session_state.show_market_pulse:
         **Is the market "friend or foe" today?** We analyze core Indian indices and market volatility
         to give you a 30-second snapshot of the current macro climate.
         """
-        _, pulse_toggle_col = st.columns([7, 3])
-        with pulse_toggle_col:
-            mode_selection = st.segmented_control(
-                "View Mode",
-                options=["💡 Beginner", "🧠 Expert"],
-                default="🧠 Expert",
-                label_visibility="collapsed",
-                help="Choose 'Beginner' for simple explanations or 'Expert' for technical focus.",
-            )
-            expert_mode = (mode_selection == "🧠 Expert")
+        expert_mode = (st.session_state.get("user_mode", "💡 Beginner") == "🧠 Expert")
         if not expert_mode:
             st.markdown(market_pulse_desc)
 

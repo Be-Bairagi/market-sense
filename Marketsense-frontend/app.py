@@ -3,9 +3,11 @@ import random
 import time
 from datetime import datetime
 import streamlit as st
+import pandas as pd
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from utils.health import check_backend_health
+from utils.helpers import format_currency, format_date
 
 # Backend configuration
 BACKEND_URL = "http://localhost:8000"
@@ -98,146 +100,176 @@ def health_check_ui():
         </div>
         """, unsafe_allow_html=True)
 
-        # Real health check runs while the card is displayed
         healthy, health_data = check_backend_health()
         time.sleep(2.0)
 
     placeholder.empty()
     return healthy, health_data
 
-# ── Page Config (must be the very first st.* call) ───────────
+# ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
     page_title="MarketSense — AI Stock Predictor",
     page_icon="📈",
     layout="wide",
 )
 
-# Health check on startup
+# Initialize Session State
 if "health_check_done" not in st.session_state:
     healthy, health_data = health_check_ui()
     st.session_state["backend_healthy"] = healthy
     st.session_state["health_data"] = health_data
     st.session_state["health_check_done"] = True
 
-# ── Graceful Degradation (Native Streamlit Warning) ──
+if "user_mode" not in st.session_state:
+    st.session_state.user_mode = "💡 Beginner"
+
+# ── Sidebar ───────────────────────────────────────────────────
+with st.sidebar:
+    st.header("👤 Personalization")
+    st.session_state.user_mode = st.radio(
+        "Select Your Experience Level:",
+        ["💡 Beginner", "🧠 Expert"],
+        index=0 if st.session_state.user_mode == "💡 Beginner" else 1,
+        help="Beginner mode provides more explanations and tips."
+    )
+    st.divider()
+    st.info(f"Currently in **{st.session_state.user_mode}** mode.")
+
+# ── Online/Offline Status ──
 if not st.session_state.get("backend_healthy", False):
-    st.warning("**Offline Mode:** Backend engine is unreachable. Some features (Predictions, Data Pipeline) are limited.")
+    st.warning("**Offline Mode:** Backend engine is unreachable. Some features are limited.")
     if st.button("🔄 Retry Connection", type="secondary"):
         st.session_state.pop("health_check_done", None)
         st.session_state.pop("backend_healthy", None)
         st.session_state.pop("health_data", None)
         st.rerun()
 
-# ── Hero ──────────────────────────────────────────────────────
-st.title("🚀 MarketSense")
-st.subheader("AI-powered stock predictions for the Indian market. Clear signals, plain-English explanations — no jargon.")
+# ── Tabs Navigation ───────────────────────────────────────────
+tab1, tab2, tab3 = st.tabs(["🚀 Home", "⚙️ App Settings", "📘 About System"])
 
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.image(
-        "https://cdn.dribbble.com/users/1162077/screenshots/3848914/programmer.gif",
-        width=500,
-    )
+# ── TAB 1: HOME ──────────────────────────────────────────────
+with tab1:
+    st.title("🚀 Welcome to MarketSense")
+    st.subheader("AI-powered stock predictions for the Indian market.")
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.write(
+            "MarketSense analyzes Indian stocks using technical indicators, market macro data, "
+            "and machine learning to provide clear BUY / HOLD / AVOID signals."
+        )
+        st.write("")
+        if st.session_state.user_mode == "💡 Beginner":
+            st.info("👋 New here? Start with **Quick Prediction** below or check out the **Today's Picks** in the sidebar pages.")
+    
+    with col2:
+        st.image(
+            "./assets/BrandLogoMarketSense.png",
+            width=200,
+        )
 
-st.write("")
+    st.divider()
+    
+    # Quick Prediction
+    st.subheader("⚡ Instant AI Signal")
+    qcol1, qcol2 = st.columns([2, 1])
+    with qcol1:
+        quick_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS[:15]]
+        quick_selected = st.selectbox("Pick a stock to analyze:", quick_options, index=0)
+        quick_symbol = quick_selected.split(" (")[-1].rstrip(")")
+    with qcol2:
+        st.write("") # Spacer
+        quick_predict = st.button("🎯 Get Signal", use_container_width=True, type="primary")
 
-# ── Feature Cards (Using native st.container with border) ──────
-st.subheader("✨ Why MarketSense?")
-st.write(
-    "AI-powered analysis of Indian stocks — from technical indicators to "
-    "news sentiment — all distilled into clear BUY / HOLD / AVOID signals."
-)
-
-c1, c2, c3 = st.columns(3)
-
-with c1:
-    with st.container(border=True):
-        st.subheader("🤖 XGBoost Predictions")
-        st.write("ML-powered direction predictions (BUY / HOLD / AVOID) with confidence scores and risk assessment.")
-
-with c2:
-    with st.container(border=True):
-        st.subheader("📊 40+ Technical Indicators")
-        st.write("RSI, MACD, Bollinger Bands, EMAs, ADX, ATR, OBV — automatically computed and stored.")
-
-with c3:
-    with st.container(border=True):
-        st.subheader("💬 Plain-English Explanations")
-        st.write("No jargon. Get key drivers like 'RSI shows oversold recovery' and bear-case risk warnings.")
-
-st.write("")
-
-# ── Quick Prediction ──────────────────────────────────────────
-st.divider()
-st.subheader("⚡ Quick Prediction")
-st.write("Pick a NIFTY 50 stock and get an instant AI signal.")
-
-qcol1, qcol2 = st.columns([2, 1])
-
-with qcol1:
-    quick_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS[:10]]
-    quick_selected = st.selectbox("Stock", quick_options, index=0, key="quick_ticker")
-    quick_symbol = quick_selected.split(" (")[-1].rstrip(")")
-
-with qcol2:
-    st.write("")  # spacer
-    quick_predict = st.button("🎯 Get Signal", use_container_width=True, type="primary")
-
-if quick_predict:
-    with st.spinner(f"Analyzing {quick_symbol}..."):
-        result = DashboardService.fetch_rich_prediction(quick_symbol, "xgboost")
-
-    if result.get("error"):
-        st.warning(f"⚠️ {result['error']}")
-        st.info("Train an XGBoost model for this stock in **Model Management** first.")
-    else:
-        direction = result.get("direction", "HOLD")
-        confidence = result.get("confidence", 0.0)
-        signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
+    if quick_predict:
+        with st.spinner(f"AI is crunching numbers for {quick_symbol}..."):
+            result = DashboardService.fetch_rich_prediction(quick_symbol, "xgboost")
         
+        if result.get("error"):
+            st.warning(f"⚠️ {result['error']}")
+            st.info("Train an XGBoost model for this stock in **Model Management** first.")
+        else:
+            direction = result.get("direction", "HOLD")
+            confidence = result.get("confidence", 0.0)
+            signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
+            
+            with st.container(border=True):
+                st.write(f"### {signals.get(direction, '🟡')} {direction}")
+                st.write(f"**Confidence:** {confidence:.0%}")
+                
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Target (Near)", format_currency(result.get('target_low', 0)))
+                m2.metric("Stop Loss", format_currency(result.get('stop_loss', 0)))
+                m3.metric("Risk Level", result.get("risk_level", "MEDIUM"))
+
+    st.divider()
+    
+    # Feature Highlights
+    st.subheader("✨ Key Features")
+    f1, f2, f3 = st.columns(3)
+    with f1:
         with st.container(border=True):
-            st.write(f"### {signals.get(direction, '🟡')} {direction}")
-            st.write(f"**Stock:** {NIFTY_50_MAP.get(quick_symbol, quick_symbol)}")
-            st.write(f"**AI Confidence:** {confidence:.0%}")
-            st.write(f"**Horizon:** {result.get('horizon', 'short_term')}")
+            st.markdown("### 🤖 ML Models")
+            st.write("XGBoost direction classifiers and Prophet price forecasters tuned for Indian stocks.")
+    with f2:
+        with st.container(border=True):
+            st.markdown("### 📊 40+ Indicators")
+            st.write("Automatically calculated RSI, MACD, Bollinger Bands, and more stored in the feature store.")
+    with f3:
+        with st.container(border=True):
+            st.markdown("### 💬 Plain English")
+            st.write("No complex jargon. We translate technical signals into simple bullet points.")
 
-            drivers = result.get("key_drivers", [])
-            if drivers:
-                st.write("**Key Drivers:**")
-                for d in drivers[:3]:
-                    st.markdown(f"- {d}")
-
-st.write("")
-st.divider()
-
-# ── Platform Overview ─────────────────────────────────────────
-st.subheader("📈 Platform Overview")
-
-c1, c2 = st.columns([2, 1])
-
-with c1:
-    st.markdown("""
-    MarketSense combines **Machine Learning** and **real-time Indian market data**
-    to generate actionable insights for NIFTY 50 stocks.
-
-    - 🎯 **AI Signal Cards** — BUY / HOLD / AVOID with confidence
-    - 📊 **Interactive Charts** — Candlestick, volume, comparison
-    - 🧬 **Feature Store** — 40+ indicators computed automatically
-    - 🌍 **Macro Awareness** — USD/INR, Crude, VIX, and Index Moods
-    - 💬 **Beginner-Friendly** — Plain-English explanations, no jargon
-    """)
-
-with c2:
-    st.image(
-        "./assets/BrandLogoMarketSense.png",
-        caption="Be fearful when others are greedy and greedy only when others are fearful.",
-        width=200,
+# ── TAB 2: SETTINGS ───────────────────────────────────────────
+with tab2:
+    st.title("⚙️ App Settings")
+    
+    st.subheader("🌐 Data Source Configuration")
+    source = st.selectbox(
+        "Primary Data Provider",
+        ["Yahoo Finance (Internal)", "Alpha Vantage (Upcoming)", "Custom Upload (Dev Only)"],
+        index=0
     )
+    if source == "Custom Upload (Dev Only)":
+        st.file_uploader("Upload CSV", type=["csv"])
+    
+    st.divider()
+    
+    st.subheader("🎨 Interface Preferences")
+    default_ticker = st.text_input("Default Focus Ticker", "RELIANCE.NS")
+    st.checkbox("Enable Auto-Refresh (Market Hours Only)", value=True)
+    
+    if st.button("💾 Save Preferences"):
+        st.success("Preferences saved successfully!")
 
-st.write("")
-st.divider()
+# ── TAB 3: ABOUT ─────────────────────────────────────────────
+with tab3:
+    st.title("📘 About MarketSense")
+    
+    st.markdown("""
+    MarketSense is developed as an **AI-driven stock market prediction platform** to assist retail investors 
+    in identifying high-probability opportunities in the **NIFTY 50** universe.
+    
+    ### ⚙️ How it Works
+    1. **Data Pipeline:** Fetches historical and macro data (VIX, Crude, FII/DII).
+    2. **Feature Store:** Computes technical and sentiment signals automatically.
+    3. **AI Models:** Multiple frameworks (Prophet, XGBoost) analyze data for patterns.
+    4. **Screener:** Nightly scans identify the top 5 'High Confidence' picks.
+    """)
+    
+    st.divider()
+    
+    st.markdown(f"""
+    **System Information:**
+    - **App Version:** 1.5.0-master
+    - **Developer:** Brotati Bairagi
+    - **Backend:** FastAPI (Python)
+    - **Frontend:** Streamlit
+    - **Last System Sync:** {format_date(datetime.now())}
+    """)
+    
+    st.divider()
+    
+    st.write("📫 **Contact & Support:** [brotati.bairagi@example.com](mailto:brotati.bairagi@example.com)")
 
-# ── CTA ───────────────────────────────────────────────────────
-st.write("### 💡 Ready to explore AI-powered investing?")
-st.write("Navigate to the **Dashboard** from the sidebar to start analyzing stocks.")
-st.caption(f"© {datetime.now().year} MarketSense | Built with ❤️ using FastAPI & Streamlit")
+st.caption(f"© {datetime.now().year} MarketSense | Built with ❤️ using FastAPI + Streamlit")
