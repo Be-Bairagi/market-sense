@@ -1,7 +1,7 @@
 # 🤖 MarketSense — Revised Agent Roadmap (SCOPE)
 
 > **Last Updated:** 2026-03-16
-> **Current State:** ~92% implemented (Phase 7: Frontend Overhaul - Centralized formatting & Logic Refinement complete)
+> **Current State:** ~95% implemented (Phase 7: Frontend Overhaul ✅ - Home page merged & Global Mode Selection complete)
 > **Original Roadmap:** [ROADMAP.md](file:///d:/Final%20Year%20Project/.antigravity/ROADMAP.md)
 > **Detailed Phase Plans:** [`.plans/`](file:///d:/Final%20Year%20Project/.antigravity/.plans/)
 
@@ -148,7 +148,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 
 ---
 
-### Phase 7 — Frontend Overhaul (Beginner-Friendly UI) [/]
+### Phase 7 — Frontend Overhaul ✅
 **Goal:** Redesign Streamlit frontend to match the beginner-focused UX vision.
 **Estimated Effort:** 5–7 days
 **Detailed Plan:** [phase-7.md](file:///d:/Final%20Year%20Project/.antigravity/.plans/phase-7.md)
@@ -159,14 +159,14 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - [Phase UI-4: Stock Deep Dive](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-4.md)
 - [Phase UI-5: My Watchlist](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-5.md)
 - [Phase UI-6: Accuracy Tracker](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-6.md)
-- [Phase UI-7: Polish & Performance](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-7.md)
+- [x] Page 6 — Final Polish & Performance: Home page merged with Settings & About.
 
 **Key Deliverables:**
 - [x] Page 1 — Market Pulse & Data Dashboard: Focus on pure data and macro trends.
 - [x] Page 2 — Model Management: Streamlined training workflow with background data preparation & intelligent status polling.
 - [x] Page 3 — Market Predictions: Dedicated AI analysis section for active models.
 - [x] Page 4 — Market Insights: Merged My Watchlist + Today's Picks with native UI.
-- [ ] Page 5 — Accuracy Tracker: Prediction vs actual charts & sector win rate (In Progress).
+- [x] Page 5 — Accuracy Tracker: Prediction vs actual charts & sector win rate.
 - [x] Tooltip glossary for technical terms (Hints section in Dashboard).
 - [x] Mobile-friendly layout pass (Page reorganization for mobile focus).
 - [x] Loading states and error handling for all API calls (Startup Loader + Offline Banner).

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.16.0] - 2026-03-16
+### Added
+- **Unified Home Page**: Merged `app.py`, `Settings`, and `About` into a single, cohesive landing page with tabbed navigation.
+- **Global Personalization**: Introduced a "User Mode" switcher (Beginner vs Expert) in the sidebar of every page.
+- **Context-Aware UI**: Updated Dashboard and Accuracy Tracker to dynamically toggle between simplified (plain English) and technical views based on the selected mode.
+
+### Changed
+- **Information Architecture**: Removed redundant `Settings` and `About` pages from the sidebar to declutter navigation.
+- **Sidebar Standardization**: Standardized sidebar headers across all pages for a more consistent feel.
+
+### Fixed
+- **Page Desync**: Ensured the selected user mode persists across page transitions via `st.session_state`.
+
+
 ## [1.15.0] - 2026-03-16
 ### Added
 - **Centralized Data Formatting**: Implemented `utils.helpers` with standardized `format_currency`, `format_date`, and `format_time` functions. 
