@@ -4,7 +4,7 @@ from invoke import task
 
 @task
 def run(c):
-    c.run("streamlit run app.py")
+    c.run("streamlit run Home.py")
 
 
 @task
