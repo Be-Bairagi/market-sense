@@ -26,8 +26,11 @@ class FetchDataService:
             with Session(engine) as db:
                 # Calculate required start date based on period
                 # simplified mapping for evaluation
-                limit_map = {"7d": 7, "30d": 30, "90d": 90, "1y": 365, "5y": 1825}
-                days = limit_map.get(period, 30)
+                limit_map = {
+                    "7d": 7, "30d": 30, "90d": 90, "180d": 180, 
+                    "6mo": 180, "1y": 365, "2y": 730, "5y": 1825
+                }
+                days = limit_map.get(period, 180 if period == "6mo" else 30)
                 start_date = (pd.Timestamp.now() - pd.Timedelta(days=days)).date()
 
                 statement = select(StockPrice).where(

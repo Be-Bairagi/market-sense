@@ -172,3 +172,11 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 ### 31. Unique Constraints in SQLModel
 - **The Problem**: Users might click "Add" multiple times or from different pages, leading to duplicate tracking of the same stock.
 - **The Solution**: Use `__table_args__ = (UniqueConstraint("symbol", "horizon"),)` in the model. This moves the validation logic to the DB layer, preventing data corruption regardless of frontend race conditions.
+
+### 32. Neon Serverless Migration & Table Resets
+- **The Hack**: When migrating to a new Neon project, use a dedicated reset script to drop old tables with `CASCADE` before re-initializing via `SQLModel.metadata.create_all()`. This ensures no lingering constraints from previous iterations of similar projects block the fresh initialization.
+- **Connection**: Using `-pooler` endpoints for better connection management in serverless environments.
+
+### 33. UI Mode Persistence vs. Defaults
+- **The Design**: While beginner-friendliness is core, frequent users prefer data density. 
+- **The Logic**: Setting "Expert Mode" as default in the Market Pulse section reduces click-fatigue for power users, while still keeping the "Beginner" option accessible for a one-click translation of the macro environment.

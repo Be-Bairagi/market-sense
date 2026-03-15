@@ -10,7 +10,7 @@ class StockQueryParams(BaseModel):
     interval: str = Field("1d", description="Interval, e.g. 1d, 1h, 5mo")
 
     # Allowed values for period and interval
-    ALLOWED_PERIODS: ClassVar[tuple] = ("7d", "30d", "90d", "180d", "1y", "2y", "5y")
+    ALLOWED_PERIODS: ClassVar[tuple] = ("7d", "30d", "90d", "180d", "6mo", "1y", "2y", "5y")
     ALLOWED_INTERVALS: ClassVar[tuple] = ("1d", "1h", "1wk", "1mo")
 
     @field_validator("ticker")

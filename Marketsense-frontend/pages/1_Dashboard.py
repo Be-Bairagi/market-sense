@@ -69,15 +69,15 @@ if st.session_state.show_market_pulse:
             mode_selection = st.segmented_control(
                 "View Mode",
                 options=["💡 Beginner", "🧠 Expert"],
-                default="💡 Beginner",
+                default="🧠 Expert",
                 label_visibility="collapsed",
                 help="Choose 'Beginner' for simple explanations or 'Expert' for technical focus.",
             )
-            beginner_mode = (mode_selection == "💡 Beginner")
-        if beginner_mode:
+            expert_mode = (mode_selection == "🧠 Expert")
+        if not expert_mode:
             st.markdown(market_pulse_desc)
 
-        CARD_HEIGHT = 380 if beginner_mode else 250
+        CARD_HEIGHT = 250 if expert_mode else 380
 
         if st.session_state.pulse_data is None:
             render_pulse_skeleton(CARD_HEIGHT)
@@ -93,7 +93,7 @@ if st.session_state.show_market_pulse:
                     st.rerun()
             else:
                 render_market_pulse_cards(
-                    st.session_state.pulse_data, beginner_mode, CARD_HEIGHT
+                    st.session_state.pulse_data, not expert_mode, CARD_HEIGHT
                 )
                 if st.button("🔄 Refresh Pulse Data", key="refresh_pulse"):
                     st.session_state.pulse_data = None

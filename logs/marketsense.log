@@ -1,0 +1,597 @@
+2026-03-12 23:38:46 - matplotlib - DEBUG - matplotlib data path: D:\Final Year Project\MarketSense-backend\venv\Lib\site-packages\matplotlib\mpl-data
+2026-03-12 23:38:46 - matplotlib - DEBUG - CONFIGDIR=C:\Users\DELL\.matplotlib
+2026-03-12 23:38:46 - matplotlib - DEBUG - interactive is False
+2026-03-12 23:38:46 - matplotlib - DEBUG - platform is win32
+2026-03-12 23:38:46 - matplotlib - DEBUG - CACHEDIR=C:\Users\DELL\.matplotlib
+2026-03-12 23:38:46 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\DELL\.matplotlib\fontlist-v390.json
+2026-03-12 23:38:47 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:38:47 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:38:57 - tzlocal - DEBUG - Looking up time zone info from registry
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:38:57 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:38:57 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:38:57 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:08:57.877809+05:30 (in 1799.995778 seconds)
+2026-03-12 23:38:57 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:38:57 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:38:57 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.001s
+2026-03-12 23:38:57 - httpx - INFO - HTTP Request: GET http://testserver/predict?model_name=AAPL_prophet&n_days=7 "HTTP/1.1 404 Not Found"
+2026-03-12 23:38:58 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:38:58 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:38:58 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:38:58 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:38:58 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:38:58 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:38:58 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:39:00 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:00 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:09:00.757633+05:30 (in 1799.996447 seconds)
+2026-03-12 23:39:00 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:39:00 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:39:00 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.001s
+2026-03-12 23:39:00 - httpx - INFO - HTTP Request: GET http://testserver/predict?model_name=AAPL_prophet&n_days=0 "HTTP/1.1 404 Not Found"
+2026-03-12 23:39:00 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:39:00 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:39:00 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:00 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:39:00 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:39:00 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:39:00 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:39:02 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:02 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:09:02.710030+05:30 (in 1799.997476 seconds)
+2026-03-12 23:39:02 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:39:02 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:39:02 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.001s
+2026-03-12 23:39:02 - httpx - INFO - HTTP Request: GET http://testserver/predict?model_name=AAPL_prophet&n_days=-5 "HTTP/1.1 404 Not Found"
+2026-03-12 23:39:02 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:39:02 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:39:02 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:02 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:39:02 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:39:02 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:39:02 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:39:04 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:04 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:09:04.578141+05:30 (in 1799.997626 seconds)
+2026-03-12 23:39:04 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:39:04 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:39:04 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.001s
+2026-03-12 23:39:04 - httpx - INFO - HTTP Request: GET http://testserver/predict?model_name=AAPL_prophet&n_days=400 "HTTP/1.1 404 Not Found"
+2026-03-12 23:39:04 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:39:04 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:39:04 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:04 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:39:04 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:39:04 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:39:04 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:39:06 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:06 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:09:06.399512+05:30 (in 1799.996554 seconds)
+2026-03-12 23:39:06 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:39:06 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:39:06 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.000s
+2026-03-12 23:39:06 - httpx - INFO - HTTP Request: GET http://testserver/predict?model_name=AAPL_prophet&n_days=7 "HTTP/1.1 404 Not Found"
+2026-03-12 23:39:06 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:39:06 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:39:06 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:06 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:39:06 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:39:06 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:39:06 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:39:08 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:08 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:09:08.221833+05:30 (in 1799.997887 seconds)
+2026-03-12 23:39:08 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:39:08 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:39:08 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.001s
+2026-03-12 23:39:08 - httpx - INFO - HTTP Request: GET http://testserver/predict?model_name=invalid&n_days=7 "HTTP/1.1 404 Not Found"
+2026-03-12 23:39:08 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:39:08 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:39:08 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:08 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:39:08 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:39:08 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:39:08 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:39:10 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:10 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:09:10.023038+05:30 (in 1799.996663 seconds)
+2026-03-12 23:39:10 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:39:10 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:39:10 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.001s
+2026-03-12 23:39:10 - httpx - INFO - HTTP Request: GET http://testserver/predict?n_days=7 "HTTP/1.1 404 Not Found"
+2026-03-12 23:39:10 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:39:10 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:39:10 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:10 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:39:10 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:39:10 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:39:10 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:39:12 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:12 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:09:12.034185+05:30 (in 1799.997686 seconds)
+2026-03-12 23:39:12 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:39:12 - app.main - INFO - Request started: GET /predict
+2026-03-12 23:39:12 - app.main - INFO - Request completed: GET /predict - Status: 404 - Time: 0.001s
+2026-03-12 23:39:12 - httpx - INFO - HTTP Request: GET http://testserver/predict?model_name=AAPL_prophet "HTTP/1.1 404 Not Found"
+2026-03-12 23:39:12 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:39:12 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:39:12 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:39:12 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:39:12 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:08 - matplotlib - DEBUG - matplotlib data path: D:\Final Year Project\MarketSense-backend\venv\Lib\site-packages\matplotlib\mpl-data
+2026-03-12 23:40:08 - matplotlib - DEBUG - CONFIGDIR=C:\Users\DELL\.matplotlib
+2026-03-12 23:40:08 - matplotlib - DEBUG - interactive is False
+2026-03-12 23:40:08 - matplotlib - DEBUG - platform is win32
+2026-03-12 23:40:08 - matplotlib - DEBUG - CACHEDIR=C:\Users\DELL\.matplotlib
+2026-03-12 23:40:08 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\DELL\.matplotlib\fontlist-v390.json
+2026-03-12 23:40:09 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:09 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:14 - tzlocal - DEBUG - Looking up time zone info from registry
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:14 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:14 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:14.140241+05:30 (in 1799.991282 seconds)
+2026-03-12 23:40:14 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:14 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:14 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 200 - Time: 0.006s
+2026-03-12 23:40:14 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=7 "HTTP/1.1 200 OK"
+2026-03-12 23:40:14 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:14 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:14 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:14 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:14 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:14 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:14 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:16 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:16 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:16.458931+05:30 (in 1799.995495 seconds)
+2026-03-12 23:40:16 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:16 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:16 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.006s
+2026-03-12 23:40:16 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=0 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:40:16 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:16 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:16 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:16 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:16 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:16 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:16 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:18 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:18 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:18.743841+05:30 (in 1799.997659 seconds)
+2026-03-12 23:40:18 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:18 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:18 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.002s
+2026-03-12 23:40:18 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=-5 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:40:18 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:18 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:18 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:18 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:18 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:18 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:18 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:20 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:20 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:20.712473+05:30 (in 1799.996803 seconds)
+2026-03-12 23:40:20 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:20 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:20 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.004s
+2026-03-12 23:40:20 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=400 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:40:20 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:20 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:20 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:20 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:20 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:20 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:20 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:22 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:22 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:22.430340+05:30 (in 1799.997764 seconds)
+2026-03-12 23:40:22 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:22 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:22 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 401 - Time: 0.001s
+2026-03-12 23:40:22 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=7 "HTTP/1.1 401 Unauthorized"
+2026-03-12 23:40:22 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:22 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:22 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:22 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:22 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:22 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:22 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:24 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:24 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:24.209041+05:30 (in 1799.997185 seconds)
+2026-03-12 23:40:24 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:24 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:24 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 400 - Time: 0.004s
+2026-03-12 23:40:24 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=invalid&n_days=7 "HTTP/1.1 400 Bad Request"
+2026-03-12 23:40:24 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:24 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:24 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:24 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:24 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:24 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:24 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:26 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:26 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:26.001681+05:30 (in 1799.997911 seconds)
+2026-03-12 23:40:26 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:26 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:26 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.006s
+2026-03-12 23:40:26 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?n_days=7 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:40:26 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:26 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:26 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:26 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:26 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:40:26 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:40:26 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:40:27 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:27 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:10:27.962364+05:30 (in 1799.995560 seconds)
+2026-03-12 23:40:27 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:40:27 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:40:27 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.003s
+2026-03-12 23:40:27 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:40:27 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:40:27 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:40:27 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:40:27 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:40:27 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:07 - matplotlib - DEBUG - matplotlib data path: D:\Final Year Project\MarketSense-backend\venv\Lib\site-packages\matplotlib\mpl-data
+2026-03-12 23:51:07 - matplotlib - DEBUG - CONFIGDIR=C:\Users\DELL\.matplotlib
+2026-03-12 23:51:07 - matplotlib - DEBUG - interactive is False
+2026-03-12 23:51:07 - matplotlib - DEBUG - platform is win32
+2026-03-12 23:51:07 - matplotlib - DEBUG - CACHEDIR=C:\Users\DELL\.matplotlib
+2026-03-12 23:51:07 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\DELL\.matplotlib\fontlist-v390.json
+2026-03-12 23:51:07 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:07 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:11 - tzlocal - DEBUG - Looking up time zone info from registry
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:11 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:11 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:11.903876+05:30 (in 1799.997158 seconds)
+2026-03-12 23:51:11 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:11 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:11 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 200 - Time: 0.004s
+2026-03-12 23:51:11 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=7 "HTTP/1.1 200 OK"
+2026-03-12 23:51:11 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:11 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:11 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:11 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:11 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:11 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:11 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:13 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:13 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:13.447870+05:30 (in 1799.995439 seconds)
+2026-03-12 23:51:13 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:13 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:13 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.007s
+2026-03-12 23:51:13 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=0 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:51:13 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:13 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:13 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:13 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:13 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:13 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:13 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:15 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:15 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:15.553087+05:30 (in 1799.997194 seconds)
+2026-03-12 23:51:15 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:15 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:15 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.002s
+2026-03-12 23:51:15 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=-5 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:51:15 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:15 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:15 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:15 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:15 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:15 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:15 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:17 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:17 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:17.085082+05:30 (in 1799.997709 seconds)
+2026-03-12 23:51:17 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:17 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:17 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.003s
+2026-03-12 23:51:17 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=400 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:51:17 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:17 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:17 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:17 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:17 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:17 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:17 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:18 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:18 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:18.657643+05:30 (in 1799.997053 seconds)
+2026-03-12 23:51:18 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:18 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:18 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 401 - Time: 0.001s
+2026-03-12 23:51:18 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet&n_days=7 "HTTP/1.1 401 Unauthorized"
+2026-03-12 23:51:18 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:18 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:18 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:18 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:18 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:18 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:18 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:20 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:20 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:20.103280+05:30 (in 1799.996214 seconds)
+2026-03-12 23:51:20 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:20 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:20 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 400 - Time: 0.004s
+2026-03-12 23:51:20 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=invalid&n_days=7 "HTTP/1.1 400 Bad Request"
+2026-03-12 23:51:20 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:20 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:20 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:20 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:20 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:20 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:20 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:21 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:21 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:21.548656+05:30 (in 1799.996763 seconds)
+2026-03-12 23:51:21 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:21 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:21 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.006s
+2026-03-12 23:51:21 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?n_days=7 "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:51:21 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:21 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:21 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:21 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:21 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-12 23:51:21 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-12 23:51:21 - app.main - INFO - Starting up MarketSense API...
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Added job "Daily NIFTY 50 Price Update" to job store "default"
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Added job "Daily Macro Data Update" to job store "default"
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Added job "Periodic News Ingestion + Sentiment" to job store "default"
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Added job "Daily Feature Computation" to job store "default"
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Added job "Daily Stock Screener" to job store "default"
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Scheduler started
+2026-03-12 23:51:23 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:23 - apscheduler.scheduler - DEBUG - Next wakeup is due at 2026-03-13 00:21:23.011873+05:30 (in 1799.997036 seconds)
+2026-03-12 23:51:23 - app.scheduler - INFO - Background scheduler started with 5 jobs (IST timezone).
+2026-03-12 23:51:23 - app.main - INFO - Request started: GET /api/v1/predict
+2026-03-12 23:51:23 - app.main - INFO - Request completed: GET /api/v1/predict - Status: 422 - Time: 0.003s
+2026-03-12 23:51:23 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/predict?model_name=AAPL_prophet "HTTP/1.1 422 Unprocessable Entity"
+2026-03-12 23:51:23 - app.main - INFO - Shutting down MarketSense API...
+2026-03-12 23:51:23 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-03-12 23:51:23 - apscheduler.scheduler - DEBUG - Looking for jobs to run
+2026-03-12 23:51:23 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
+2026-03-12 23:51:23 - app.scheduler - INFO - Background scheduler shut down.

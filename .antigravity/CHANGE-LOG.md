@@ -2,6 +2,18 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.11.0] - 2026-03-15
+### Added
+- **Neon Cloud Migration**:
+  - Fully integrated serverless Neon Postgres (`project blue-cloud-49754595`) as the primary data store.
+  - Automated schema initialization for all core models (`trained_models`, `prediction_records`, `feature_vectors`, etc.).
+  - Added connection pooling and cold-start timeout optimizations for serverless environment.
+
+### Changed
+- **Dashboard UI Optimization**:
+  - Default view mode for "Market Pulse" section switched to **🧠 Expert** for technical priority.
+  - Auto-collapsing long macro descriptions in Expert mode to reduce whitespace.
+
 ## [1.10.0] - 2026-03-12
 ### Added
 - **UI Phase 7.4: My Watchlist**:
