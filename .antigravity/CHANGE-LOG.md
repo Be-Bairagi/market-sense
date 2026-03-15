@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.15.0] - 2026-03-16
+### Added
+- **Centralized Data Formatting**: Implemented `utils.helpers` with standardized `format_currency`, `format_date`, and `format_time` functions. 
+- **Uniform UI Aesthetics**: Applied centralized formatters across all 7 pages (Dashboard, Market Insights, etc.), ensuring consistent Indian Rupee (₹) symbols and date formats.
+
+### Changed
+- **UI Logic Cleanup**: Removed redundant `strftime` and manual string formatting from across the frontend codebase.
+- **Improved UX Flow**: Removed the `st.balloons()` animation after model training to reduce visual clutter and maintain professional focus.
+
+### Fixed
+- **Currency Inconsistency**: Resolved cases where some pages used manual `₹` while others were using raw floats or formatted as USD.
+
+
 ## [1.14.0] - 2026-03-15
 ### Added
 - **Intelligent Training Initialization**: Model Management now polls for data sufficiency (300 days) and feature vectors (100+) before starting training.

@@ -212,3 +212,8 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 ### 41. Granular Coverage Monitoring Endpoints
 - **The Need**: Generic "System Healthy" status is insufficient for complex pipelines. 
 - **The Solution**: Adding stock-specific coverage endpoints (e.g., `GET /data/{symbol}/status`) allows the frontend to be "smart" about prerequisites, skipping expensive backfills if data is already sufficient and providing accurate progress bars.
+
+### 42. Centralized Formatters vs Ad-hoc `strftime`
+- **The Problem**: Formatting dates and currencies in every page leads to inconsistencies (₹10.50 vs 10.50 ₹) and makes it harder to change the locale later.
+- **The Solution**: Export a set of standard formatters from `utils.helpers`. 
+- **The Hack**: Use a single `format_date` that handles both `datetime` objects AND ISO strings, with graceful regression if parsing fails. This prevents mid-render crashes when APIs return unexpected date shapes.

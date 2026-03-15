@@ -1,7 +1,7 @@
 # 🤖 MarketSense — Revised Agent Roadmap (SCOPE)
 
-> **Last Updated:** 2026-03-15
-> **Current State:** ~90% implemented (Phase 7: Frontend Overhaul near completion; UI reorganized)
+> **Last Updated:** 2026-03-16
+> **Current State:** ~92% implemented (Phase 7: Frontend Overhaul - Centralized formatting & Logic Refinement complete)
 > **Original Roadmap:** [ROADMAP.md](file:///d:/Final%20Year%20Project/.antigravity/ROADMAP.md)
 > **Detailed Phase Plans:** [`.plans/`](file:///d:/Final%20Year%20Project/.antigravity/.plans/)
 
@@ -172,6 +172,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - [x] Loading states and error handling for all API calls (Startup Loader + Offline Banner).
 - [x] **Dynamic Model Selector**: DB-driven model dropdown replacing static Model Type selector.
 - [x] **Model Lifecycle**: `models/` folder = active models only; old `.pkl` auto-deleted on new version activation.
+- [x] **Centralized Data Formatting**: Uniform date and currency formatting across all pages via `utils.helpers`.
 
 ---
 
