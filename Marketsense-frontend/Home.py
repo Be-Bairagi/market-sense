@@ -101,6 +101,34 @@ def health_check_ui():
                 </div>
             </div>
         </div>
+
+        <style>
+        /* Force equal height for columns and containers */
+        [data-testid="stHorizontalBlock"] {
+            align-items: stretch;
+        }
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            height: 100% !important;
+            display: flex;
+            flex-direction: column;
+        }
+        .feature-card {
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .logo-container img {
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f1f5f9;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .logo-container img:hover {
+            transform: scale(1.02) translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+        }
+        </style>
         """, unsafe_allow_html=True)
 
         healthy, health_data = check_backend_health()
@@ -164,10 +192,12 @@ with tab1:
             st.switch_page("pages/1_Dashboard.py")
 
     with col_hero2:
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         st.image(
             "./assets/BrandLogoMarketSense.png",
-            width=240,
+            use_container_width=True,
         )
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.divider()
     
@@ -219,16 +249,22 @@ with tab1:
     f1, f2, f3 = st.columns(3)
     with f1:
         with st.container(border=True):
+            st.markdown('<div class="feature-card">', unsafe_allow_html=True)
             st.markdown("### 🤖 Trained Models")
             st.write("XGBoost and Prophet models specifically tuned for the volatility of the Indian Stock Market.")
+            st.markdown('</div>', unsafe_allow_html=True)
     with f2:
         with st.container(border=True):
+            st.markdown('<div class="feature-card">', unsafe_allow_html=True)
             st.markdown("### 📊 40+ Indicators")
             st.write("We compute RSI, MACD, Bollinger Bands, and volume signals automatically so you don't have to.")
+            st.markdown('</div>', unsafe_allow_html=True)
     with f3:
         with st.container(border=True):
+            st.markdown('<div class="feature-card">', unsafe_allow_html=True)
             st.markdown("### 💬 Simply Explained")
             st.write("No technical jargon. We translate complex data into plain-English insights and actionable signals.")
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # ── TAB 2: SETTINGS ───────────────────────────────────────────
 with tab2:
