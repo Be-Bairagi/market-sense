@@ -1,7 +1,7 @@
 # 🤖 MarketSense — Revised Agent Roadmap (SCOPE)
 
 > **Last Updated:** 2026-03-15
-> **Current State:** ~85% implemented (Phase 7: Accuracy Tracker in progress)
+> **Current State:** ~88% implemented (Phase 7: Accuracy Tracker in progress; UI simplified)
 > **Original Roadmap:** [ROADMAP.md](file:///d:/Final%20Year%20Project/.antigravity/ROADMAP.md)
 > **Detailed Phase Plans:** [`.plans/`](file:///d:/Final%20Year%20Project/.antigravity/.plans/)
 
@@ -162,10 +162,10 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - [Phase UI-7: Polish & Performance](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-7.md)
 
 **Key Deliverables:**
-- [x] Page 1 — Market Pulse: NIFTY/SENSEX summary, VIX interpretation, FII/DII bars, sector heatmap
-- [x] Page 2 — Today's Picks (Homepage): 5 stock cards with signals, confidence bars, entry/target/stop-loss
-- [x] Page 3 — Stock Deep Dive: Multi-horizon tabs, news sentiment timeline, "Explain this to me", bear case
-- [x] Page 4 — My Watchlist: User-added stocks with live prediction status
+- [x] Page 1 — Market Pulse: NIFTY/SENSEX summary, VIX interpretation (Simplified)
+- [x] Page 2 — Market Insights: Merged My Watchlist + Today's Picks with native UI
+- [x] Page 3 — Model Management: DB-driven model activation/training
+- **Page 4 — Accuracy Tracker:** Prediction vs actual charts & sector win rate (In Progress)
 - **Page 5 — Model Accuracy Tracker:** Win rate, sector breakdown, prediction vs actual charts
 - [x] Tooltip glossary for technical terms
 - Mobile-friendly layout pass

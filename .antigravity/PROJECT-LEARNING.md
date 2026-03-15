@@ -180,3 +180,10 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 ### 33. UI Mode Persistence vs. Defaults
 - **The Design**: While beginner-friendliness is core, frequent users prefer data density. 
 - **The Logic**: Setting "Expert Mode" as default in the Market Pulse section reduces click-fatigue for power users, while still keeping the "Beginner" option accessible for a one-click translation of the macro environment.
+
+### 34. Streamlit Native vs. Custom CSS
+- **The Trade-off**: Custom HTML/CSS/JS components allow for "wow" effects (like skeleton glows and gradient cards) but can clash with Streamlit's reactive rendering or lead to inconsistent spacing.
+- **The Lesson**: Use custom CSS/HTML for **non-interactive loading states** (skeletons, brand loaders) to keep the app feel alive, but rely on **Native Components** (`st.metric`, `st.container`) for actual data display to ensure robust mobile responsiveness and accessibility.
+
+### 35. Feature Consolidation (Less is More)
+- **The Insight**: A "Stock Deep Dive" page added friction for users wanting a quick signal. Merging "Today's Picks" and "Watchlist" into a single "Market Insights" view allows users to see everything they care about in one scroll, eliminating cognitive load and page-swapping.

@@ -3,30 +3,26 @@ import random
 import time
 from datetime import datetime
 import streamlit as st
-import requests
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from utils.health import check_backend_health
 
 # Backend configuration
 BACKEND_URL = "http://localhost:8000"
-HEALTH_ENDPOINT = f"{BACKEND_URL}/health"
 
 # ── Pro Tips (shown during Engine Loader) ─────────────────────
 TIPS = [
-    "We always show a <strong>Stop Loss</strong>. Never invest without one.",
-    "Confidence above <strong>75%</strong> means the AI is very sure about its signal.",
-    "The <strong>Bear Case</strong> tells you what could go wrong — always read it.",
-    "Use <strong>Today's Picks</strong> for automated, beginner-friendly stock recommendations.",
-    "MarketSense tracks <strong>40+ technical indicators</strong> so you don't have to.",
-    "We monitor <strong>FII &amp; DII flows</strong> and <strong>India VIX</strong> for macro-aware signals.",
-    "Train custom AI models for any NIFTY 50 stock in <strong>Model Management</strong>.",
+    "We always show a **Stop Loss**. Never invest without one.",
+    "Confidence above **75%** means the AI is very sure about its signal.",
+    "The **Bear Case** tells you what could go wrong — always read it.",
+    "Use **Today's Picks** for automated, beginner-friendly stock recommendations.",
+    "MarketSense tracks **40+ technical indicators** so you don't have to.",
+    "We monitor **Index Moods** and **India VIX** for macro-aware signals.",
+    "Train custom AI models for any NIFTY 50 stock in **Model Management**.",
 ]
 
-
-
 def health_check_ui():
-    """Engine Initialization Loader — centered card with branding, spinner, and tips."""
+    """Engine Initialization Loader — branding card with custom style."""
     placeholder = st.empty()
     tip = random.choice(TIPS)
 
@@ -43,7 +39,6 @@ def health_check_ui():
             border: 1px solid #e2e8f0; max-width: 460px; width: 100%;
             overflow: hidden;
         }}
-        /* ── Card Header ── */
         .loader-card-header {{
             padding: 2rem 2rem 1.25rem 2rem; text-align: center;
             border-bottom: 1px solid #f1f5f9;
@@ -55,7 +50,6 @@ def health_check_ui():
         .loader-brand-text {{
             font-size: 1.6rem; font-weight: 800; color: #000000;
         }}
-        /* ── Card Body ── */
         .loader-card-body {{
             padding: 2rem; display: flex; align-items: center;
             justify-content: center; gap: 1rem;
@@ -72,7 +66,6 @@ def health_check_ui():
         .loader-status {{
             font-size: 1.05rem; color: #64748b; font-weight: 500;
         }}
-        /* ── Card Footer ── */
         .loader-card-footer {{
             padding: 1.25rem 2rem; background: #f8fafc;
             border-top: 1px solid #f1f5f9;
@@ -107,12 +100,10 @@ def health_check_ui():
 
         # Real health check runs while the card is displayed
         healthy, health_data = check_backend_health()
-        # Hold the card visible for a moment so the user sees the branding
-        time.sleep(2.5)
+        time.sleep(2.0)
 
     placeholder.empty()
     return healthy, health_data
-
 
 # ── Page Config (must be the very first st.* call) ───────────
 st.set_page_config(
@@ -128,75 +119,18 @@ if "health_check_done" not in st.session_state:
     st.session_state["health_data"] = health_data
     st.session_state["health_check_done"] = True
 
-# ── Service Status Page (shown when backend is unreachable) ──
-# ── Graceful Degradation (Soft Banner when backend is down) ──
+# ── Graceful Degradation (Native Streamlit Warning) ──
 if not st.session_state.get("backend_healthy", False):
-    st.markdown("""
-    <style>
-    .degraded-banner {
-        background: #fffbeb; border: 1px solid #fde68a;
-        border-radius: 0.75rem; padding: 1rem 1.5rem;
-        display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
-    .degraded-content { display: flex; align-items: center; gap: 0.75rem; }
-    .degraded-icon { font-size: 1.25rem; }
-    .degraded-text { color: #92400e; font-weight: 500; font-size: 0.95rem; }
-    </style>
-    <div class="degraded-banner">
-        <div class="degraded-content">
-            <span class="degraded-icon">⚠️</span>
-            <span class="degraded-text">
-                <strong>Offline Mode:</strong> Backend engine is unreachable. Some features (Predictions, Data Pipeline) are limited.
-            </span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Retry button in a small column to keep it neat
-    col_retry, _ = st.columns([1, 4])
-    with col_retry:
-        if st.button("🔄 Retry Connection", type="secondary", use_container_width=True, key="retry_health_banner"):
-            st.session_state.pop("health_check_done", None)
-            st.session_state.pop("backend_healthy", None)
-            st.session_state.pop("health_data", None)
-            st.rerun()
-
-
-
-# ── Custom CSS ────────────────────────────────────────────────
-st.markdown("""
-<style>
-.hero-title {
-    font-size: 3rem; font-weight: 700; color: #2563eb;
-    text-align: center; margin-bottom: 0.3rem;
-}
-.hero-subtitle {
-    text-align: center; font-size: 1.2rem; color: #64748b;
-    margin-bottom: 2.5rem;
-}
-.card {
-    background-color: var(--background-color-secondary);
-    border-radius: 1rem; padding: 1.5rem;
-    box-shadow: 0px 4px 20px rgba(0,0,0,0.05);
-    transition: 0.3s;
-}
-.card:hover {
-    box-shadow: 0px 4px 30px rgba(0,0,0,0.1);
-    transform: translateY(-5px);
-}
-.card h3 { color: #2563eb; margin-bottom: 0.5rem; }
-.feature-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-</style>
-""", unsafe_allow_html=True)
+    st.warning("**Offline Mode:** Backend engine is unreachable. Some features (Predictions, Data Pipeline) are limited.")
+    if st.button("🔄 Retry Connection", type="secondary"):
+        st.session_state.pop("health_check_done", None)
+        st.session_state.pop("backend_healthy", None)
+        st.session_state.pop("health_data", None)
+        st.rerun()
 
 # ── Hero ──────────────────────────────────────────────────────
-st.markdown('<h1 class="hero-title">🚀 MarketSense</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="hero-subtitle">AI-powered stock predictions for the Indian market. '
-    'Clear signals, plain-English explanations — no jargon.</p>',
-    unsafe_allow_html=True,
-)
+st.title("🚀 MarketSense")
+st.subheader("AI-powered stock predictions for the Indian market. Clear signals, plain-English explanations — no jargon.")
 
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
@@ -206,9 +140,8 @@ with col2:
     )
 
 st.write("")
-st.write("")
 
-# ── Feature Cards ─────────────────────────────────────────────
+# ── Feature Cards (Using native st.container with border) ──────
 st.subheader("✨ Why MarketSense?")
 st.write(
     "AI-powered analysis of Indian stocks — from technical indicators to "
@@ -218,31 +151,19 @@ st.write(
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    st.markdown("""
-    <div class='card'>
-        <div class='feature-icon'>🤖</div>
-        <h3>XGBoost Predictions</h3>
-        <p>ML-powered direction predictions (BUY / HOLD / AVOID) with confidence scores and risk assessment.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.subheader("🤖 XGBoost Predictions")
+        st.write("ML-powered direction predictions (BUY / HOLD / AVOID) with confidence scores and risk assessment.")
 
 with c2:
-    st.markdown("""
-    <div class='card'>
-        <div class='feature-icon'>📊</div>
-        <h3>40+ Technical Indicators</h3>
-        <p>RSI, MACD, Bollinger Bands, EMAs, ADX, ATR, OBV — automatically computed and stored.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.subheader("📊 40+ Technical Indicators")
+        st.write("RSI, MACD, Bollinger Bands, EMAs, ADX, ATR, OBV — automatically computed and stored.")
 
 with c3:
-    st.markdown("""
-    <div class='card'>
-        <div class='feature-icon'>💬</div>
-        <h3>Plain-English Explanations</h3>
-        <p>No jargon. Get key drivers like "RSI shows oversold recovery" and bear-case risk warnings.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.subheader("💬 Plain-English Explanations")
+        st.write("No jargon. Get key drivers like 'RSI shows oversold recovery' and bear-case risk warnings.")
 
 st.write("")
 
@@ -273,29 +194,18 @@ if quick_predict:
         direction = result.get("direction", "HOLD")
         confidence = result.get("confidence", 0.0)
         signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
-        colors = {"BUY": "#16a34a", "HOLD": "#ca8a04", "AVOID": "#dc2626"}
+        
+        with st.container(border=True):
+            st.write(f"### {signals.get(direction, '🟡')} {direction}")
+            st.write(f"**Stock:** {NIFTY_50_MAP.get(quick_symbol, quick_symbol)}")
+            st.write(f"**AI Confidence:** {confidence:.0%}")
+            st.write(f"**Horizon:** {result.get('horizon', 'short_term')}")
 
-        st.markdown(f"""
-        <div style="
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border-left: 5px solid {colors.get(direction, '#64748b')};
-            border-radius: 0.75rem; padding: 1.5rem; margin: 1rem 0;
-        ">
-            <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem;">{NIFTY_50_MAP.get(quick_symbol, quick_symbol)}</div>
-            <span style="font-size: 2.5rem;">{signals.get(direction, '🟡')}</span>
-            <span style="font-size: 2rem; font-weight: 700; color: {colors.get(direction, '#64748b')}; margin-left: 0.5rem;">
-                {direction}
-            </span>
-            <div style="color: #64748b; margin-top: 0.5rem;">
-                Confidence: {confidence:.0%} · {result.get('horizon', 'short_term')}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        drivers = result.get("key_drivers", [])
-        if drivers:
-            for d in drivers[:3]:
-                st.markdown(f"- {d}")
+            drivers = result.get("key_drivers", [])
+            if drivers:
+                st.write("**Key Drivers:**")
+                for d in drivers[:3]:
+                    st.markdown(f"- {d}")
 
 st.write("")
 st.divider()
@@ -313,14 +223,14 @@ with c1:
     - 🎯 **AI Signal Cards** — BUY / HOLD / AVOID with confidence
     - 📊 **Interactive Charts** — Candlestick, volume, comparison
     - 🧬 **Feature Store** — 40+ indicators computed automatically
-    - 🌍 **Macro Awareness** — USD/INR, Crude, VIX, FII/DII tracking
+    - 🌍 **Macro Awareness** — USD/INR, Crude, VIX, and Index Moods
     - 💬 **Beginner-Friendly** — Plain-English explanations, no jargon
     """)
 
 with c2:
     st.image(
         "./assets/BrandLogoMarketSense.png",
-        caption="Be fearful when others are greedy and greedy only when others are fearful. — Warren Buffett",
+        caption="Be fearful when others are greedy and greedy only when others are fearful.",
         width=200,
     )
 
@@ -328,15 +238,6 @@ st.write("")
 st.divider()
 
 # ── CTA ───────────────────────────────────────────────────────
-st.markdown(
-    f"""
-    <div style='text-align:center; margin-top:2rem;'>
-        <h2>💡 Ready to explore AI-powered investing?</h2>
-        <p>Navigate to the <b>Dashboard</b> from the sidebar to start analyzing stocks.</p>
-        <p style='color:#94a3b8; font-size:0.9rem;'>
-            © {datetime.now().year} MarketSense | Built with ❤️ using FastAPI & Streamlit
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.write("### 💡 Ready to explore AI-powered investing?")
+st.write("Navigate to the **Dashboard** from the sidebar to start analyzing stocks.")
+st.caption(f"© {datetime.now().year} MarketSense | Built with ❤️ using FastAPI & Streamlit")

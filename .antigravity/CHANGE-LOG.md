@@ -2,6 +2,20 @@
 
 All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
 
+## [1.12.0] - 2026-03-15
+### Added
+- **Market Insights Page**: Consolidated "Today's Picks" and "My Watchlist" into a single unified dashboard for faster review.
+- **Improved Data Loading**: Restored custom card skeletons and branding loader for a premium, interactive startup experience.
+
+### Changed
+- **UI Design System**: Migrated from custom HTML/CSS cards to **Streamlit Native** components (`st.container`, `st.metric`, etc.) for faster rendering and consistent OS-level accessibility.
+- **Market Pulse Consolidation**: Simplified macro snapshot by removing FII/DII and sector-specific cards, focusing on core Nifty indices and VIX.
+- **Sidebar Navigation**: Reorganized for better UX flow: `Dashboard` → `Model Management` → `Market Insights`.
+
+### Removed
+- **Stock Deep Dive**: Redundant complexity removed; all critical signals (Entry/SL/Targets) now surfaced directly on the Insights cards.
+- **Data Pipeline Page**: Technical visibility moved to backend logs to declutter user interface.
+
 ## [1.11.0] - 2026-03-15
 ### Added
 - **Neon Cloud Migration**:
