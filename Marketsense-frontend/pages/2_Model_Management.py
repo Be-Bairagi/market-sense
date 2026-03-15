@@ -135,7 +135,6 @@ if train_submitted:
                     st.error(f"Failed to train {model_type} for {ticker}: {result['error']}")
             else:
                 status.update(label=f"✅ {model_type} Trained Successfully!", state="complete")
-                st.balloons()
                 
                 # Set persistent notice for after rerun
                 ver = result.get('version', '?')
