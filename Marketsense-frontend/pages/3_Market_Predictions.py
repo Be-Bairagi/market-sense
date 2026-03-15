@@ -101,57 +101,85 @@ with st.sidebar.expander("📖 Jargon Buster"):
 
 # ── Main Panel: Prediction ────────────────────────────────────
 if predict_btn:
-    if selected_model is None:
-        st.error("⚠️ No model selected.")
-    elif selected_framework == "prophet":
         model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
-        st.subheader(f"🤖 Prophet Prediction — {ticker}")
-        try:
-            with st.spinner("Generating time-series forecast..."):
-                response = DashboardService.fetch_predictions("", "", predict_days, model_name_full)
-            if not isinstance(response, dict) or response.get("error"):
-                st.error(f"⚠️ Prediction failed: {response.get('error', 'Unknown')}")
-            else:
-                raw = response.get("predictions", [])
-                df_pred = pd.DataFrame(raw)
-                if not df_pred.empty:
-                    # Using area chart for a more 'premium' prediction feel
-                    st.line_chart(df_pred.set_index('date')['value'])
-                    next_day = df_pred.iloc[-1]
-                    st.success(f"**Predicted Price:** ₹{next_day['value']:.2f}")
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
-    else:
-        model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
-        with st.spinner(f"Analyzing {ticker} trends..."):
-            result = DashboardService.fetch_predictions("", "", 5, model_name_full)
+        days_param = predict_days if selected_framework == "prophet" else 5
+        
+        with st.spinner(f"AI is analyzing {ticker} trends..."):
+            try:
+                result = DashboardService.fetch_predictions("", "", days_param, model_name_full)
+            except Exception as e:
+                result = {"error": str(e)}
+
         if not isinstance(result, dict) or result.get("error"):
             st.error(f"⚠️ Prediction failed: {result.get('error', 'Unknown')}")
         else:
-            st.subheader("🎯 AI Prediction Signal")
+            # Standardized Prediction Card
             pred = result.get("predictions", {})
+            st.subheader("🎯 AI Prediction Signal")
+            
             direction = pred.get("direction", "HOLD")
             confidence = pred.get("confidence", 0.0)
-            
             signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
             
             with st.container(border=True):
-                st.write(f"### {signals.get(direction, '🟡')} {direction}")
-                st.metric("Confidence", f"{confidence:.0%}")
-                st.write(f"**Horizon:** {pred.get('horizon', 'short_term')}")
+                col_header, col_conf = st.columns([2, 1])
+                with col_header:
+                    st.write(f"### {signals.get(direction, '🟡')} {direction}")
+                    st.write(f"**Horizon:** {pred.get('horizon', 'N/A')}")
+                with col_conf:
+                    st.metric("Confidence", f"{confidence:.0%}")
+                
+                st.divider()
                 
                 m1, m2, m3, m4 = st.columns(4)
                 m1.metric("Target Low", f"₹{pred.get('target_low', 0):,.1f}")
                 m2.metric("Target High", f"₹{pred.get('target_high', 0):,.1f}")
                 m3.metric("Stop Loss", f"₹{pred.get('stop_loss', 0):,.1f}")
-                m4.metric("Risk", pred.get("risk_level", "MEDIUM"))
+                m4.metric("Risk Level", pred.get("risk_level", "MEDIUM"))
 
-                if pred.get("key_drivers"):
-                    st.write("**Key Drivers:**")
-                    for driver in pred["key_drivers"]:
-                        st.write(f"- {driver}")
-                
-                if pred.get("bear_case"):
-                    st.warning(f"🐻 **Bear Case:** {pred['bear_case']}")
+                # Conditional Sections
+                if pred.get("key_drivers") or pred.get("bear_case"):
+                    st.divider()
+                    
+                    drv_col, bear_col = st.columns(2)
+                    with drv_col:
+                        if pred.get("key_drivers"):
+                            st.write("**🧠 Key Drivers:**")
+                            for driver in pred["key_drivers"]:
+                                st.write(f"- {driver}")
+                    with bear_col:
+                        if pred.get("bear_case"):
+                            st.warning(f"🐻 **Bear Case:** {pred['bear_case']}")
+
+                # Model Specific Views (e.g. Prophet Charts)
+                if selected_framework == "prophet" and pred.get("forecast_data"):
+                    st.divider()
+                    st.write("**📈 Forecast Visualization**")
+                    forecast_df = pd.DataFrame(pred["forecast_data"])
+                    forecast_df['date'] = pd.to_datetime(forecast_df['date'])
+                    
+                    fig = go.Figure()
+                    # Predicted Value
+                    fig.add_trace(go.Scatter(
+                        x=forecast_df['date'], y=forecast_df['value'],
+                        name='Predicted', line=dict(color='#00FFA3', width=3)
+                    ))
+                    # Uncertainty Interval
+                    fig.add_trace(go.Scatter(
+                        x=pd.concat([forecast_df['date'], forecast_df['date'][::-1]]),
+                        y=pd.concat([forecast_df['upper_bound'], forecast_df['lower_bound'][::-1]]),
+                        fill='toself', fillcolor='rgba(0, 255, 163, 0.1)',
+                        line=dict(color='rgba(255,255,255,0)'),
+                        hoverinfo="skip", showlegend=False
+                    ))
+                    
+                    fig.update_layout(
+                        template="plotly_dark",
+                        height=400,
+                        margin=dict(l=20, r=20, t=20, b=20),
+                        xaxis=dict(showgrid=False),
+                        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
 else:
     st.info("ℹ️ Select a stock models from the sidebar and click **Run Prediction** to generate AI signals.")

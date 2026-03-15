@@ -29,8 +29,8 @@ class TestPredictionEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert "predictions" in data
-        assert isinstance(data["predictions"], list)
-        assert len(data["predictions"]) > 0
+        assert isinstance(data["predictions"], dict)
+        assert data["predictions"]["symbol"] == "AAPL"
 
     def test_invalid_n_days_returns_400(self, test_client, auth_headers):
         """

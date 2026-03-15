@@ -75,17 +75,32 @@ def sample_stock_data():
 @pytest.fixture
 def sample_prediction_data():
     """
-    Sample prediction data for testing.
+    Sample prediction data for testing (Rich PredictionOutput format).
     """
     return {
-        "symbol": "AAPL",
-        "predictions": [
-            {"date": "2024-02-01", "predicted_price": 178.25, "lower": 170.50, "upper": 186.00},
-            {"date": "2024-02-02", "predicted_price": 179.50, "lower": 171.75, "upper": 187.25},
-            {"date": "2024-02-03", "predicted_price": 180.75, "lower": 173.00, "upper": 188.50},
-        ],
-        "model_used": "prophet",
-        "forecast_days": 7,
+        "model": {
+            "id": 1,
+            "name": "AAPL_prophet",
+            "version": 1,
+            "framework": "prophet"
+        },
+        "predictions": {
+            "symbol": "AAPL",
+            "horizon": "short-term (7d)",
+            "direction": "BUY",
+            "confidence": 0.85,
+            "target_low": 170.5,
+            "target_high": 186.0,
+            "stop_loss": 165.0,
+            "risk_level": "MEDIUM",
+            "key_drivers": ["Trend", "Seasonality"],
+            "bear_case": "Macro slowdown",
+            "predicted_at": "2024-03-15T20:00:00",
+            "valid_until": "2024-03-22T20:00:00",
+            "model_name": "AAPL_prophet_v1.pkl",
+            "model_version": 1
+        },
+        "metrics": {"MAE": 2.5}
     }
 
 
