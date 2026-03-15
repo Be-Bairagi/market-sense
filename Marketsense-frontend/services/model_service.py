@@ -88,14 +88,14 @@ class ModelService:
 
     @staticmethod
     def get_all_models():
+        """Fetch all models and return a display-friendly DataFrame."""
         try:
             response = requests.get(f"{BASE_URL}/models/get-all")
             response.raise_for_status()
             res = response.json()
 
             if not res:
-                st.warning("No trained models found.")
-                st.stop()
+                return pd.DataFrame()
 
             df = pd.DataFrame(res)
 
@@ -106,24 +106,13 @@ class ModelService:
             df["Status"] = df["is_active"].apply(
                 lambda x: "✅ Active" if x else "⏸️ Inactive"
             )
-
-            # Optional: shorten framework name
             df["Framework"] = df["framework"].str.upper()
 
             display_df = df[
                 ["Model", "Framework", "Date Trained", "Period", "Status"]
             ].sort_values(by=["Model", "Date Trained"], ascending=[True, False])
 
-            active_models = df[df["is_active"]]
-
-            st.success(f"✅ Active Models: {len(active_models)}")
-
-            for _, row in active_models.iterrows():
-                st.markdown(
-                    f"**{row['model_name']} v{row['version']}** "
-                    f"({row['framework']}) — trained on `{row['training_period']}`"
-                )
             return display_df
         except Exception as e:
-            logger.exception("Failed to get the models")
-            return {"error": f"Failed to get the models: {str(e)}"}
+            logger.exception("Failed to get the models from registry")
+            return {"error": f"Failed to get models: {str(e)}"}

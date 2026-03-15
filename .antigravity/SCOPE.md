@@ -1,7 +1,7 @@
 # 🤖 MarketSense — Revised Agent Roadmap (SCOPE)
 
 > **Last Updated:** 2026-03-15
-> **Current State:** ~88% implemented (Phase 7: Accuracy Tracker in progress; UI simplified)
+> **Current State:** ~90% implemented (Phase 7: Frontend Overhaul near completion; UI reorganized)
 > **Original Roadmap:** [ROADMAP.md](file:///d:/Final%20Year%20Project/.antigravity/ROADMAP.md)
 > **Detailed Phase Plans:** [`.plans/`](file:///d:/Final%20Year%20Project/.antigravity/.plans/)
 
@@ -38,7 +38,7 @@ Before diving into the phases, here's what already exists and works:
 | **Model registry** | ✅ Working | SQLite DB, versioned models, activate/deactivate |
 | **Predictor registry** | ✅ Working | Extensible pattern (only Prophet registered) |
 | **API key auth** | ✅ Working | Header-based `X-API-Key` on `/train` and `/predict` |
-| **Streamlit frontend** | ✅ Working | 5 pages: Home, Dashboard, Model Performance, Model Management, Settings, About |
+| **Streamlit frontend** | ✅ Working | 7 pages: Dashboard, Model Management, Market Predictions, Market Insights, Accuracy Tracker, Settings, About |
 | **Plotly charts** | ✅ Working | Candlestick, volume, comparison, actual vs predicted |
 
 ---
@@ -162,16 +162,16 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - [Phase UI-7: Polish & Performance](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-7.md)
 
 **Key Deliverables:**
-- [x] Page 1 — Market Pulse: NIFTY/SENSEX summary, VIX interpretation (Simplified)
-- [x] Page 2 — Market Insights: Merged My Watchlist + Today's Picks with native UI
-- [x] Page 3 — Model Management: DB-driven model activation/training
-- **Page 4 — Accuracy Tracker:** Prediction vs actual charts & sector win rate (In Progress)
-- **Page 5 — Model Accuracy Tracker:** Win rate, sector breakdown, prediction vs actual charts
-- [x] Tooltip glossary for technical terms
-- Mobile-friendly layout pass
-- [x] Loading states and error handling for all API calls (Startup Loader + Offline Banner)
-- [x] **Dynamic Model Selector**: DB-driven model dropdown replacing static Model Type selector
-- [x] **Model Lifecycle**: `models/` folder = active models only; old `.pkl` auto-deleted on new version activation
+- [x] Page 1 — Market Pulse & Data Dashboard: Focus on pure data and macro trends.
+- [x] Page 2 — Model Management: Streamlined training workflow with background data preparation.
+- [x] Page 3 — Market Predictions: Dedicated AI analysis section for active models.
+- [x] Page 4 — Market Insights: Merged My Watchlist + Today's Picks with native UI.
+- [ ] Page 5 — Accuracy Tracker: Prediction vs actual charts & sector win rate (In Progress).
+- [x] Tooltip glossary for technical terms (Hints section in Dashboard).
+- [x] Mobile-friendly layout pass (Page reorganization for mobile focus).
+- [x] Loading states and error handling for all API calls (Startup Loader + Offline Banner).
+- [x] **Dynamic Model Selector**: DB-driven model dropdown replacing static Model Type selector.
+- [x] **Model Lifecycle**: `models/` folder = active models only; old `.pkl` auto-deleted on new version activation.
 
 ---
 

@@ -1,6 +1,20 @@
 # Changelog
 
-All notable changes to the MarketSense project will be documented in this file, adhering to [Semantic Versioning](https://semver.org/).
+## [1.13.0] - 2026-03-15
+### Added
+- **Market Predictions Page**: Dedicated page for AI analysis, separating signal generation from data visualization.
+- **Automated Prerequisite Check**: Model Management now automatically triggers price sync and feature computation before training begins, ensuring data freshness with zero manual clicks.
+- **Persistent Notifications**: Successful training now triggers a persistent success banner that survives page refreshes, providing clear confirmation of model activation.
+
+### Changed
+- **Information Architecture**: Redesigned **Dashboard** to be a pure data-viewing tool, relocating all AI model interactions to dedicated pages.
+- **Model Registry Ordering**: Sidebar model selector now filters to show strictly **Active** models, preventing selection of stale or inactive versions.
+- **Enhanced Dashboard Context**: "Hints" section refined to explain Dashboard-specific terms (VIX, Sensex, Nifty 50, OHLC, Volume) and sorted raw data tables for recent-first visibility.
+
+### Fixed
+- **Training Key Collision**: Backend now supports `xg_boost` as an alias for `xgboost`, resolving 400 errors caused by underscores in UI framework labels.
+- **Model Mapping Alignment**: Standardized framework name mapping across `DashboardService` and `ModelService` to prevent "Model not supported" errors.
+
 
 ## [1.12.0] - 2026-03-15
 ### Added

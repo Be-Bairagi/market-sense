@@ -1,0 +1,157 @@
+import logging
+import pandas as pd
+import streamlit as st
+import plotly.graph_objects as go
+from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
+from services.dashboard_service import DashboardService
+
+logger = logging.getLogger(__name__)
+
+# ── Session State ─────────────────────────────────────────────
+if 'available_models' not in st.session_state:
+    st.session_state.available_models = []
+if 'models_ticker' not in st.session_state:
+    st.session_state.models_ticker = None
+
+# ── Page Config ───────────────────────────────────────────────
+st.set_page_config(
+    page_title="Market Predictions | MarketSense",
+    page_icon="🤖",
+    layout="wide",
+)
+
+st.title("🤖 AI Market Predictions")
+st.write("Generate and analyze AI signals for your selected stocks.")
+
+st.divider()
+
+# ── Sidebar Controls ──────────────────────────────────────────
+st.sidebar.header("🔎 Stock Selection")
+ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
+selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=0)
+ticker = selected_option.split(" (")[-1].rstrip(")")
+
+st.sidebar.divider()
+
+# ── Model & Prediction Controls ──────────────────────────────
+st.sidebar.header("🤖 Prediction")
+
+if st.session_state.models_ticker != ticker:
+    with st.spinner("Loading models..."):
+        resp = DashboardService.fetch_available_models(ticker)
+    if not isinstance(resp, dict) or resp.get("error"):
+        st.session_state.available_models = []
+    else:
+        # Filter to SHOW ONLY ACTIVE MODELS as requested
+        all_m = resp.get("models", [])
+        st.session_state.available_models = [m for m in all_m if m.get("is_active")]
+    st.session_state.models_ticker = ticker
+
+available_models = st.session_state.available_models
+
+if not available_models:
+    st.sidebar.warning(
+        f"⚠️ No trained models found for **{ticker}**.\n\n"
+        "Go to **Model Management** to train one first."
+    )
+    selected_model = None
+    selected_framework = None
+    predict_days = 5
+else:
+    def _model_label(m: dict) -> str:
+        fw = m["framework"].upper()
+        badge = "Active" if m["is_active"] else "Inactive"
+        return f"{m['model_name']}_v{m['version']} ({fw} · {badge})"
+
+    model_labels = [_model_label(m) for m in available_models]
+    chosen_label = st.sidebar.selectbox(
+        "Select Model:",
+        model_labels,
+        index=0,
+    )
+    chosen_idx = model_labels.index(chosen_label)
+    selected_model = available_models[chosen_idx]
+    selected_framework = selected_model["framework"]
+
+    active_tag = "✅ Active" if selected_model["is_active"] else "⏸ Inactive"
+    st.sidebar.write(f"**Framework:** {selected_framework.upper()}")
+    st.sidebar.write(f"**Version:** v{selected_model['version']}")
+    st.sidebar.write(f"**Status:** {active_tag}")
+
+    if selected_framework == "prophet":
+        predict_days = st.sidebar.slider("Prediction Days Ahead:", 1, 30, 10)
+    else:
+        predict_days = 5
+
+st.sidebar.divider()
+
+predict_btn = st.sidebar.button(
+    "🤖 Run Prediction",
+    use_container_width=True,
+    disabled=(selected_model is None),
+)
+
+with st.sidebar.expander("📖 Jargon Buster"):
+    st.markdown("""
+    - **Confidence**: AI's certainty (0-100%).
+    - **Stop Loss**: Safety level to minimize downside.
+    - **Target**: Predicted price goals.
+    - **Drivers**: Factors most influencing this signal.
+    """)
+
+# ── Main Panel: Prediction ────────────────────────────────────
+if predict_btn:
+    if selected_model is None:
+        st.error("⚠️ No model selected.")
+    elif selected_framework == "prophet":
+        model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
+        st.subheader(f"🤖 Prophet Prediction — {ticker}")
+        try:
+            with st.spinner("Generating time-series forecast..."):
+                response = DashboardService.fetch_predictions("", "", predict_days, model_name_full)
+            if not isinstance(response, dict) or response.get("error"):
+                st.error(f"⚠️ Prediction failed: {response.get('error', 'Unknown')}")
+            else:
+                raw = response.get("predictions", [])
+                df_pred = pd.DataFrame(raw)
+                if not df_pred.empty:
+                    # Using area chart for a more 'premium' prediction feel
+                    st.line_chart(df_pred.set_index('date')['value'])
+                    next_day = df_pred.iloc[-1]
+                    st.success(f"**Predicted Price:** ₹{next_day['value']:.2f}")
+        except Exception as e:
+            st.error(f"⚠️ Error: {e}")
+    else:
+        model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
+        with st.spinner(f"Analyzing {ticker} trends..."):
+            result = DashboardService.fetch_predictions("", "", 5, model_name_full)
+        if not isinstance(result, dict) or result.get("error"):
+            st.error(f"⚠️ Prediction failed: {result.get('error', 'Unknown')}")
+        else:
+            st.subheader("🎯 AI Prediction Signal")
+            pred = result.get("predictions", {})
+            direction = pred.get("direction", "HOLD")
+            confidence = pred.get("confidence", 0.0)
+            
+            signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
+            
+            with st.container(border=True):
+                st.write(f"### {signals.get(direction, '🟡')} {direction}")
+                st.metric("Confidence", f"{confidence:.0%}")
+                st.write(f"**Horizon:** {pred.get('horizon', 'short_term')}")
+                
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Target Low", f"₹{pred.get('target_low', 0):,.1f}")
+                m2.metric("Target High", f"₹{pred.get('target_high', 0):,.1f}")
+                m3.metric("Stop Loss", f"₹{pred.get('stop_loss', 0):,.1f}")
+                m4.metric("Risk", pred.get("risk_level", "MEDIUM"))
+
+                if pred.get("key_drivers"):
+                    st.write("**Key Drivers:**")
+                    for driver in pred["key_drivers"]:
+                        st.write(f"- {driver}")
+                
+                if pred.get("bear_case"):
+                    st.warning(f"🐻 **Bear Case:** {pred['bear_case']}")
+else:
+    st.info("ℹ️ Select a stock models from the sidebar and click **Run Prediction** to generate AI signals.")

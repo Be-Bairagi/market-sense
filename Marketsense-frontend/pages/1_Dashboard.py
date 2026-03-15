@@ -20,10 +20,6 @@ if 'show_market_pulse' not in st.session_state:
     st.session_state.show_market_pulse = False
 if 'pulse_data' not in st.session_state:
     st.session_state.pulse_data = None
-if 'available_models' not in st.session_state:
-    st.session_state.available_models = []
-if 'models_ticker' not in st.session_state:
-    st.session_state.models_ticker = None
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -122,69 +118,15 @@ interval = st.sidebar.selectbox(
 
 st.sidebar.divider()
 
-# ── Model & Prediction Controls ──────────────────────────────
-st.sidebar.header("🤖 Prediction")
-
-if st.session_state.models_ticker != ticker:
-    with st.spinner("Loading models..."):
-        resp = DashboardService.fetch_available_models(ticker)
-    if not isinstance(resp, dict) or resp.get("error"):
-        st.session_state.available_models = []
-    else:
-        st.session_state.available_models = resp.get("models", [])
-    st.session_state.models_ticker = ticker
-
-available_models = st.session_state.available_models
-
-if not available_models:
-    st.sidebar.warning(
-        f"⚠️ No trained models found for **{ticker}**.\n\n"
-        "Go to **Model Management** to train one first."
-    )
-    selected_model = None
-    selected_framework = None
-    predict_days = 5
-else:
-    def _model_label(m: dict) -> str:
-        fw = m["framework"].upper()
-        badge = "Active" if m["is_active"] else "Inactive"
-        return f"{m['model_name']}_v{m['version']} ({fw} · {badge})"
-
-    model_labels = [_model_label(m) for m in available_models]
-    chosen_label = st.sidebar.selectbox(
-        "Select Model:",
-        model_labels,
-        index=0,
-    )
-    chosen_idx = model_labels.index(chosen_label)
-    selected_model = available_models[chosen_idx]
-    selected_framework = selected_model["framework"]
-
-    active_tag = "✅ Active" if selected_model["is_active"] else "⏸ Inactive"
-    st.sidebar.write(f"**Framework:** {selected_framework.upper()}")
-    st.sidebar.write(f"**Version:** v{selected_model['version']}")
-    st.sidebar.write(f"**Status:** {active_tag}")
-
-    if selected_framework == "prophet":
-        predict_days = st.sidebar.slider("Prediction Days Ahead:", 1, 30, 10)
-    else:
-        predict_days = 5
-
-st.sidebar.divider()
-
 fetch_data_btn = st.sidebar.button("📊 Fetch Data", use_container_width=True)
-predict_btn = st.sidebar.button(
-    "🤖 Run Prediction",
-    use_container_width=True,
-    disabled=(selected_model is None),
-)
 
-with st.sidebar.expander("📖 Jargon Buster (Glossary)"):
+with st.sidebar.expander("📖 Hints"):
     st.markdown("""
-    - **VIX**: The 'Fear Gauge'. High = nervous market.
-    - **NIFTY 50**: Index of top 50 Indian companies.
-    - **RSI**: Measures if a stock is 'oversold' or 'overbought'.
-    - **Stop Loss**: A safety net price to sell and limit losses.
+    - **India VIX**: The 'Fear Gauge'. High values (>20) suggest market fear/volatility.
+    - **NIFTY 50**: Benchmark index representing top 50 companies on the NSE.
+    - **SENSEX**: Benchmark index representing top 30 companies on the BSE.
+    - **OHLC**: Shorthand for Open, High, Low, and Close prices shown in the candlestick chart.
+    - **Volume**: The total number of shares traded during the selected interval.
     """)
 
 # ── Main Panel: Chart ─────────────────────────────────────────
@@ -242,7 +184,9 @@ if fetch_data_btn:
                     st.line_chart(cmp_df.set_index('Date'))
 
                 with st.expander(f"📋 View {ticker} raw data"):
-                    st.dataframe(df, use_container_width=True)
+                    # Sort by Date descending for the raw table view
+                    df_view = df.sort_values(by="Date", ascending=False)
+                    st.dataframe(df_view, use_container_width=True, hide_index=True)
 
                 st.caption(f"🕐 Last updated: {st.session_state.last_updated.strftime('%H:%M:%S')}")
             else:
@@ -250,59 +194,5 @@ if fetch_data_btn:
         except Exception as e:
             logger.exception("Failed to fetch data")
             st.error(f"❌ Failed to fetch data: {e}")
-
-# ── Main Panel: Prediction ────────────────────────────────────
-if predict_btn:
-    if selected_model is None:
-        st.error("⚠️ No model selected.")
-    elif selected_framework == "prophet":
-        model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
-        st.subheader(f"🤖 Prophet Prediction — {ticker}")
-        try:
-            response = DashboardService.fetch_predictions("", "", predict_days, model_name_full)
-            if not isinstance(response, dict) or response.get("error"):
-                st.error(f"⚠️ Prediction failed: {response.get('error', 'Unknown')}")
-            else:
-                raw = response.get("predictions", [])
-                df_pred = pd.DataFrame(raw)
-                if not df_pred.empty:
-                    st.line_chart(df_pred.set_index('date')['value'])
-                    next_day = df_pred.iloc[-1]
-                    st.write(f"**Predicted Price:** ₹{next_day['value']:.2f}")
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
-    else:
-        model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
-        with st.spinner(f"Analyzing {ticker}..."):
-            result = DashboardService.fetch_predictions("", "", 5, model_name_full)
-        if not isinstance(result, dict) or result.get("error"):
-            st.error(f"⚠️ Prediction failed: {result.get('error', 'Unknown')}")
-        else:
-            st.subheader("🎯 AI Prediction Signal")
-            pred = result.get("predictions", {})
-            direction = pred.get("direction", "HOLD")
-            confidence = pred.get("confidence", 0.0)
-            
-            signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
-            
-            with st.container(border=True):
-                st.write(f"### {signals.get(direction, '🟡')} {direction}")
-                st.metric("Confidence", f"{confidence:.0%}")
-                st.write(f"**Horizon:** {pred.get('horizon', 'short_term')}")
-                
-                m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Target Low", f"₹{pred.get('target_low', 0):,.1f}")
-                m2.metric("Target High", f"₹{pred.get('target_high', 0):,.1f}")
-                m3.metric("Stop Loss", f"₹{pred.get('stop_loss', 0):,.1f}")
-                m4.metric("Risk", pred.get("risk_level", "MEDIUM"))
-
-                if pred.get("key_drivers"):
-                    st.write("**Key Drivers:**")
-                    for driver in pred["key_drivers"]:
-                        st.write(f"- {driver}")
-                
-                if pred.get("bear_case"):
-                    st.warning(f"🐻 **Bear Case:** {pred['bear_case']}")
-
-if not fetch_data_btn and not predict_btn:
-    st.info("ℹ️ Select a stock and click **Fetch Data** or **Run Prediction** to begin.")
+else:
+    st.info("ℹ️ Select a stock and click **Fetch Data** to visualize market history.")

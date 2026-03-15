@@ -187,3 +187,15 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 
 ### 35. Feature Consolidation (Less is More)
 - **The Insight**: A "Stock Deep Dive" page added friction for users wanting a quick signal. Merging "Today's Picks" and "Watchlist" into a single "Market Insights" view allows users to see everything they care about in one scroll, eliminating cognitive load and page-swapping.
+### 36. Automated Prerequisite Chaining
+- **The Problem**: Training often failed because users forgot to run "Backfill Data" or "Compute Features" first.
+- **The Solution**: Treat training as a "One-Click Pipeline". Inside the training submit logic, proactively call the Sync and Feature computation endpoints.
+- **The Implementation**: Use `st.status` to inform the user of these invisible steps. Even though the backend handles deduplication (skipping if data exists), calling them ensures that the training job always has fresh data.
+
+### 37. Persistent UI Success States across Reruns
+- **The Problem**: `st.rerun()` wipes the current page state, making success messages (balloons/notices) disappear before the user can see them if triggered just before a refresh.
+- **The Fix**: Use `st.session_state` to store a persistent notice string. Check for this string at the *top* of the page script. This ensures the success badge survives the rerun and gives the user time to actually read the results and click a "Clear" button.
+
+### 38. IA Separation: Data vs. Analysis
+- **The Insight**: A dashboard that tries to show historical data AND future predictions leads to a cramped UI.
+- **The Change**: Extracting **Market Predictions** to its own page allowed for a more "Analysis-focused" UI (area charts, detailed signal metrics) without compromising the "Monitoring-focused" Dashboard (candlesticks, volume).

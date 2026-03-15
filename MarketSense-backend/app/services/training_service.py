@@ -119,7 +119,8 @@ class TrainingService:
             framework = MLFramework.prophet
             save_obj = model
 
-        elif model_type == "xgboost":
+        elif model_type in ["xgboost", "xg_boost"]:
+            model_type = "xgboost"  # Normalize to 'xgboost'
             model, metrics = train_xgboost_model(
                 ticker, existing_model_path=existing_model_path
             )

@@ -41,7 +41,7 @@ class DashboardService:
             if model_name_override:
                 model_name = model_name_override
             else:
-                model = helpers.to_snake_case(model_type)
+                model = "xgboost" if "xg" in model_type.lower() else "prophet"
                 model_name = f"{ticker}_{model}"
             response = requests.get(
                 f"{BASE_URL}/predict",
