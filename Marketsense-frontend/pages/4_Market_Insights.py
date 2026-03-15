@@ -12,6 +12,9 @@ st.set_page_config(
     layout="wide",
 )
 
+if 'user_mode' not in st.session_state:
+    st.session_state.user_mode = "💡 Beginner"
+
 def render_preview_card(symbol):
     """Show a preview before adding to watchlist."""
     with st.spinner(f"Analyzing {symbol}..."):
@@ -44,13 +47,7 @@ st.header("📌 My Watchlist")
 
 # Sidebar for Watchlist management
 with st.sidebar:
-    st.header("👤 Personalization")
-    st.session_state.user_mode = st.radio(
-        "Select Your Experience Level:",
-        ["💡 Beginner", "🧠 Expert"],
-        index=0 if st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner" else 1,
-        help="Beginner mode provides more explanations and tips."
-    )
+    st.info(f"Experience Level: **{st.session_state.user_mode}**")
     st.divider()
 
 st.sidebar.header("🔍 Add to Watchlist")

@@ -13,6 +13,8 @@ if 'available_models' not in st.session_state:
     st.session_state.available_models = []
 if 'models_ticker' not in st.session_state:
     st.session_state.models_ticker = None
+if 'user_mode' not in st.session_state:
+    st.session_state.user_mode = "💡 Beginner"
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -28,13 +30,7 @@ st.divider()
 
 # ── Sidebar Controls ──────────────────────────────────────────
 with st.sidebar:
-    st.header("👤 Personalization")
-    st.session_state.user_mode = st.radio(
-        "Select Your Experience Level:",
-        ["💡 Beginner", "🧠 Expert"],
-        index=0 if st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner" else 1,
-        help="Beginner mode provides more explanations and tips."
-    )
+    st.info(f"Experience Level: **{st.session_state.user_mode}**")
     st.divider()
 
 st.sidebar.header("🔎 Stock Selection")

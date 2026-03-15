@@ -128,15 +128,9 @@ if "user_mode" not in st.session_state:
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
-    st.header("👤 Personalization")
-    st.session_state.user_mode = st.radio(
-        "Select Your Experience Level:",
-        ["💡 Beginner", "🧠 Expert"],
-        index=0 if st.session_state.user_mode == "💡 Beginner" else 1,
-        help="Beginner mode provides more explanations and tips."
-    )
+    st.image("./assets/BrandLogoMarketSense.png", width=150)
     st.divider()
-    st.info(f"Currently in **{st.session_state.user_mode}** mode.")
+    st.info(f"Experience Level: **{st.session_state.user_mode}**")
 
 # ── Online/Offline Status ──
 if not st.session_state.get("backend_healthy", False):
@@ -255,8 +249,21 @@ with tab2:
     st.divider()
     
     st.subheader("🎨 Interface Preferences")
-    default_ticker = st.text_input("Default Focus Ticker", "RELIANCE.NS")
-    st.checkbox("Enable Real-time Polling (every 5 mins)", value=True)
+    pref_tab1, pref_tab2 = st.tabs(["👤 Personalization", "🖼️ Display"])
+    
+    with pref_tab1:
+        st.write("Choose how much technical detail you want to see across the platform.")
+        st.session_state.user_mode = st.radio(
+            "Select Your Experience Level:",
+            ["💡 Beginner", "🧠 Expert"],
+            index=0 if st.session_state.user_mode == "💡 Beginner" else 1,
+            help="Beginner mode provides more explanations and tips."
+        )
+        st.info(f"Setting this to **{st.session_state.user_mode}** will update all charts and metrics labels.")
+
+    with pref_tab2:
+        default_ticker = st.text_input("Default Focus Ticker", "RELIANCE.NS")
+        st.checkbox("Enable Real-time Polling (every 5 mins)", value=True)
     
     if st.button("💾 Save Settings"):
         st.success(f"Preferences for {default_ticker} saved successfully!")

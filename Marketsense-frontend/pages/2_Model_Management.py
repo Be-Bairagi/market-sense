@@ -15,6 +15,8 @@ if "models_cache" not in st.session_state:
     st.session_state.models_cache = None
 if "models_loaded" not in st.session_state:
     st.session_state.models_loaded = False
+if 'user_mode' not in st.session_state:
+    st.session_state.user_mode = "💡 Beginner"
 
 st.set_page_config(
     page_title="Model Management | MarketSense",
@@ -24,13 +26,7 @@ st.set_page_config(
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
-    st.header("👤 Personalization")
-    st.session_state.user_mode = st.radio(
-        "Select Your Experience Level:",
-        ["💡 Beginner", "🧠 Expert"],
-        index=0 if st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner" else 1,
-        help="Beginner mode provides more explanations and tips."
-    )
+    st.info(f"Experience Level: **{st.session_state.user_mode}**")
     st.divider()
 
 st.title("⚙️ Model Management")

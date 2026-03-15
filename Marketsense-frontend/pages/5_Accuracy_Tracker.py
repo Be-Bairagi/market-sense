@@ -12,6 +12,9 @@ from utils.helpers import format_currency, format_datetime, CURRENCY_SYMBOL
 
 logger = logging.getLogger(__name__)
 
+if 'user_mode' not in st.session_state:
+    st.session_state.user_mode = "💡 Beginner"
+
 # ── Page Setup ────────────────────────────────────────────────
 st.set_page_config(
     page_title="Model Insights | MarketSense", page_icon="🧠", layout="wide"
@@ -24,13 +27,7 @@ st.markdown("---")
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
-    st.header("👤 Personalization")
-    st.session_state.user_mode = st.radio(
-        "Select Your Experience Level:",
-        ["💡 Beginner", "🧠 Expert"],
-        index=0 if st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner" else 1,
-        help="Beginner mode provides more explanations and tips."
-    )
+    st.info(f"Experience Level: **{st.session_state.user_mode}**")
     st.divider()
 
 st.sidebar.header("📊 Model Evaluation Settings")
