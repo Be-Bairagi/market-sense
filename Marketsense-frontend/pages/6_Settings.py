@@ -1,4 +1,5 @@
 import datetime
+from utils.helpers import format_date
 
 import pandas as pd
 import streamlit as st
@@ -66,7 +67,7 @@ with tab4:
     st.write(f"""
     - **App Name:** MarketSense
     - **Version:** 1.0.0
-    - **Last Updated:** {datetime.date.today().strftime('%Y-%m-%d')}
+    - **Last Updated:** {format_date(datetime.date.today())}
     - **Developer:** Brotati Bairagi
     - **Backend:** FastAPI
     - **Frontend:** Streamlit

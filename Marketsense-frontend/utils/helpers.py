@@ -1,4 +1,5 @@
 import re
+CURRENCY_SYMBOL = "₹"
 
 
 def to_snake_case(text: str) -> str:
@@ -41,17 +42,47 @@ def to_snake_case(text: str) -> str:
         .strip("_")
     )
 
-def format_currency(value: float) -> str:
-    """Format a numeric value as Indian Rupee (₹) with appropriate suffixes."""
+def format_currency(value: float, show_symbol: bool = True) -> str:
+    """Format a numeric value as Indian Rupee with appropriate suffixes."""
     if value is None:
-        return "₹0.00"
+        return f"{CURRENCY_SYMBOL}0.00" if show_symbol else "0.00"
+    
+    symbol = CURRENCY_SYMBOL if show_symbol else ""
     
     if value >= 10000000:  # Cr
-        return f"₹{value / 10000000:.2f} Cr"
+        return f"{symbol}{value / 10000000:.2f} Cr"
     elif value >= 100000:  # L
-        return f"₹{value / 100000:.2f} L"
+        return f"{symbol}{value / 100000:.2f} L"
     else:
-        return f"₹{value:,.2f}"
+        return f"{symbol}{value:,.2f}"
+
+def format_date(dt_obj_or_str, format: str = "%d %b %Y") -> str:
+    """Format a date object or ISO string into a standard display date."""
+    if dt_obj_or_str is None:
+        return "N/A"
+    
+    import datetime
+    if isinstance(dt_obj_or_str, str):
+        try:
+            # Handle potential ISO format or just date
+            dt_obj = datetime.datetime.fromisoformat(dt_obj_or_str.replace("Z", "+00:00"))
+        except ValueError:
+            try:
+                dt_obj = datetime.datetime.strptime(dt_obj_or_str[:10], "%Y-%m-%d")
+            except:
+                return dt_obj_or_str
+    else:
+        dt_obj = dt_obj_or_str
+        
+    return dt_obj.strftime(format)
+
+def format_datetime(dt_obj_or_str, format: str = "%d %b %Y, %H:%M") -> str:
+    """Format a datetime object or ISO string into a standard display datetime."""
+    return format_date(dt_obj_or_str, format)
+
+def format_time(dt_obj_or_str, format: str = "%H:%M:%S") -> str:
+    """Format time only."""
+    return format_date(dt_obj_or_str, format)
 
 def get_signal_icon(signal: str) -> str:
     """Return an emoji icon based on the signal direction."""

@@ -1,4 +1,5 @@
 from datetime import date
+from utils.helpers import format_date
 
 import streamlit as st
 
@@ -125,7 +126,7 @@ with col2:
     **Email:** [brotati.bairagi@example.com](mailto:brotati.bairagi@example.com)
     **GitHub:** [github.com/brotati-bairagi](https://github.com/brotati-bairagi)
     **Version:** 1.0.0
-    **Last Updated:** {date.today().strftime('%Y-%m-%d')}
+    **Last Updated:** {format_date(date.today())}
     """)
 
 st.info("Need help? Reach out via email or open an issue on GitHub!")

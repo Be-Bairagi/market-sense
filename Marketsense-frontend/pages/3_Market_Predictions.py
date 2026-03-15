@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
+from utils.helpers import format_currency
 
 logger = logging.getLogger(__name__)
 
@@ -132,9 +133,9 @@ if predict_btn:
                 st.divider()
                 
                 m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Target Low", f"₹{pred.get('target_low', 0):,.1f}")
-                m2.metric("Target High", f"₹{pred.get('target_high', 0):,.1f}")
-                m3.metric("Stop Loss", f"₹{pred.get('stop_loss', 0):,.1f}")
+                m1.metric("Target Low", format_currency(pred.get('target_low', 0)))
+                m2.metric("Target High", format_currency(pred.get('target_high', 0)))
+                m3.metric("Stop Loss", format_currency(pred.get('stop_loss', 0)))
                 m4.metric("Risk Level", pred.get("risk_level", "MEDIUM"))
 
                 # Conditional Sections

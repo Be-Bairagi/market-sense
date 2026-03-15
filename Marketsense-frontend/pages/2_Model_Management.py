@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 import utils.helpers as helpers
+from utils.helpers import format_currency
 from datetime import datetime
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
@@ -156,9 +157,9 @@ if train_submitted:
                         ms2.metric("Train Size", metrics.get("train_size", "N/A"))
                         ms3.metric("Test Size", metrics.get("test_size", "N/A"))
                     else:
-                        ms1.metric("MAE", f"₹{metrics.get('MAE', 0):.2f}")
+                        ms1.metric("MAE", format_currency(metrics.get('MAE', 0)))
                         ms2.metric("R² Score", f"{metrics.get('R2', 0):.3f}")
-                        ms3.metric("RMSE", f"₹{metrics.get('RMSE', 0):.2f}")
+                        ms3.metric("RMSE", format_currency(metrics.get('RMSE', 0)))
 
                 # Refresh registry
                 st.session_state.pop("available_models", None)

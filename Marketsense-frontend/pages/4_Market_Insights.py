@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from data.nifty50 import NIFTY_50_MAP, NIFTY_50_STOCKS
 from services.dashboard_service import DashboardService
-from utils.helpers import format_currency, get_signal_icon
+from utils.helpers import format_currency, get_signal_icon, format_date, format_time
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -58,7 +58,7 @@ if isinstance(watchlist, list) and watchlist:
     s1, s2, s3 = st.columns(3)
     s1.metric("Total Stocks", len(watchlist))
     s2.metric("Active Alerts", alert_count, delta=alert_count if alert_count > 0 else None, delta_color="inverse")
-    s3.metric("Last Sync", datetime.now().strftime("%H:%M:%S"))
+    s3.metric("Last Sync", format_time(datetime.now()))
 
     for item in watchlist:
         symbol = item["symbol"]
@@ -68,7 +68,7 @@ if isinstance(watchlist, list) and watchlist:
             cols = st.columns([2, 2, 2, 1, 1])
             with cols[0]:
                 st.write(f"### {symbol}")
-                st.caption(f"Added: {item['added_at'][:10]}")
+                st.caption(f"Added: {format_date(item['added_at'])}")
             with cols[1]:
                 signal = item["current_signal"]
                 st.metric("Signal", f"{get_signal_icon(signal)} {signal}", f"{item['current_confidence']}% Conf")
@@ -143,9 +143,9 @@ if isinstance(data, dict) and data.get("picks"):
             st.progress(float(confidence))
             
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("CMP", f"₹{close_price:,.1f}" if close_price else "---")
-            m2.metric("Target (Near)", f"₹{target_low:,.1f}")
-            m3.metric("Stop Loss", f"₹{pick.get('stop_loss', 0):,.1f}")
+            m1.metric("CMP", format_currency(close_price) if close_price else "---")
+            m2.metric("Target (Near)", format_currency(target_low))
+            m3.metric("Stop Loss", format_currency(pick.get('stop_loss', 0)))
             m4.metric("Risk Profile", risk, delta=risk_icons.get(risk, ""), delta_color="off")
             
             st.markdown("##### Key Drivers")

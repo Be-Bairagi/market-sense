@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 from services.model_service import ModelService
+from utils.helpers import format_currency, format_datetime, CURRENCY_SYMBOL
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ try:
     models_resp = ModelService.get_model_list()
     if models_resp.get("models"):
         model_list = [
-            f"{m['ticker']} ({m['model_type']}, trained {m['date_trained']})"
+            f"{m['ticker']} ({m['model_type']}, trained {format_date(m['date_trained'])})"
             for m in models_resp["models"]
         ]
     else:
@@ -86,8 +87,8 @@ if refresh and "No models" not in selected_model:
                 kpi3.metric("Model Type", "XGBoost Classifier")
             else:
                 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-                kpi1.metric("MAE", f"{metrics.get('MAE', 0):.3f}")
-                kpi2.metric("RMSE", f"{metrics.get('RMSE', 0):.3f}")
+                kpi1.metric("MAE", format_currency(metrics.get('MAE', 0)))
+                kpi2.metric("RMSE", format_currency(metrics.get('RMSE', 0)))
                 kpi3.metric("R² Score", f"{metrics.get('R2', 0):.3f}")
                 kpi4.metric("Data Points", metrics.get("data_points", "N/A"))
 
@@ -123,7 +124,7 @@ if refresh and "No models" not in selected_model:
                         line=dict(color="#ff7f0e", width=2),
                     ))
                     fig.update_layout(
-                        yaxis_title="Price (₹)", template="plotly_white",
+                        yaxis_title=f"Price ({CURRENCY_SYMBOL})", template="plotly_white",
                         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                     )
                     st.plotly_chart(fig, use_container_width=True)
@@ -164,7 +165,7 @@ if refresh and "No models" not in selected_model:
             **Model:** {model_summary_name}
             **Ticker:** {ticker}
             **Evaluation Period:** {period}
-            **Trained On:** {metrics.get('trained_on', datetime.date.today())}
+            **Trained On:** {format_date(metrics.get('trained_on', datetime.date.today()))}
             """)
 
     except Exception as e:

@@ -5,6 +5,7 @@ import streamlit as st
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from components.pulse import render_pulse_skeleton, render_market_pulse_cards
+from utils.helpers import format_time
 from utils.health import check_backend_health
 
 logger = logging.getLogger(__name__)
@@ -188,7 +189,7 @@ if fetch_data_btn:
                     df_view = df.sort_values(by="Date", ascending=False)
                     st.dataframe(df_view, use_container_width=True, hide_index=True)
 
-                st.caption(f"🕐 Last updated: {st.session_state.last_updated.strftime('%H:%M:%S')}")
+                st.caption(f"🕐 Last updated: {format_time(st.session_state.last_updated)}")
             else:
                 st.warning("⚠️ No data returned from backend.")
         except Exception as e:
