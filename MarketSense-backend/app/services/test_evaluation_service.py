@@ -14,8 +14,9 @@ from app.models.feature_data import FeatureVector
 from app.models.market_data import MacroData
 from app.models.stock_data import StockPrice
 from app.repositories.model_registry_repository import ModelRegistryRepository
+from app.config import settings
 
-MODELS_DIR = "models"
+MODELS_DIR = settings.models_path
 
 
 def test_evaluate_model(ticker: str, period: str, model_type: str) -> Dict[str, Any]:

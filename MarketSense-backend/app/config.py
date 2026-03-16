@@ -67,6 +67,16 @@ class Settings(BaseSettings):
     # Sentry DSN for error tracking (optional)
     sentry_dsn: str | None = None
 
+    # Paths
+    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    models_dir: str = "models"
+
+    @property
+    def models_path(self) -> str:
+        path = os.path.join(self.base_dir, self.models_dir)
+        os.makedirs(path, exist_ok=True)
+        return path
+
     class Config:
         env_file = ".env"
         extra = "ignore"

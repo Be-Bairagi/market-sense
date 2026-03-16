@@ -5,6 +5,7 @@ import joblib
 from fastapi import HTTPException
 from sqlmodel import Session, select
 
+from app.config import settings
 from app.features.trainers.prophet_trainer import train_prophet_model
 from app.features.trainers.xgboost_trainer import train_xgboost_model
 from app.repositories.model_registry_repository import ModelRegistryRepository
@@ -175,8 +176,7 @@ class TrainingService:
                 )
 
         # ── STEP 3: Save model to disk ───────────────────────────────────────
-        model_dir = "models"
-        os.makedirs(model_dir, exist_ok=True)
+        model_dir = settings.models_path
 
         version = TrainingService._get_next_version(db, safe_ticker, model_type)
         file_name = f"{safe_ticker}_{model_type}_v{version}.pkl"

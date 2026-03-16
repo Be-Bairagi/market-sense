@@ -11,50 +11,43 @@ from sqlmodel import Session, select
 from app.database import engine
 from app.features.trainers.lstm_trainer import StockLSTM
 from app.models.feature_data import FeatureVector
-from app.schemas.prediction_schemas import PredictionOutput
+from app.config import settings
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
+MODELS_DIR = settings.models_path
 
-MODELS_DIR = "models"
-
-
-def predict_lstm(symbol: str, model_path: str = None) -> PredictionOutput:
+def predict_lstm(model_path: str, n_days: int = 5) -> Dict[str, Any]:
     """Make predictions using the trained PyTorch LSTM model."""
+    # Extract symbol from filename (e.g. RELIANCE_NS_lstm_v1.pkl)
+    filename = os.path.basename(model_path)
+    symbol = filename.split("_lstm")[0].replace("_", ".") # RELIANCE.NS
+
     # Ensure StockLSTM is in scope for joblib
     _ = StockLSTM
     safe_symbol = symbol.replace(".", "_")
-
-    if not model_path:
-        model_name_base = f"{safe_symbol}_lstm"
-        from app.repositories.model_registry_repository import \
-            ModelRegistryRepository
-
-        with Session(engine) as db:
-            active = ModelRegistryRepository.get_active_model(db, model_name_base)
-            if active and active.file_path:
-                model_path = active.file_path
-            else:
-                model_files = [
-                    f
-                    for f in os.listdir(MODELS_DIR)
-                    if f.startswith(f"{model_name_base}_v") and f.endswith(".pkl")
-                ]
-                if not model_files:
-                    raise FileNotFoundError(f"No LSTM model found for {symbol}")
-                model_files.sort(reverse=True)
-                model_path = os.path.join(MODELS_DIR, model_files[0])
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"LSTM model file not found at {model_path}")
 
     logger.info(f"Loading LSTM model from {model_path}")
-    bundle = joblib.load(model_path)
+    full_bundle = joblib.load(model_path)
+    
+    # TrainingService wraps models in {"model": ..., "metrics": ...}
+    # For LSTM, the "model" part is the actual inference bundle
+    if "model" in full_bundle and isinstance(full_bundle["model"], dict) and "scaler" in full_bundle["model"]:
+        bundle = full_bundle["model"]
+    else:
+        bundle = full_bundle
 
     # Extract components
     model = bundle["model"]
-    scaler = bundle["scaler"]
-    seq_length = bundle["seq_length"]
+    scaler = bundle.get("scaler")
+    seq_length = bundle.get("seq_length", 30)
     features_in = bundle.get("features_in", [])
+
+    if scaler is None:
+        raise ValueError(f"LSTM bundle at {model_path} is missing 'scaler'")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
@@ -113,17 +106,33 @@ def predict_lstm(symbol: str, model_path: str = None) -> PredictionOutput:
     # Convert to standard PredictionOutput
     from datetime import datetime
 
-    # Extract feature importance (LSTM doesn't natively expose this,
-    # so mock or use random/last weights if needed for the UI)
-    feature_importance = {"Sequence_Memory": 1.0, "Trend_Aggregation": 1.0}
-
-    return PredictionOutput(
-        ticker=symbol,
-        signal=signal,
-        confidence=confidence * 100.0,  # Percentage
-        forecast_price=0.0,  # Classification doesn't give precise price
-        expected_range={"low": 0.0, "high": 0.0},
-        model_used=f"LSTM Sequence Context (seq={seq_length})",
-        feature_importance=feature_importance,
-        timestamp=datetime.utcnow(),
-    )
+    # Feature Importance / Drivers
+    # LSTM doesn't natively expose feature importance easily, so we use a fallback
+    key_drivers = [
+        "Sequential Price Context (30-day window)",
+        "LSTM Deep Learning Analysis",
+        "Recent Market Trend Consolidation"
+    ]
+    
+    # Get current price for targets
+    curr_price = df["current_close"].iloc[-1] if "current_close" in df.columns else 0.0
+    
+    # Standardize result to match other predictors (Dict or Pydantic)
+    from datetime import timedelta
+    
+    return {
+        "symbol": symbol,
+        "horizon": f"short_term ({n_days}d)",
+        "direction": signal,
+        "confidence": round(confidence, 4),
+        "target_low": round(curr_price * 0.98, 2),
+        "target_high": round(curr_price * 1.05, 2),
+        "stop_loss": round(curr_price * 0.95, 2),
+        "risk_level": "MEDIUM",
+        "key_drivers": key_drivers,
+        "bear_case": "LSTM sequence pattern might be affected by sudden macro shifts.",
+        "predicted_at": datetime.utcnow(),
+        "valid_until": datetime.utcnow() + timedelta(days=n_days),
+        "model_name": filename,
+        "model_version": bundle.get("version", 1),
+    }

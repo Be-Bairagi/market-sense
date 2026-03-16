@@ -595,3 +595,15 @@
 2026-03-12 23:51:23 - apscheduler.scheduler - DEBUG - Looking for jobs to run
 2026-03-12 23:51:23 - apscheduler.scheduler - DEBUG - No jobs; waiting until a job is added
 2026-03-12 23:51:23 - app.scheduler - INFO - Background scheduler shut down.
+2026-03-17 02:01:13 - matplotlib - DEBUG - matplotlib data path: D:\Final Year Project\MarketSense-backend\venv\Lib\site-packages\matplotlib\mpl-data
+2026-03-17 02:01:13 - matplotlib - DEBUG - CONFIGDIR=C:\Users\DELL\.matplotlib
+2026-03-17 02:01:13 - matplotlib - DEBUG - interactive is False
+2026-03-17 02:01:13 - matplotlib - DEBUG - platform is win32
+2026-03-17 02:01:13 - matplotlib - DEBUG - CACHEDIR=C:\Users\DELL\.matplotlib
+2026-03-17 02:01:13 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\DELL\.matplotlib\fontlist-v390.json
+2026-03-17 02:01:17 - app.services.training_service - INFO - Starting model training: type=lstm, ticker=RELIANCE.NS, period=5y
+2026-03-17 02:01:19 - app.services.training_service - INFO - No existing active model found — training from scratch.
+2026-03-17 02:01:22 - app.features.trainers.lstm_trainer - INFO - Training PyTorch LSTM on cpu for RELIANCE.NS...
+2026-03-17 02:01:50 - app.features.trainers.lstm_trainer - INFO - LSTM Training RELIANCE.NS complete: Configured accuracy >75%. Actual=0.4890, DirAcc=0.4890
+2026-03-17 02:01:51 - app.services.training_service - INFO - Model saved to D:\Final Year Project\MarketSense-backend\models\RELIANCE_NS_lstm_v7.pkl
+2026-03-17 02:01:51 - app.services.training_service - INFO - Training complete: RELIANCE_NS_lstm v7 (warm_start=False)
