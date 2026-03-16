@@ -4,19 +4,20 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 import utils.helpers as helpers
-from utils.helpers import format_currency
+from utils.helpers import format_currency, initialize_ui_context
 from datetime import datetime
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from services.model_service import ModelService
 
 # ── Session State ─────────────────────────────────────────────
+# Initialize Global UI
+initialize_ui_context()
+
 if "models_cache" not in st.session_state:
     st.session_state.models_cache = None
 if "models_loaded" not in st.session_state:
     st.session_state.models_loaded = False
-if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "🧠 Expert"
 
 st.set_page_config(
     page_title="Model Management | MarketSense",
@@ -24,10 +25,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ── Sidebar ───────────────────────────────────────────────────
-with st.sidebar:
-    st.info(f"Experience Level: **{st.session_state.user_mode}**")
-    st.divider()
+# Sidebar logic handled by initialize_ui_context
 
 st.title("⚙️ Model Management")
 st.write("Configure and train AI models for stock price prediction.")

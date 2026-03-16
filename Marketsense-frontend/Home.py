@@ -8,7 +8,7 @@ import pandas as pd
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from utils.health import check_backend_health
-from utils.helpers import format_currency, format_date
+from utils.helpers import format_currency, format_date, initialize_ui_context
 
 logger = logging.getLogger(__name__)
 
@@ -152,19 +152,14 @@ st.set_page_config(
     layout="wide",
 )
 
-# Initialize Session State
+# Initialize Session State & Global UI
+initialize_ui_context()
+
 if "health_check_done" not in st.session_state:
     healthy, health_data = health_check_ui()
     st.session_state["backend_healthy"] = healthy
     st.session_state["health_data"] = health_data
     st.session_state["health_check_done"] = True
-
-if "user_mode" not in st.session_state:
-    st.session_state.user_mode = "🧠 Expert"
-
-# ── Sidebar ───────────────────────────────────────────────────
-with st.sidebar:
-    st.info(f"Experience Level: **{st.session_state.user_mode}**")
 
 # ── Online/Offline Status ──
 if not st.session_state.get("backend_healthy", False):

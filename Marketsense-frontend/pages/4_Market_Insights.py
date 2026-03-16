@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from data.nifty50 import NIFTY_50_MAP, NIFTY_50_STOCKS
 from services.dashboard_service import DashboardService
-from utils.helpers import format_currency, get_signal_icon, format_date, format_time
+from utils.helpers import format_currency, get_signal_icon, format_date, format_time, initialize_ui_context
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -12,8 +12,8 @@ st.set_page_config(
     layout="wide",
 )
 
-if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "🧠 Expert"
+# Initialize Global UI
+initialize_ui_context()
 
 def render_preview_card(symbol):
     """Show a preview before adding to watchlist."""
@@ -46,9 +46,7 @@ st.title("🏹 Market Insight")
 st.header("📌 My Watchlist")
 
 # Sidebar for Watchlist management
-with st.sidebar:
-    st.info(f"Experience Level: **{st.session_state.user_mode}**")
-    st.divider()
+# Sidebar logic handled by initialize_ui_context
 
 st.sidebar.header("🔍 Add to Watchlist")
 search_symbol = st.sidebar.text_input("Search Ticker (e.g. RELIANCE.NS)", "").upper()

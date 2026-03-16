@@ -4,17 +4,18 @@ import streamlit as st
 import plotly.graph_objects as go
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
-from utils.helpers import format_currency
+from utils.helpers import format_currency, initialize_ui_context
 
 logger = logging.getLogger(__name__)
 
 # ── Session State ─────────────────────────────────────────────
+# Initialize Global UI
+initialize_ui_context()
+
 if 'available_models' not in st.session_state:
     st.session_state.available_models = []
 if 'models_ticker' not in st.session_state:
     st.session_state.models_ticker = None
-if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "🧠 Expert"
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -28,10 +29,7 @@ st.write("Generate and analyze AI signals for your selected stocks.")
 
 st.divider()
 
-# ── Sidebar Controls ──────────────────────────────────────────
-with st.sidebar:
-    st.info(f"Experience Level: **{st.session_state.user_mode}**")
-    st.divider()
+# Sidebar logic handled by initialize_ui_context
 
 st.sidebar.header("🔎 Stock Selection")
 ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]

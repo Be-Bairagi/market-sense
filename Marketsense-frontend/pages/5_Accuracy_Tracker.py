@@ -8,12 +8,12 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 from services.model_service import ModelService
-from utils.helpers import format_currency, format_datetime, CURRENCY_SYMBOL
+from utils.helpers import format_currency, format_datetime, format_date, CURRENCY_SYMBOL, initialize_ui_context
 
 logger = logging.getLogger(__name__)
 
-if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "🧠 Expert"
+# Initialize Global UI
+initialize_ui_context()
 
 # ── Page Setup ────────────────────────────────────────────────
 st.set_page_config(
@@ -25,10 +25,7 @@ st.markdown(
 )
 st.markdown("---")
 
-# ── Sidebar ───────────────────────────────────────────────────
-with st.sidebar:
-    st.info(f"Experience Level: **{st.session_state.user_mode}**")
-    st.divider()
+# Sidebar logic handled by initialize_ui_context
 
 st.sidebar.header("📊 Model Evaluation Settings")
 

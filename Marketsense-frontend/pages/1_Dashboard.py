@@ -5,12 +5,15 @@ import streamlit as st
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from components.pulse import render_pulse_skeleton, render_market_pulse_cards
-from utils.helpers import format_time
+from utils.helpers import format_time, initialize_ui_context
 from utils.health import check_backend_health
 
 logger = logging.getLogger(__name__)
 
 # ── Session State ─────────────────────────────────────────────
+# Initialize Global UI
+initialize_ui_context()
+
 if 'last_updated' not in st.session_state:
     st.session_state.last_updated = None
 if 'current_data' not in st.session_state:
@@ -21,8 +24,6 @@ if 'show_market_pulse' not in st.session_state:
     st.session_state.show_market_pulse = False
 if 'pulse_data' not in st.session_state:
     st.session_state.pulse_data = None
-if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "🧠 Expert"
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -90,9 +91,7 @@ if st.session_state.show_market_pulse:
 st.divider()
 
 # ── Sidebar Controls ──────────────────────────────────────────
-with st.sidebar:
-    st.info(f"Experience Level: **{st.session_state.user_mode}**")
-    st.divider()
+# Stock Selection is local to this page
 
 st.sidebar.header("🔎 Stock Selection")
 ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
