@@ -42,9 +42,10 @@ ticker_options = [f"{s} — {NIFTY_50_MAP[s]}" for s in NIFTY_50_SYMBOLS]
 conf_col1, conf_col2, conf_col3 = st.columns(3)
 
 with conf_col1:
-    model_type = st.selectbox("AI Framework", ["XGBoost", "Prophet"], index=0)
-    # Backend expects 'xgboost' or 'prophet'
-    model_key = "xgboost" if model_type == "XGBoost" else "prophet"
+    model_type = st.selectbox("AI Framework", ["XGBoost", "Prophet", "LSTM"], index=0)
+    # Backend expects 'xgboost', 'prophet' or 'lstm'
+    model_map = {"XGBoost": "xgboost", "Prophet": "prophet", "LSTM": "lstm"}
+    model_key = model_map.get(model_type, "xgboost")
 
 with conf_col2:
     selected_ticker = st.selectbox("Target Stock", ticker_options, index=0)
@@ -59,6 +60,7 @@ with conf_col3:
             help="Prophet works best with more history (1y+)."
         )
     else:
+        # XGBoost and LSTM both require long-term history for feature store / sequence context
         period = "5y"
         st.selectbox("Training Period", ["5y (Full History)"], index=0, disabled=True)
 
@@ -97,7 +99,7 @@ if train_submitted:
                 status.write("✅ Historical price data sufficient.")
 
             # --- Sub-step: Feature Store ---
-            if model_type == "XGBoost":
+            if model_type in ["XGBoost", "LSTM"]:
                 feat_status = DashboardService.fetch_ticker_feature_status(ticker)
                 if not feat_status.get("sufficient_for_training", False):
                     status.write(f"🏗️ Insufficient features ({feat_status.get('count', 0)}/100 vectors). Computing...")
@@ -113,7 +115,7 @@ if train_submitted:
                             break
                     else:
                         status.update(label="❌ Feature computation timed out", state="error")
-                        st.error(f"XGBoost training requires 100+ daily feature vectors. Only {feat_status.get('count', 0)} computed so far.")
+                        st.error(f"{model_type} training requires 100+ daily feature vectors. Only {feat_status.get('count', 0)} computed so far.")
                         st.stop()
                 else:
                     status.write("✅ Feature store ready.")
@@ -157,7 +159,7 @@ if train_submitted:
                     
                     ms1, ms2, ms3 = st.columns(3)
                     metrics = result.get("training_metrics", {})
-                    if model_type == "XGBoost":
+                    if model_type in ["XGBoost", "LSTM"]:
                         ms1.metric("Accuracy", f"{metrics.get('accuracy', 0):.1%}")
                         ms2.metric("Train Size", metrics.get("train_size", "N/A"))
                         ms3.metric("Test Size", metrics.get("test_size", "N/A"))

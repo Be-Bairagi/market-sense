@@ -86,6 +86,7 @@ else:
     if selected_framework == "prophet":
         predict_days = st.sidebar.slider("Prediction Days Ahead:", 1, 30, 10)
     else:
+        # XGBoost and LSTM use fixed horizons (5 days)
         predict_days = 5
 
 st.sidebar.divider()
@@ -107,6 +108,7 @@ with st.sidebar.expander("📖 Jargon Buster"):
 # ── Main Panel: Prediction ────────────────────────────────────
 if predict_btn:
         model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
+        # Only Prophet supports variable prediction days
         days_param = predict_days if selected_framework == "prophet" else 5
         
         with st.spinner(f"AI is analyzing {ticker} trends..."):
