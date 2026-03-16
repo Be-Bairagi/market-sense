@@ -13,7 +13,7 @@ from utils.helpers import format_currency, format_datetime, CURRENCY_SYMBOL
 logger = logging.getLogger(__name__)
 
 if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "💡 Beginner"
+    st.session_state.user_mode = "🧠 Expert"
 
 # ── Page Setup ────────────────────────────────────────────────
 st.set_page_config(

@@ -16,7 +16,7 @@ if "models_cache" not in st.session_state:
 if "models_loaded" not in st.session_state:
     st.session_state.models_loaded = False
 if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "💡 Beginner"
+    st.session_state.user_mode = "🧠 Expert"
 
 st.set_page_config(
     page_title="Model Management | MarketSense",

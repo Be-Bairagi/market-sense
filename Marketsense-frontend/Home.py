@@ -160,7 +160,7 @@ if "health_check_done" not in st.session_state:
     st.session_state["health_check_done"] = True
 
 if "user_mode" not in st.session_state:
-    st.session_state.user_mode = "💡 Beginner"
+    st.session_state.user_mode = "🧠 Expert"
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
@@ -304,11 +304,10 @@ with tab3:
     st.markdown("""
     MarketSense is an **AI-driven stock market prediction platform** designed to empower retail investors with high-probability signals.
     
-    ### ⚙️ The Engine Under the Hood
+    ### ⚙️ Key Features
     *   **Data Pipeline:** Continuous ingestion of historical prices and macro-economic indicators (VIX, Crude Oil, USD/INR).
     *   **Feature Store:** Real-time computation of technical and sentiment signals.
     *   **AI Models:** Advanced ensemble models (XGBoost) and time-series forecasters (Prophet).
-    *   **Daily Screener:** Automated nightly scanning of the NIFTY 50 to find the top 5 'High Confidence' opportunities.
     """)
     
     st.divider()

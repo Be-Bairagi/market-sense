@@ -22,7 +22,7 @@ if 'show_market_pulse' not in st.session_state:
 if 'pulse_data' not in st.session_state:
     st.session_state.pulse_data = None
 if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "💡 Beginner"
+    st.session_state.user_mode = "🧠 Expert"
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(

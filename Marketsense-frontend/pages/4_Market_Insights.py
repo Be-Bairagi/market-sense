@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "💡 Beginner"
+    st.session_state.user_mode = "🧠 Expert"
 
 def render_preview_card(symbol):
     """Show a preview before adding to watchlist."""

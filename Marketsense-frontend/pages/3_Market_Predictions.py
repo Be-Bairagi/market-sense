@@ -14,7 +14,7 @@ if 'available_models' not in st.session_state:
 if 'models_ticker' not in st.session_state:
     st.session_state.models_ticker = None
 if 'user_mode' not in st.session_state:
-    st.session_state.user_mode = "💡 Beginner"
+    st.session_state.user_mode = "🧠 Expert"
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
