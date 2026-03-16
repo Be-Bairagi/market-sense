@@ -159,7 +159,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 - [Phase UI-4: Stock Deep Dive](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-4.md)
 - [Phase UI-5: My Watchlist](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-5.md)
 - [Phase UI-6: Accuracy Tracker](file:///d:/Final%20Year%20Project/.antigravity/.plans/ui-plan-6.md)
-- [x] Page 6 — Final Polish & Performance: Home page merged with Settings & About.
+- [x] Page 6 — Final Polish & Performance: Home.py merged with Settings & About. Refined aesthetics (logo, cards, footer).
 
 **Key Deliverables:**
 - [x] Page 1 — Market Pulse & Data Dashboard: Focus on pure data and macro trends.

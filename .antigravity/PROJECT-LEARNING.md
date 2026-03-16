@@ -217,3 +217,17 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 - **The Problem**: Formatting dates and currencies in every page leads to inconsistencies (₹10.50 vs 10.50 ₹) and makes it harder to change the locale later.
 - **The Solution**: Export a set of standard formatters from `utils.helpers`. 
 - **The Hack**: Use a single `format_date` that handles both `datetime` objects AND ISO strings, with graceful regression if parsing fails. This prevents mid-render crashes when APIs return unexpected date shapes.
+### 43. Centralized UI & Global Context Management
+- **The Problem**: Maintaining the "User Mode" status and Sidebar brand elements across 5+ separate page files led to "drift" and duplicate code.
+- **The Solution**: Implementation of a single `initialize_ui_context()` in `utils/helpers.py`.
+- **The Workflow**: Every page now calls this at the top. It initializes defaults (Expert mode), renders the sidebar status, and ensures a single source of truth for global experience settings. This fixed "Settings not reflecting in sub-pages" bugs permanently.
+
+### 44. CSS Escaping in Streamlit f-strings
+- **The Gotcha**: When embedding custom `<style>` blocks inside a Python f-string (e.g., to inject a `tip` variable), unescaped CSS braces `{}` will trigger a `NameError` or `KeyError` as Python tries to interpolate them.
+- **The Fix**: Always double the braces `{{ ... }}` for CSS rules inside f-strings.
+- **Symptom**: Application crash with "NameError: name 'align' is not defined" when trying to render a style block.
+
+### 45. Vertical Alignment & Equal Height Columns
+- **The Problem**: Streamlit columns (`st.columns`) don't naturally align their content vertically, leading to "staggered" feature cards if text lengths vary.
+- **The Hack**: Inject a custom CSS selector `[data-testid="stHorizontalBlock"] { align-items: stretch; }` and force `100%` height on the vertical block wrapper.
+- **The Result**: Professional, uniform card grids that look premium regardless of text density.
