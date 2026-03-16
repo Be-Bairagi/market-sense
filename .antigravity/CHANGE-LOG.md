@@ -2,8 +2,11 @@
 
 ## [1.16.0] - 2026-03-16
 ### Added
-- **Unified Home Page**: Merged `app.py`, `Settings`, and `About` into a single, cohesive landing page with tabbed navigation.
-- **Global Personalization**: Introduced a "User Mode" switcher (Beginner vs Expert) in the sidebar of every page.
+- **Unified Home Page**: Merged `Home.py`, `Settings`, and `About` into a single landing page. (Renamed from `app.py` for sidebar clarity).
+- **Simplified Settings**: Removed the "Data Source" selection from App Settings as Yahoo Finance is the currently standard global provider.
+- **Relocated Personalization**: Moved "User Mode" selection from the global sidebar to a dedicated "Personalization" tab within the Home Page settings, keeping sidebars clean.
+- **Improved Aesthetics**: Redesigned the Home page with a premium centered footer, optimized hero logo positioning (centered & right-shifted), and equal-height feature cards.
+- **UI Bug Fixes**: Resolved JSON nesting issues in the Instant AI Signal component; fixed layout alignment in the Hero section.
 - **Context-Aware UI**: Updated Dashboard and Accuracy Tracker to dynamically toggle between simplified (plain English) and technical views based on the selected mode.
 
 ### Changed

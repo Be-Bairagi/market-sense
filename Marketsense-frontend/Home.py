@@ -118,11 +118,19 @@ def health_check_ui():
             flex-direction: column;
             justify-content: flex-start;
         }}
+        .logo-container {{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding-left: 2rem; /* Shifting more rightwards */
+        }}
         .logo-container img {{
             border-radius: 1.5rem;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
             border: 1px solid #f1f5f9;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 320px;
         }}
         .logo-container img:hover {{
             transform: scale(1.02) translateY(-10px);
@@ -156,8 +164,6 @@ if "user_mode" not in st.session_state:
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
-    st.image("./assets/BrandLogoMarketSense.png", width=150)
-    st.divider()
     st.info(f"Experience Level: **{st.session_state.user_mode}**")
 
 # ── Online/Offline Status ──
@@ -179,7 +185,7 @@ with tab1:
     with col_hero1:
         st.title("🚀 Welcome to MarketSense")
         st.markdown("""
-        ### AI-powered stock intelligence for the Indian market.
+        ### AI-powered stock prediction system for the Indian market.
         MarketSense analyzes Indian stocks using technical indicators, market macro data, 
         and machine learning to provide clear **BUY / HOLD / AVOID** signals.
         """)
@@ -270,19 +276,6 @@ with tab1:
 with tab2:
     st.title("⚙️ App Settings")
     
-    st.subheader("🌐 Data Source")
-    st.write("Configure where MarketSense fetches its live market data.")
-    
-    source = st.selectbox(
-        "Primary Data Provider",
-        ["Yahoo Finance (Internal)", "Alpha Vantage (Upcoming)", "Custom Upload (Dev Only)"],
-        index=0,
-        help="Currently, only Yahoo Finance is supported globally."
-    )
-    if source == "Custom Upload (Dev Only)":
-        st.file_uploader("Upload Market CSV", type=["csv"])
-    
-    st.divider()
     
     st.subheader("🎨 Interface Preferences")
     pref_tab1, pref_tab2 = st.tabs(["👤 Personalization", "🖼️ Display"])
@@ -333,4 +326,11 @@ with tab3:
     
     st.info("📫 **Support:** For technical issues or feedback, reach out at [brotati.bairagi@example.com](mailto:brotati.bairagi@example.com)")
 
-st.caption(f"© {datetime.now().year} MarketSense | Built with ❤️ for the Indian Financial Market")
+st.markdown(
+    f"""
+    <div style="text-align: center; color: #64748b; font-size: 0.85rem; padding: 2rem 0; border-top: 1px solid #f1f5f9; margin-top: 3rem;">
+        © {datetime.now().year} MarketSense | Built with ❤️ for the Indian Financial Market
+    </div>
+    """,
+    unsafe_allow_html=True
+)
