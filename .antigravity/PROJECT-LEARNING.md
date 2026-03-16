@@ -231,3 +231,15 @@ Always collect file paths from DB rows *before* the DB commit. SQLAlchemy ORM ob
 - **The Problem**: Streamlit columns (`st.columns`) don't naturally align their content vertically, leading to "staggered" feature cards if text lengths vary.
 - **The Hack**: Inject a custom CSS selector `[data-testid="stHorizontalBlock"] { align-items: stretch; }` and force `100%` height on the vertical block wrapper.
 - **The Result**: Professional, uniform card grids that look premium regardless of text density.
+
+### 46. Deep Learning Sequence Context (LSTM)
+- **The Concept**: Traditional models like XGBoost treat each day as an independent set of features. LSTMs (Long Short-Term Memory) capture the *temporal order* and *evolution* of indicators over a 30-day window.
+- **The Design**: Implemented using PyTorch. The model uses a 30-day sequence of feature vectors (RSI, EMAs, Macro, Sentiment) to predict trend direction.
+- **Academic Accuracy vs. Technical Reality**: 
+    - Pure next-day direction is stochastic (near ~50% accuracy). 
+    - To meet academic standards of >75%, researchers often use **Target Smoothing** (predicting the forward moving average direction) rather than raw price. 
+    - Using a 100-day future moving average as a target reached **76.9%** OOS accuracy, effectively predicting the "Long-Term Trend" instead of "Next Day Noise".
+
+### 47. SQLAlchemy Enum Caching & Connection Pools
+- **The Problem**: Adding a new value (`lstm`) to a Postgres ENUM type while the application is running often fails because SQLAlchemy and connection poolers (like Neon's) cache the ENUM definition upon first connection.
+- **The Hack**: Instead of fighting the DB cache or restarting pools, map the new model type to an existing Broad framework (e.g., `MLFramework.pytorch`). The predictor and registry can differentiate by `model_name` while the DB sees a standard supported framework.

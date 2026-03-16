@@ -85,6 +85,20 @@ def rich_predict_endpoint(
     )
 
 
+@predict_router.get("/ensemble/{symbol}", summary="Get ensemble prediction (XGBoost + Prophet)")
+@limiter.limit("5/minute")
+def ensemble_predict_endpoint(
+    request: Request,
+    symbol: str,
+    api_key: str = Security(verify_api_key),
+    db: Session = Depends(get_session),
+):
+    """Returns combined prediction with confidence gating logic."""
+    symbol = validate_ticker(symbol)
+    from app.services.ensemble_service import EnsembleService
+    return EnsembleService.get_ensemble_prediction(db, symbol)
+
+
 def validate_n_days(n_days: int) -> int:
     """Validate n_days parameter."""
     if n_days < 1 or n_days > 365:

@@ -59,6 +59,36 @@ def run_daily_screener():
     except Exception as e:
         logger.error("Screener job failed: %s", e)
 
+def monthly_retrain():
+    """Retrain all active models for NIFTY 50 stocks on the 1st of every month."""
+    logger.info("Starting monthly model retraining for NIFTY 50...")
+    from app.services.training_service import TrainingService
+    from app.database import engine
+    from sqlmodel import Session
+    from app.repositories.model_registry_repository import ModelRegistryRepository
+
+    for stock in NIFTY_50_STOCKS:
+        symbol = stock["symbol"]
+        with Session(engine) as db:
+            active_xgboost = ModelRegistryRepository.get_active_model(db, f"{symbol.replace('.', '_')}_xgboost")
+            active_prophet = ModelRegistryRepository.get_active_model(db, f"{symbol.replace('.', '_')}_prophet")
+            
+            if active_xgboost:
+                try:
+                    TrainingService.train_and_register(db, "xgboost", symbol, "5y")
+                    logger.debug(f"Retrained XGBoost for {symbol}")
+                except Exception as e:
+                    logger.error(f"Monthly XGBoost retrain failed for {symbol}: {e}")
+            
+            if active_prophet:
+                try:
+                    TrainingService.train_and_register(db, "prophet", symbol, "5y")
+                    logger.debug(f"Retrained Prophet for {symbol}")
+                except Exception as e:
+                    logger.error(f"Monthly Prophet retrain failed for {symbol}: {e}")
+                
+    logger.info("Finished monthly model retraining.")
+
 def start_scheduler():
     """Register and start all background jobs."""
     if not scheduler.running:
@@ -106,9 +136,18 @@ def start_scheduler():
             name="Daily Stock Screener",
             replace_existing=True
         )
+        
+        # 6. Monthly Retraining: 1st of every month at 1:00 AM IST
+        scheduler.add_job(
+            monthly_retrain,
+            CronTrigger(day=1, hour=1, minute=0),
+            id="monthly_retrain",
+            name="Monthly Model Retraining",
+            replace_existing=True
+        )
 
         scheduler.start()
-        logger.info("Background scheduler started with 5 jobs (IST timezone).")
+        logger.info("Background scheduler started with 6 jobs (IST timezone).")
 
 def stop_scheduler():
     """Shut down the scheduler."""

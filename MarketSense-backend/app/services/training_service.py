@@ -2,14 +2,15 @@ import logging
 import os
 
 import joblib
+from fastapi import HTTPException
+from sqlmodel import Session, select
+
 from app.features.trainers.prophet_trainer import train_prophet_model
 from app.features.trainers.xgboost_trainer import train_xgboost_model
+from app.repositories.model_registry_repository import ModelRegistryRepository
 from app.schemas.model_registry_schemas import MLFramework, TrainedModelCreate
 from app.services.fetch_data_service import FetchDataService
 from app.services.model_registry_service import ModelRegistryService
-from app.repositories.model_registry_repository import ModelRegistryRepository
-from fastapi import HTTPException
-from sqlmodel import Session, select
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +22,15 @@ METRIC_TOLERANCE = 0.01
 # FetchDataService.limit_map only caches for: 7d / 30d / 90d / 1y / 5y
 # For non-cached periods we fall straight through to yfinance which accepts them natively.
 PROPHET_PERIOD_MAP: dict[str, str] = {
-    "1mo":  "1mo",   # ~21 trading days  — yfinance accepts natively
-    "3mo":  "3mo",   # ~63 trading days
-    "6mo":  "6mo",   # ~126 trading days
-    "1y":   "1y",
-    "2y":   "2y",
-    "5y":   "5y",
+    "1mo": "1mo",  # ~21 trading days  — yfinance accepts natively
+    "3mo": "3mo",  # ~63 trading days
+    "6mo": "6mo",  # ~126 trading days
+    "1y": "1y",
+    "2y": "2y",
+    "5y": "5y",
     # Aliases that may arrive from older callers
-    "30d":  "30d",
-    "90d":  "90d",
+    "30d": "30d",
+    "90d": "90d",
     "180d": "6mo",
 }
 
@@ -37,9 +38,7 @@ PROPHET_PERIOD_MAP: dict[str, str] = {
 class TrainingService:
 
     @staticmethod
-    def train_and_register(
-        db: Session, model_type: str, ticker: str, period: str
-    ):
+    def train_and_register(db: Session, model_type: str, ticker: str, period: str):
         """Train (or incrementally update) a model and register it in the DB.
 
         Workflow
@@ -53,7 +52,9 @@ class TrainingService:
         """
         logger.info(
             "Starting model training: type=%s, ticker=%s, period=%s",
-            model_type, ticker, period,
+            model_type,
+            ticker,
+            period,
         )
 
         # Sanitize ticker for filenames: RELIANCE.NS -> RELIANCE_NS
@@ -75,7 +76,9 @@ class TrainingService:
 
         existing_model_path: str | None = (
             active_model.file_path
-            if active_model and active_model.file_path and os.path.exists(active_model.file_path)
+            if active_model
+            and active_model.file_path
+            and os.path.exists(active_model.file_path)
             else None
         )
         old_metrics: dict = active_model.metrics or {} if active_model else {}
@@ -83,7 +86,9 @@ class TrainingService:
         if existing_model_path:
             logger.info(
                 "Found existing active model: %s v%d at %s",
-                model_name, active_model.version, existing_model_path,
+                model_name,
+                active_model.version,
+                existing_model_path,
             )
         else:
             logger.info("No existing active model found — training from scratch.")
@@ -92,7 +97,9 @@ class TrainingService:
         if model_type == "prophet":
             # Map the form period to a yfinance-compatible string.
             fetch_period = PROPHET_PERIOD_MAP.get(period, period)
-            logger.info("Prophet fetch period: %s (from form period: %s)", fetch_period, period)
+            logger.info(
+                "Prophet fetch period: %s (from form period: %s)", fetch_period, period
+            )
 
             # IMPORTANT: bypass DB cache for training — the cache may only hold
             # a short recent window. Always go directly to yfinance for the full
@@ -102,7 +109,9 @@ class TrainingService:
                 ticker, fetch_period, "1d", raw=True
             )
 
-            if training_df is None or (hasattr(training_df, "empty") and training_df.empty):
+            if training_df is None or (
+                hasattr(training_df, "empty") and training_df.empty
+            ):
                 raise ValueError(
                     f"No training data returned for {ticker} with period={fetch_period}. "
                     "Check the ticker symbol and internet connection."
@@ -110,14 +119,16 @@ class TrainingService:
 
             logger.info(
                 "Fetched %d rows for Prophet training (%s, period=%s)",
-                len(training_df), ticker, fetch_period,
+                len(training_df),
+                ticker,
+                fetch_period,
             )
 
             model, metrics = train_prophet_model(
                 training_df, existing_model_path=existing_model_path
             )
             framework = MLFramework.prophet
-            save_obj = model
+            save_obj = {"model": model, "metrics": metrics}
 
         elif model_type in ["xgboost", "xg_boost"]:
             model_type = "xgboost"  # Normalize to 'xgboost'
@@ -125,6 +136,15 @@ class TrainingService:
                 ticker, existing_model_path=existing_model_path
             )
             framework = MLFramework.xgboost
+            save_obj = {"model": model, "metrics": metrics}
+
+        elif model_type == "lstm":
+            from app.features.trainers.lstm_trainer import train_lstm_model
+
+            model, metrics = train_lstm_model(
+                ticker, existing_model_path=existing_model_path
+            )
+            framework = MLFramework.pytorch
             save_obj = {"model": model, "metrics": metrics}
 
         else:
@@ -181,7 +201,8 @@ class TrainingService:
 
         logger.info(
             "Training complete: %s v%d (warm_start=%s)",
-            registered.model_name, registered.version,
+            registered.model_name,
+            registered.version,
             existing_model_path is not None,
         )
 
@@ -206,7 +227,7 @@ class TrainingService:
         Tolerance: new metric may be up to METRIC_TOLERANCE worse.
         """
         try:
-            if model_type == "xgboost":
+            if model_type == "xgboost" or model_type == "lstm":
                 old_acc = float(old_metrics.get("accuracy", 0))
                 new_acc = float(new_metrics.get("accuracy", 0))
                 # Allow up to METRIC_TOLERANCE degradation

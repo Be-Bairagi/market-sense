@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 router = APIRouter()
 
 
-@router.get("/evaluate")
+@router.get("/")
 async def evaluate_route(ticker: str, period: str = "1mo", model_type: str = "prophet"):
     """
     Evaluates a saved stock prediction model (e.g., linear regression, prophet).

@@ -83,12 +83,10 @@ if refresh and "No models" not in selected_model:
             
             if is_xgboost:
                 kpi1, kpi2, kpi3 = st.columns(3)
-                label_acc = "Forecasting Success Rate" if is_beginner else "Directional Accuracy"
+                label_acc = "Trend Accuracy" if is_beginner else "Accuracy (Directional)"
                 kpi1.metric(
                     label_acc,
-                    f"{metrics.get('accuracy', metrics.get('R2', 0)):.1%}"
-                    if isinstance(metrics.get('accuracy', metrics.get('R2', 0)), float)
-                    else str(metrics.get('accuracy', 'N/A'))
+                    f"{metrics.get('directional_accuracy', metrics.get('accuracy', 0)):.1%}"
                 )
                 kpi2.metric("Days Tested" if is_beginner else "Data Points", metrics.get("data_points", "N/A"))
                 kpi3.metric("AI Type" if is_beginner else "Model Type", "XGBoost Classifier")
@@ -104,11 +102,43 @@ if refresh and "No models" not in selected_model:
             # ── Prediction vs Actual Chart ────
             if "predictions" in metrics:
                 df = pd.DataFrame(metrics["predictions"])
-                if not df.empty and all(k in df.columns for k in ["date", "actual", "predicted"]):
+                if not df.empty and all(k in df.columns for k in ["date", "actual"]):
                     df["date"] = pd.to_datetime(df["date"])
-                    st.subheader("📊 Actual vs Predicted")
+                    st.subheader("📊 Performance Visualization")
 
                     fig = go.Figure()
+
+                    # Base Price Line
+                    fig.add_trace(go.Scatter(
+                        x=df["date"], y=df["actual"],
+                        mode="lines", name="Stock Price",
+                        line=dict(color="rgba(31, 119, 180, 0.4)", width=2),
+                    ))
+
+                    # For Classification (XGBoost)
+                    if "signal" in df.columns:
+                        # Buy Signals
+                        buys = df[df["signal"] == "BUY"]
+                        fig.add_trace(go.Scatter(
+                            x=buys["date"], y=buys["actual"],
+                            mode="markers", name="AI: BUY",
+                            marker=dict(color="#22c55e", size=10, symbol="triangle-up"),
+                        ))
+                        # Avoid Signals
+                        avoids = df[df["signal"] == "AVOID"]
+                        fig.add_trace(go.Scatter(
+                            x=avoids["date"], y=avoids["actual"],
+                            mode="markers", name="AI: AVOID",
+                            marker=dict(color="#ef4444", size=10, symbol="triangle-down"),
+                        ))
+                    
+                    # For Regression (Prophet)
+                    elif "predicted" in df.columns:
+                        fig.add_trace(go.Scatter(
+                            x=df["date"], y=df["predicted"],
+                            mode="lines", name="Predicted Price",
+                            line=dict(color="#ff7f0e", width=2),
+                        ))
 
                     if "lower_bound" in df.columns and "upper_bound" in df.columns:
                         fig.add_trace(go.Scatter(
@@ -119,17 +149,6 @@ if refresh and "No models" not in selected_model:
                             line=dict(color="rgba(37, 99, 235, 0)"),
                             name="Confidence Interval",
                         ))
-
-                    fig.add_trace(go.Scatter(
-                        x=df["date"], y=df["actual"],
-                        mode="lines", name="Actual",
-                        line=dict(color="#1f77b4", width=2),
-                    ))
-                    fig.add_trace(go.Scatter(
-                        x=df["date"], y=df["predicted"],
-                        mode="lines", name="Predicted",
-                        line=dict(color="#ff7f0e", width=2),
-                    ))
                     fig.update_layout(
                         yaxis_title=f"Price ({CURRENCY_SYMBOL})", template="plotly_white",
                         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),

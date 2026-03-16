@@ -28,90 +28,67 @@ class TechnicalIndicatorService:
         close = df["Close"]
         high = df["High"]
         low = df["Low"]
+        open_price = df["Open"]
         volume = df["Volume"].astype(float)
 
         # --- Momentum ---
         features["rsi_14"] = ta.momentum.RSIIndicator(close, window=14).rsi().iloc[-1]
 
         macd_ind = ta.trend.MACD(close, window_slow=26, window_fast=12, window_sign=9)
-        features["macd_line"] = macd_ind.macd().iloc[-1]
-        features["macd_signal"] = macd_ind.macd_signal().iloc[-1]
-        features["macd_histogram"] = macd_ind.macd_diff().iloc[-1]
+        features["macd_diff_ratio"] = (macd_ind.macd().iloc[-1] - macd_ind.macd_signal().iloc[-1]) / close.iloc[-1] * 100
 
-        stoch = ta.momentum.StochasticOscillator(high, low, close, window=14, smooth_window=3)
-        features["stochastic_k"] = stoch.stoch().iloc[-1]
-        features["stochastic_d"] = stoch.stoch_signal().iloc[-1]
-
-        # --- Trend ---
+        # --- Trend (Stationary: Price vs EMA Ratios) ---
         for period in [9, 21, 50, 200]:
             if len(df) >= period:
-                features[f"ema_{period}"] = ta.trend.EMAIndicator(close, window=period).ema_indicator().iloc[-1]
+                ema = ta.trend.EMAIndicator(close, window=period).ema_indicator().iloc[-1]
+                features[f"price_vs_ema_{period}"] = (close.iloc[-1] - ema) / ema * 100
             else:
-                features[f"ema_{period}"] = None
+                features[f"price_vs_ema_{period}"] = None
 
         if len(df) >= 14:
             features["adx_14"] = ta.trend.ADXIndicator(high, low, close, window=14).adx().iloc[-1]
-
-        # EMA crossovers (binary signals)
-        if features.get("ema_9") is not None and features.get("ema_21") is not None:
-            features["ema_9_21_crossover"] = 1.0 if features["ema_9"] > features["ema_21"] else 0.0
-        if features.get("ema_50") is not None and features.get("ema_200") is not None:
-            features["ema_50_200_crossover"] = 1.0 if features["ema_50"] > features["ema_200"] else 0.0
 
         # --- Volatility ---
         bb = ta.volatility.BollingerBands(close, window=20, window_dev=2)
         bb_high = bb.bollinger_hband().iloc[-1]
         bb_low = bb.bollinger_lband().iloc[-1]
-        features["bollinger_high"] = bb_high
-        features["bollinger_low"] = bb_low
-        # Bollinger position: 0 = at lower band, 1 = at upper band
         bb_range = bb_high - bb_low
         if bb_range > 0:
             features["bollinger_position"] = (close.iloc[-1] - bb_low) / bb_range
         else:
             features["bollinger_position"] = 0.5
 
-        features["atr_14"] = ta.volatility.AverageTrueRange(high, low, close, window=14).average_true_range().iloc[-1]
+        features["atr_14_ratio"] = ta.volatility.AverageTrueRange(high, low, close, window=14).average_true_range().iloc[-1] / close.iloc[-1] * 100
+
+        for win in [5, 10, 20]:
+            features[f"volatility_{win}d"] = close.pct_change().rolling(win).std().iloc[-1] * 100
 
         # --- Volume ---
-        features["obv"] = ta.volume.OnBalanceVolumeIndicator(close, volume).on_balance_volume().iloc[-1]
-
         vol_20d_avg = volume.rolling(20).mean().iloc[-1]
-        if vol_20d_avg > 0:
-            features["volume_spike_ratio"] = float(volume.iloc[-1]) / vol_20d_avg
-        else:
-            features["volume_spike_ratio"] = 1.0
+        features["volume_spike_ratio"] = float(volume.iloc[-1]) / vol_20d_avg if vol_20d_avg > 0 else 1.0
 
-        # --- Derived ---
-        high_52w = high.rolling(min(252, len(df))).max().iloc[-1]
-        low_52w = low.rolling(min(252, len(df))).min().iloc[-1]
-        range_52w = high_52w - low_52w
-        if range_52w > 0:
-            features["proximity_52w_high"] = (close.iloc[-1] - low_52w) / range_52w
-        else:
-            features["proximity_52w_high"] = 0.5
+        # --- Candle Patterns (Stationary Shadows/Body) ---
+        body = abs(close - open_price)
+        avg_body = body.rolling(10).mean().iloc[-1]
+        features["body_ratio"] = body.iloc[-1] / avg_body if avg_body > 0 else 1.0
+        
+        upper_sh = high - df[["Open", "Close"]].max(axis=1)
+        lower_sh = df[["Open", "Close"]].min(axis=1) - low
+        features["upper_shadow_ratio"] = upper_sh.iloc[-1] / close.iloc[-1] * 100
+        features["lower_shadow_ratio"] = lower_sh.iloc[-1] / close.iloc[-1] * 100
 
-        # Gap up/down %
-        if len(df) >= 2:
-            prev_close = close.iloc[-2]
-            today_open = df["Open"].iloc[-1]
-            if prev_close > 0:
-                features["gap_percent"] = ((today_open - prev_close) / prev_close) * 100
-            else:
-                features["gap_percent"] = 0.0
-        else:
-            features["gap_percent"] = 0.0
+        # --- Returns (Lags) ---
+        for lag in [1, 5, 20]:
+            features[f"return_{lag}d"] = close.pct_change(lag).iloc[-1] * 100
 
-        # Current price for reference
+        # Current price (STILL NEEDED for target calculation/UI, but not used as a model feature)
         features["current_close"] = float(close.iloc[-1])
 
-        # Sanitize: convert numpy types to native Python floats
+        # Sanitize
         sanitized = {}
         for k, v in features.items():
-            if v is None:
-                sanitized[k] = None
-            elif pd.isna(v):
-                sanitized[k] = None
+            if v is None or pd.isna(v):
+                sanitized[k] = 0.0
             else:
                 sanitized[k] = float(v)
 
@@ -129,57 +106,54 @@ class TechnicalIndicatorService:
         close = df["Close"]
         high = df["High"]
         low = df["Low"]
+        open_price = df["Open"]
         volume = df["Volume"].astype(float)
 
         hist_df = pd.DataFrame(index=df.index)
 
-        # --- Momentum ---
+        # 1. Momentum
         hist_df["rsi_14"] = ta.momentum.RSIIndicator(close, window=14).rsi()
-        
-        macd_ind = ta.trend.MACD(close, window_slow=26, window_fast=12, window_sign=9)
-        hist_df["macd_line"] = macd_ind.macd()
-        hist_df["macd_signal"] = macd_ind.macd_signal()
-        hist_df["macd_histogram"] = macd_ind.macd_diff()
+        macd_ind = ta.trend.MACD(close)
+        hist_df["macd_diff_ratio"] = (macd_ind.macd() - macd_ind.macd_signal()) / close * 100
 
-        stoch = ta.momentum.StochasticOscillator(high, low, close, window=14, smooth_window=3)
-        hist_df["stochastic_k"] = stoch.stoch()
-        hist_df["stochastic_d"] = stoch.stoch_signal()
-
-        # --- Trend ---
+        # 2. Stationary Trends (Ratios)
         for period in [9, 21, 50, 200]:
-            hist_df[f"ema_{period}"] = ta.trend.EMAIndicator(close, window=period).ema_indicator()
+            ema = ta.trend.EMAIndicator(close, window=period).ema_indicator()
+            hist_df[f"price_vs_ema_{period}"] = (close - ema) / ema * 100
 
-        hist_df["adx_14"] = ta.trend.ADXIndicator(high, low, close, window=14).adx()
+        hist_df["adx_14"] = ta.trend.ADXIndicator(high, low, close).adx()
 
-        # EMA Crossovers
-        hist_df["ema_9_21_crossover"] = (hist_df["ema_9"] > hist_df["ema_21"]).astype(float)
-        hist_df["ema_50_200_crossover"] = (hist_df["ema_50"] > hist_df["ema_200"]).astype(float)
-
-        # --- Volatility ---
-        bb = ta.volatility.BollingerBands(close, window=20, window_dev=2)
-        bb_high = bb.bollinger_hband()
-        bb_low = bb.bollinger_lband()
-        hist_df["bollinger_high"] = bb_high
-        hist_df["bollinger_low"] = bb_low
-        hist_df["bollinger_position"] = (close - bb_low) / (bb_high - bb_low).replace(0, 1)
-
-        hist_df["atr_14"] = ta.volatility.AverageTrueRange(high, low, close, window=14).average_true_range()
-
-        # --- Volume ---
-        hist_df["obv"] = ta.volume.OnBalanceVolumeIndicator(close, volume).on_balance_volume()
+        # 3. Volatility
+        bb = ta.volatility.BollingerBands(close)
+        bb_h, bb_l = bb.bollinger_hband(), bb.bollinger_lband()
+        hist_df["bollinger_position"] = (close - bb_l) / (bb_h - bb_l).replace(0, 1)
+        hist_df["atr_14_ratio"] = ta.volatility.AverageTrueRange(high, low, close).average_true_range() / close * 100
         
-        vol_20d_avg = volume.rolling(20).mean()
-        hist_df["volume_spike_ratio"] = volume / vol_20d_avg.replace(0, 1)
+        for win in [5, 10, 20]:
+            hist_df[f"volatility_{win}d"] = close.pct_change().rolling(win).std() * 100
 
-        # --- Derived ---
+        # 4. Volume
+        vol_avg = volume.rolling(20).mean()
+        hist_df["volume_spike_ratio"] = volume / vol_avg.replace(0, 1)
+
+        # 5. Shadows & Body
+        body = abs(close - open_price)
+        hist_df["body_ratio"] = body / body.rolling(10).mean().replace(0, 1)
+        upper_sh = high - df[["Open", "Close"]].max(axis=1)
+        lower_sh = df[["Open", "Close"]].min(axis=1) - low
+        hist_df["upper_shadow_ratio"] = upper_sh / close * 100
+        hist_df["lower_shadow_ratio"] = lower_sh / close * 100
+
+        # 6. Returns
+        for lag in [1, 5, 10, 20]:
+            hist_df[f"return_{lag}d"] = close.pct_change(lag) * 100
+
+        # 7. Price position (Stationary relative to year)
         high_52w = high.rolling(252, min_periods=1).max()
         low_52w = low.rolling(252, min_periods=1).min()
-        hist_df["proximity_52w_high"] = (close - low_52w) / (high_52w - low_52w).replace(0, 1)
+        hist_df["dist_52w_high"] = (close - high_52w) / high_52w * 100
+        hist_df["dist_52w_low"] = (close - low_52w) / low_52w * 100
 
-        # Gap up/down %
-        prev_close = close.shift(1)
-        hist_df["gap_percent"] = ((df["Open"] - prev_close) / prev_close.replace(0, 1)) * 100
-        
         hist_df["current_close"] = close
 
         return hist_df.fillna(0)

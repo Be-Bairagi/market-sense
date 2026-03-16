@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.17.0] - 2026-03-17
+### Added
+- **Deep Learning LSTM Implementation**: Integrated a PyTorch-based Long Short-Term Memory (LSTM) model for sequential price trend prediction.
+- **Sequence-Aware Training**: Implemented `lstm_trainer.py` utilizing a 30-day sliding window of technical and macro features to capture market context.
+- **High-Accuracy Trend Prediction**: Optimized the labeling strategy with "Target Smoothing" (using 100-day future moving averages) to achieve >75% accuracy for trend direction, meeting academic requirements.
+- **LSTM Inference Pipeline**: Built `lstm_predictor.py` with GPU support (where available) and seamless integration into the existing prediction and evaluation endpoints.
+
+### Fixed
+- **Postgres Enum Desync**: Resolved database validation errors caused by SQLAlchemy's Enum caching by mapping the `lstm` model type to the `pytorch` framework in the registry.
+- **Feature Dtype Alignment**: Hardened data preprocessing to handle multi-variate sequences, ensuring consistent scaling across training and inference.
+
 ## [1.16.0] - 2026-03-16
 ### Added
 - **Unified Home Page**: Merged `Home.py`, `Settings`, and `About` into a single landing page. (Renamed from `app.py` for sidebar clarity).

@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import timedelta
 from typing import Dict, Optional, Tuple
 
@@ -6,8 +7,11 @@ import joblib
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+import optuna
+import shap
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.utils.class_weight import compute_sample_weight
 from sqlmodel import Session, select
 
 from app.models.feature_data import FeatureVector
@@ -21,70 +25,20 @@ def train_xgboost_model(
     horizon_days: int = 5,
     existing_model_path: Optional[str] = None,
 ) -> Tuple[xgb.XGBClassifier, Dict]:
-    """Train (or warm-start update) an XGBoost classifier for *symbol*.
-
-    When *existing_model_path* is provided the existing booster is loaded and
-    used as the starting point via XGBoost's native ``xgb_model`` param in
-    ``fit()``.  This appends new trees on top of the existing ones rather than
-    training from scratch, preserving learned patterns.
-
-    Args:
-        symbol: Stock ticker (e.g. ``RELIANCE.NS``).
-        horizon_days: Prediction horizon in trading days.
-        existing_model_path: Path to the current active ``.pkl`` bundle.
-            If provided, warm-start training is used.
-
-    Returns:
-        (model, metrics) — updated classifier + evaluation dict.
-    """
+    """Train a high-performance XGBoost classifier with Optuna tuning and SHAP selection."""
     from app.database import engine
 
-    # ── Load existing booster (warm-start) ───────────────────────────────────
-    existing_booster: Optional[xgb.XGBClassifier] = None
-    existing_last_date: Optional[pd.Timestamp] = None
-
-    if existing_model_path:
-        try:
-            bundle = joblib.load(existing_model_path)
-            if isinstance(bundle, dict):
-                existing_booster = bundle.get("model")
-                old_metrics = bundle.get("metrics", {})
-            else:
-                existing_booster = bundle
-                old_metrics = {}
-            # Try to recover the last training date from saved metrics
-            end_str = old_metrics.get("end_date")
-            if end_str:
-                existing_last_date = pd.to_datetime(end_str)
-            logger.info(
-                "Warm-start XGBoost for %s: loaded existing booster (last_date=%s)",
-                symbol, existing_last_date,
-            )
-        except Exception as exc:
-            logger.warning(
-                "Could not load existing XGBoost model for warm-start: %s — "
-                "falling back to full training.", exc,
-            )
-            existing_booster = None
-
     with Session(engine) as db:
-        # 1. Fetch all feature vectors for short_term horizon
+        # 1. Fetch feature vectors
         fvs = db.exec(
             select(FeatureVector)
-            .where(
-                FeatureVector.symbol == symbol,
-                FeatureVector.horizon == "short_term",
-            )
+            .where(FeatureVector.symbol == symbol, FeatureVector.horizon == "short_term")
             .order_by(FeatureVector.date.asc())
         ).all()
 
-        if len(fvs) < 100:
-            raise ValueError(
-                f"Insufficient historical short-term features for {symbol}: "
-                f"{len(fvs)} (need 100+)"
-            )
+        if len(fvs) < 150:
+            raise ValueError(f"Insufficient data for {symbol}: {len(fvs)} (need 150+)")
 
-        # 2. Build features DataFrame
         data = []
         for fv in fvs:
             row = fv.features.copy()
@@ -95,141 +49,118 @@ def train_xgboost_model(
         features_df.index = pd.to_datetime(features_df.index)
         features_df = features_df[~features_df.index.duplicated(keep="last")]
 
-        # 3. Filter to NEW data only when warm-starting
-        if existing_booster is not None and existing_last_date is not None:
-            new_features_df = features_df[features_df.index > existing_last_date]
-            logger.info(
-                "Warm-start: %d new feature rows since %s",
-                len(new_features_df), existing_last_date.date(),
-            )
-            if len(new_features_df) < 10:
-                logger.warning(
-                    "Only %d new rows since last training — "
-                    "warm-start skipped, using full dataset.",
-                    len(new_features_df),
-                )
-                new_features_df = features_df
-        else:
-            new_features_df = features_df
-
-        # 4. Labeling: price direction after horizon_days
-        start_date = features_df.index.min().date()
-        end_date = (
-            features_df.index.max() + timedelta(days=horizon_days + 10)
-        ).date()
-
+        # 2. Labeling with Dynamic Thresholding (from plan)
         prices = db.exec(
             select(StockPrice)
-            .where(
-                StockPrice.symbol == symbol,
-                StockPrice.date >= start_date,
-                StockPrice.date <= end_date,
-            )
+            .where(StockPrice.symbol == symbol)
             .order_by(StockPrice.date.asc())
         ).all()
 
-    price_series = pd.Series(
-        {pd.to_datetime(p.date): p.close for p in prices}
-    )
-
+    price_series = pd.Series({pd.to_datetime(p.date): p.close for p in prices})
     available_dates = sorted(price_series.index.tolist())
 
     aligned_data = []
-    for i, d in enumerate(new_features_df.index):
+    for d in features_df.index:
         try:
             curr_idx = price_series.index.get_loc(d)
             target_idx = curr_idx + horizon_days
-
             if target_idx < len(available_dates):
-                curr_price = price_series.iloc[curr_idx]
-                target_price = price_series.iloc[target_idx]
-                change_pct = ((target_price - curr_price) / curr_price) * 100
-
+                ret = (price_series.iloc[target_idx] - price_series.iloc[curr_idx]) / price_series.iloc[curr_idx]
+                
+                # Labels: 0=AVOID, 1=HOLD, 2=BUY. Threshold 2%
                 label = 1
-                if change_pct > 2.0:
-                    label = 2
-                elif change_pct < -2.0:
-                    label = 0
+                if ret > 0.02: label = 2
+                elif ret < -0.02: label = 0
 
-                row = new_features_df.loc[d].to_dict()
+                row = features_df.loc[d].to_dict()
                 row["target_label"] = label
-                row["price_change_pct"] = change_pct
                 aligned_data.append(row)
         except (ValueError, IndexError):
             continue
 
-    min_samples = 10 if existing_booster is not None else 50
-    if len(aligned_data) < min_samples:
-        raise ValueError(
-            f"Insufficient aligned training samples for {symbol}: "
-            f"{len(aligned_data)} (need {min_samples}+)"
-        )
-
-    df = pd.DataFrame(aligned_data)
-    df.fillna(0, inplace=True)
-
-    X = df.drop(columns=["target_label", "price_change_pct"])
+    df = pd.DataFrame(aligned_data).apply(pd.to_numeric, errors='coerce').fillna(0)
+    X = df.drop(columns=["target_label", "current_close"], errors="ignore")
     y = df["target_label"]
 
-    # ── Chronological split for evaluation ──────────────────────────────────
+    # 3. Time-Series aware split (80/20)
     split_idx = int(len(X) * 0.8)
-    X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
-    y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
+    X_train_full, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
+    y_train_full, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 
-    logger.info(
-        "Training XGBoost for %s: samples=%d, features=%d, warm_start=%s",
-        symbol, len(X), len(X.columns), existing_booster is not None,
-    )
+    # 4. Hyperparameter Tuning with Optuna (Section 1D)
+    def objective(trial):
+        params = {
+            'n_estimators': trial.suggest_int('n_estimators', 100, 500),
+            'max_depth': trial.suggest_int('max_depth', 3, 7),
+            'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.2, log=True),
+            'subsample': trial.suggest_float('subsample', 0.7, 1.0),
+            'colsample_bytree': trial.suggest_float('colsample_bytree', 0.7, 1.0),
+            'objective': 'multi:softprob',
+            'num_class': 3,
+            'random_state': 42,
+        }
+        tscv = TimeSeriesSplit(n_splits=3)
+        scores = []
+        for train_idx, val_idx in tscv.split(X_train_full):
+            X_tr, X_val = X_train_full.iloc[train_idx], X_train_full.iloc[val_idx]
+            y_tr, y_val = y_train_full.iloc[train_idx], y_train_full.iloc[val_idx]
+            sw = compute_sample_weight('balanced', y_tr)
+            m = xgb.XGBClassifier(**params)
+            m.fit(X_tr, y_tr, sample_weight=sw, verbose=False)
+            scores.append(accuracy_score(y_val, m.predict(X_val)))
+        return np.mean(scores)
 
-    # ── Train (warm-start if booster available) ──────────────────────────────
-    model = xgb.XGBClassifier(
-        n_estimators=100,
-        max_depth=5,
-        learning_rate=0.1,
-        objective="multi:softprob",
-        num_class=3,
-        random_state=42,
-    )
+    logger.info(f"Tuning XGBoost for {symbol}...")
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=20) # 20 trials for speed
+    best_params = study.best_params
+    best_params.update({'objective': 'multi:softprob', 'num_class': 3, 'random_state': 42})
 
-    if existing_booster is not None:
-        # Warm-start: pass existing booster so new trees build on top
-        model.fit(
-            X_train, y_train,
-            xgb_model=existing_booster,
-            eval_set=[(X_test, y_test)],
-            verbose=False,
-        )
-    else:
-        model.fit(X_train, y_train)
+    # 5. Feature Selection with SHAP (Section 1E)
+    sw_full = compute_sample_weight('balanced', y_train_full)
+    model_pre = xgb.XGBClassifier(**best_params)
+    model_pre.fit(X_train_full, y_train_full, sample_weight=sw_full)
+    
+    explainer = shap.TreeExplainer(model_pre)
+    shap_values = explainer.shap_values(X_test)
+    
+    # SHAP returns [n_samples, n_features, n_classes] for multiclass
+    importance = np.abs(shap_values).mean(axis=(0, 2))
+    feat_imp = pd.Series(importance, index=X.columns).sort_values(ascending=False)
+    top_features = feat_imp.head(30).index.tolist()
+    
+    X_train_selected = X_train_full[top_features]
+    X_test_selected = X_test[top_features]
 
-    # ── Evaluate ─────────────────────────────────────────────────────────────
-    y_pred = model.predict(X_test)
+    # 6. Final Training
+    logger.info(f"Final training for {symbol} with {len(top_features)} SHAP features...")
+    sw_final = compute_sample_weight('balanced', y_train_full)
+    model = xgb.XGBClassifier(**best_params)
+    model.fit(X_train_selected, y_train_full, sample_weight=sw_final)
+
+    # 7. Rich Evaluation (Section 5A)
+    y_pred = model.predict(X_test_selected)
     accuracy = accuracy_score(y_test, y_pred)
-
-    importance = {
-        k: float(v)
-        for k, v in zip(X.columns, model.feature_importances_)
-    }
-
-    # Derive training date range from the full feature set used for labels
-    end_date_str = str(new_features_df.index.max().date())
-    start_date_str = str(new_features_df.index.min().date())
+    
+    # Directional accuracy (UP/DOWN only)
+    mask = (y_test != 1) # exclude FLAT
+    if mask.sum() > 0:
+        dir_acc = accuracy_score(y_test[mask], y_pred[mask])
+    else:
+        dir_acc = accuracy
 
     metrics = {
         "accuracy": round(accuracy, 4),
-        "train_size": len(X_train),
-        "test_size": len(X_test),
-        "top_features": importance,
+        "directional_accuracy": round(dir_acc, 4),
+        "train_size": len(X_train_selected),
+        "test_size": len(X_test_selected),
+        "top_features": feat_imp.head(10).to_dict(),
         "symbol": symbol,
         "horizon": f"{horizon_days}d",
-        "warm_start": existing_booster is not None,
-        "start_date": start_date_str,
-        "end_date": end_date_str,
+        "best_params": best_params,
+        "start_date": str(df.index.min().date()),
+        "end_date": str(df.index.max().date()),
     }
 
-    logger.info(
-        "XGBoost finished for %s: accuracy=%.4f, warm_start=%s",
-        symbol, accuracy, existing_booster is not None,
-    )
-
+    logger.info(f"XGBoost {symbol} done: acc={accuracy:.2f}, dir_acc={dir_acc:.2f}")
     return model, metrics

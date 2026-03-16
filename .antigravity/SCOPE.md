@@ -1,7 +1,7 @@
 # 🤖 MarketSense — Revised Agent Roadmap (SCOPE)
 
-> **Last Updated:** 2026-03-16
-> **Current State:** ~95% implemented (Phase 7: Frontend Overhaul ✅ - Home page merged & Global Mode Selection complete)
+> **Last Updated:** 2026-03-17
+> **Current State:** ~98% implemented (Phase 4 — LSTM Deep Learning ✅ - High Accuracy Trend Prediction complete)
 > **Original Roadmap:** [ROADMAP.md](file:///d:/Final%20Year%20Project/.antigravity/ROADMAP.md)
 > **Detailed Phase Plans:** [`.plans/`](file:///d:/Final%20Year%20Project/.antigravity/.plans/)
 
@@ -103,6 +103,7 @@ Phases are redesigned based on the current state. Each phase builds on the previ
 **Key Deliverables:**
 - [x] **4A** — Short-term XGBoost (1–5 day direction prediction) — **build first (DONE)**
 - [x] **4B** — Upgrade existing Prophet to use feature store + compute real metrics
+- [x] **4D** — Deep Learning LSTM (Sequence Context) — **Targeting Academic >75% (DONE)**
 - **4C** — Swing Random Forest (1–4 week horizon)
 - Walk-forward backtesting framework (shared across all models)
 - [x] Prediction output schema matching roadmap spec (direction, confidence, targets, risk, key drivers)

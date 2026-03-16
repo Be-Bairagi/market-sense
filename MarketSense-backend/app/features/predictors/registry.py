@@ -1,10 +1,12 @@
+from .lstm_predictor import predict_lstm
 from .prophet_predictor import predict_prophet
 from .xgboost_predictor import predict_xgboost
 
 PREDICTORS = {
     "prophet": predict_prophet,
     "xgboost": predict_xgboost,
-    # "lstm": predict_lstm,
+    "lstm": predict_lstm,
+    "pytorch": predict_lstm,
 }
 
 
