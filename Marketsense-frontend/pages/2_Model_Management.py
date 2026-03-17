@@ -202,11 +202,12 @@ if isinstance(mc, dict) and "error" in mc:
         st.session_state.models_loaded = False
         st.rerun()
 elif mc is not None and not mc.empty:
-    active_count = len(mc[mc["Status"] == "✅ Active"])
-    st.write(f"Showing {len(mc)} models in the registry ({active_count} active).")
+    # Filter to only show active models as requested
+    active_models = mc[mc["Status"] == "✅ Active"]
+    st.write(f"Showing {len(active_models)} active models in the registry.")
     
     st.dataframe(
-        mc,
+        active_models,
         use_container_width=True,
         hide_index=True,
     )

@@ -97,7 +97,7 @@ predict_btn = st.sidebar.button(
     disabled=(selected_model is None),
 )
 
-with st.sidebar.expander("📖 Jargon Buster"):
+with st.sidebar.expander("📖 Hints "):
     st.markdown("""
     - **Confidence**: AI's certainty (0-100%).
     - **Stop Loss**: Safety level to minimize downside.

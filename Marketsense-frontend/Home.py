@@ -17,13 +17,13 @@ BACKEND_URL = "http://localhost:8000"
 
 # ── Pro Tips (shown during Engine Loader) ─────────────────────
 TIPS = [
-    "We always show a **Stop Loss**. Never invest without one.",
-    "Confidence above **75%** means the AI is very sure about its signal.",
-    "The **Bear Case** tells you what could go wrong — always read it.",
-    "Use **Today's Picks** for automated, beginner-friendly stock recommendations.",
-    "MarketSense tracks **40+ technical indicators** so you don't have to.",
-    "We monitor **Index Moods** and **India VIX** for macro-aware signals.",
-    "Train custom AI models for any NIFTY 50 stock in **Model Management**.",
+    "We always show a 'Stop Loss'. Never invest without one.",
+    "Confidence above 75% means the AI is very sure about its signal.",
+    "The 'Bear Case' tells you what could go wrong — always read it.",
+    "Use 'Today's Picks' for automated, beginner-friendly stock recommendations.",
+    "MarketSense tracks 40+ technical indicators so you don't have to.",
+    "We monitor 'Index Moods' and 'India VIX' for macro-aware signals.",
+    "Train custom AI models for any NIFTY 50 stock in 'Model Management'.",
 ]
 
 def health_check_ui():
