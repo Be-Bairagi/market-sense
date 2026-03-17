@@ -5,7 +5,7 @@ import streamlit as st
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from components.pulse import render_pulse_skeleton, render_market_pulse_cards
-from utils.helpers import format_time, initialize_ui_context
+from utils.helpers import format_time, format_date, format_datetime, initialize_ui_context
 from utils.health import check_backend_health
 
 logger = logging.getLogger(__name__)
@@ -141,6 +141,10 @@ if fetch_data_btn:
                 st.session_state.current_data = all_data
                 st.session_state.current_ticker = ticker
                 st.session_state.last_updated = pd.Timestamp.now()
+                
+                # Convert Date columns to datetime objects for better charting
+                for t in all_data:
+                    all_data[t]['Date'] = pd.to_datetime(all_data[t]['Date'])
 
                 df = all_data[ticker]
                 name = NIFTY_50_MAP.get(ticker, ticker)
@@ -182,10 +186,11 @@ if fetch_data_btn:
 
                 with st.expander(f"📋 View {ticker} raw data"):
                     # Sort by Date descending for the raw table view
-                    df_view = df.sort_values(by="Date", ascending=False)
+                    df_view = df.sort_values(by="Date", ascending=False).copy()
+                    df_view["Date"] = df_view["Date"].apply(lambda x: format_date(x))
                     st.dataframe(df_view, use_container_width=True, hide_index=True)
 
-                st.caption(f"🕐 Last updated: {format_time(st.session_state.last_updated)}")
+                st.caption(f"🕐 Last updated: {format_datetime(st.session_state.last_updated)}")
             else:
                 st.warning("⚠️ No data returned from backend.")
         except Exception as e:

@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from data.nifty50 import NIFTY_50_MAP, NIFTY_50_STOCKS
 from services.dashboard_service import DashboardService
-from utils.helpers import format_currency, get_signal_icon, format_date, format_time, initialize_ui_context
+from utils.helpers import format_currency, get_signal_icon, format_date, format_time, format_datetime, initialize_ui_context
 
 # ── Page Config ───────────────────────────────────────────────
 st.set_page_config(
@@ -63,7 +63,7 @@ if isinstance(watchlist, list) and watchlist:
     s1, s2, s3 = st.columns(3)
     s1.metric("Total Stocks", len(watchlist))
     s2.metric("Active Alerts", alert_count, delta=alert_count if alert_count > 0 else None, delta_color="inverse")
-    s3.metric("Last Sync", format_time(datetime.now()))
+    s3.metric("Last Sync", format_datetime(datetime.now()))
 
     for item in watchlist:
         symbol = item["symbol"]
@@ -119,7 +119,7 @@ with col_ctrl2:
 # Fetch Picks
 data = DashboardService.fetch_todays_picks()
 if isinstance(data, dict) and data.get("picks"):
-    st.caption(f"📅 Date: **{data.get('date', 'N/A')}** · {data.get('total_picks', 0)} picks")
+    st.caption(f"📅 Date: **{format_date(data.get('date'))}** · {data.get('total_picks', 0)} picks")
     for pick in data["picks"]:
         rank = pick.get("rank", "?")
         symbol = pick.get("symbol", "")
@@ -168,7 +168,7 @@ with st.expander("📜 View Historical Picks"):
         history = DashboardService.fetch_picks_history(days_back)
         if not history.get("error"):
             for date_str, picks in history.get("history", {}).items():
-                st.write(f"**📅 {date_str}**")
+                st.write(f"**📅 {format_date(date_str)}**")
                 for p in picks:
                     s = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}.get(p["direction"], "🟡")
                     st.write(f"#{p['rank']} {s} {p['symbol']} ({p['direction']})")

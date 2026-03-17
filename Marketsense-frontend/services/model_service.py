@@ -100,8 +100,9 @@ class ModelService:
             df = pd.DataFrame(res)
 
             # Create display-friendly columns
+            from utils.helpers import format_date
             df["Model"] = df["model_name"] + "_v" + df["version"].astype(str)
-            df["Date Trained"] = pd.to_datetime(df["trained_at"]).dt.date
+            df["Date Trained"] = df["trained_at"].apply(lambda x: format_date(x))
             df["Period"] = df["training_period"]
             df["Status"] = df["is_active"].apply(
                 lambda x: "✅ Active" if x else "⏸️ Inactive"
