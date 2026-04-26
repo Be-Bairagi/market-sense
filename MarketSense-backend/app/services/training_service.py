@@ -10,7 +10,6 @@ from app.features.trainers.prophet_trainer import train_prophet_model
 from app.features.trainers.xgboost_trainer import train_xgboost_model
 from app.repositories.model_registry_repository import ModelRegistryRepository
 from app.schemas.model_registry_schemas import MLFramework, TrainedModelCreate
-from app.services.fetch_data_service import FetchDataService
 from app.services.model_registry_service import ModelRegistryService
 
 logger = logging.getLogger(__name__)
@@ -61,6 +60,10 @@ class TrainingService:
         # Sanitize ticker for filenames: RELIANCE.NS -> RELIANCE_NS
         safe_ticker = ticker.replace(".", "_")
         model_name = f"{safe_ticker}_{model_type}"
+
+        # Local imports to avoid circular dependency
+        from app.services.fetch_data_service import FetchDataService
+        from app.services.feature_computation_service import FeatureComputationService
 
         # ── STEP 0: Fetch current active model (if any) ──────────────────────
         from app.models.model_registry import TrainedModel
@@ -133,6 +136,16 @@ class TrainingService:
 
         elif model_type in ["xgboost", "xg_boost"]:
             model_type = "xgboost"  # Normalize to 'xgboost'
+            
+            # STEP 1A: Ensure Data Readiness
+            try:
+                logger.info("Ensuring data prerequisites for %s (%s)...", model_type, ticker)
+                fetch_svc = FetchDataService()
+                fetch_svc.fetch_stock_data(ticker, period="5y", interval="1d", raw=False)
+                FeatureComputationService.backfill_features(ticker, horizon="short_term")
+            except Exception as e:
+                logger.warning(f"Data readiness step failed for {ticker}: {e}. Attempting training with existing data.")
+            
             model, metrics = train_xgboost_model(
                 ticker, existing_model_path=existing_model_path
             )
@@ -141,6 +154,15 @@ class TrainingService:
 
         elif model_type == "lstm":
             from app.features.trainers.lstm_trainer import train_lstm_model
+
+            # STEP 1A: Ensure Data Readiness
+            try:
+                logger.info("Ensuring data prerequisites for LSTM (%s)...", ticker)
+                fetch_svc = FetchDataService()
+                fetch_svc.fetch_stock_data(ticker, period="5y", interval="1d", raw=False)
+                FeatureComputationService.backfill_features(ticker, horizon="short_term")
+            except Exception as e:
+                logger.warning(f"Data readiness step failed for {ticker}: {e}")
 
             model, metrics = train_lstm_model(
                 ticker, existing_model_path=existing_model_path

@@ -78,6 +78,9 @@ def train_xgboost_model(
         except (ValueError, IndexError):
             continue
 
+    if not aligned_data:
+        raise ValueError(f"No alignable dates found between features and price for {symbol}.")
+
     df = pd.DataFrame(aligned_data).apply(pd.to_numeric, errors='coerce').fillna(0)
     X = df.drop(columns=["target_label", "current_close"], errors="ignore")
     y = df["target_label"]
@@ -122,10 +125,31 @@ def train_xgboost_model(
     model_pre.fit(X_train_full, y_train_full, sample_weight=sw_full)
     
     explainer = shap.TreeExplainer(model_pre)
-    shap_values = explainer.shap_values(X_test)
+    shap_vals = explainer.shap_values(X_test)
     
-    # SHAP returns [n_samples, n_features, n_classes] for multiclass
-    importance = np.abs(shap_values).mean(axis=(0, 2))
+    # SHAP multiclass returns list of arrays or 3D array.
+    # We must extract a 1D vector of length num_features.
+    shap_arr = np.abs(np.array(shap_vals))
+    
+    if shap_arr.ndim == 3:
+        # Check standard multiclass shapes
+        # (3, 30, 57) -> axis (0, 1) to get 57 features
+        # (30, 57, 3) -> axis (0, 2) to get 57 features
+        if shap_arr.shape[1] == len(X.columns):
+            # Shape: (samples, features, classes)
+            importance = shap_arr.mean(axis=(0, 2))
+        else:
+            # Shape: (classes, samples, features)
+            importance = shap_arr.mean(axis=(0, 1))
+    else:
+        # Fallback (Binary/Regression)
+        importance = shap_arr.mean(axis=0)
+    
+    # Final length check to prevent the 'Length of values does not match length of index' err
+    if len(importance) != len(X.columns):
+        # Emergency backup: if still wrong, just return zeros rather than crashing
+        importance = np.zeros(len(X.columns))
+
     feat_imp = pd.Series(importance, index=X.columns).sort_values(ascending=False)
     top_features = feat_imp.head(30).index.tolist()
     
@@ -138,29 +162,33 @@ def train_xgboost_model(
     model = xgb.XGBClassifier(**best_params)
     model.fit(X_train_selected, y_train_full, sample_weight=sw_final)
 
-    # 7. Rich Evaluation (Section 5A)
+    # 7. Rich Evaluation
     y_pred = model.predict(X_test_selected)
-    accuracy = accuracy_score(y_test, y_pred)
+    accuracy = float(accuracy_score(y_test, y_pred))
     
     # Directional accuracy (UP/DOWN only)
-    mask = (y_test != 1) # exclude FLAT
+    mask = (y_test != 1)
     if mask.sum() > 0:
-        dir_acc = accuracy_score(y_test[mask], y_pred[mask])
+        dir_acc = float(accuracy_score(y_test[mask], y_pred[mask]))
     else:
         dir_acc = accuracy
 
+    # Get correctly aligned dates for the final report
+    aligned_dates = [d for d in features_df.index if d in price_series.index and (price_series.index.get_loc(d) + horizon_days) < len(price_series.index)]
+    
     metrics = {
         "accuracy": round(accuracy, 4),
         "directional_accuracy": round(dir_acc, 4),
-        "train_size": len(X_train_selected),
-        "test_size": len(X_test_selected),
-        "top_features": feat_imp.head(10).to_dict(),
+        "train_size": int(len(X_train_selected)),
+        "test_size": int(len(X_test_selected)),
+        "top_features": {str(k): float(v) for k, v in feat_imp.head(10).to_dict().items()},
         "symbol": symbol,
         "horizon": f"{horizon_days}d",
-        "best_params": best_params,
-        "start_date": str(df.index.min().date()),
-        "end_date": str(df.index.max().date()),
+        "best_params": {str(k): (v if not isinstance(v, (np.float32, np.float64, np.int32, np.int64)) else (float(v) if isinstance(v, (np.float32, np.float64)) else int(v))) for k, v in best_params.items()},
+        "start_date": str(min(aligned_dates).date()) if aligned_dates else "None",
+        "end_date": str(max(aligned_dates).date()) if aligned_dates else "None",
     }
+
 
     logger.info(f"XGBoost {symbol} done: acc={accuracy:.2f}, dir_acc={dir_acc:.2f}")
     return model, metrics

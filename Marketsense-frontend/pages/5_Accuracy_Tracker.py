@@ -1,7 +1,6 @@
 import datetime
 import logging
 import re
-
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -9,6 +8,15 @@ import requests
 import streamlit as st
 from services.model_service import ModelService
 from utils.helpers import format_currency, format_datetime, format_date, CURRENCY_SYMBOL, initialize_ui_context
+from components.accuracy_components import (
+    render_health_chips,
+    render_hero_accuracy,
+    render_kpi_cards,
+    render_confusion_matrix,
+    render_residuals,
+    render_academic_summary,
+    render_training_metadata
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,15 +27,16 @@ initialize_ui_context()
 st.set_page_config(
     page_title="Model Insights | MarketSense", page_icon="🧠", layout="wide"
 )
+
 st.title("🧠 Model Insights & Performance Dashboard")
 st.markdown(
-    "Transparent, data-driven view of how your AI models perform over time."
+    "Transparent, data-driven view of how your AI models perform over time. "
+    "Switch to **Beginner** mode in Home for simpler explanations."
 )
 st.markdown("---")
 
-# Sidebar logic handled by initialize_ui_context
-
-st.sidebar.header("📊 Model Evaluation Settings")
+# Sidebar Configuration
+st.sidebar.header("📊 Evaluation Settings")
 
 # Fetch available models dynamically
 try:
@@ -45,10 +54,90 @@ except Exception:
 
 selected_model = st.sidebar.selectbox("Select a trained model", model_list)
 period = st.sidebar.selectbox(
-    "Evaluation Period", ["7d", "30d", "90d", "180d"], index=1
+    "Evaluation Period", ["7d", "30d", "90d", "180d", "1y"], index=2
 )
 st.sidebar.markdown("---")
-refresh = st.sidebar.button("🔄 Refresh Insights")
+refresh = st.sidebar.button("🔄 Refresh Insights", type="primary", use_container_width=True)
+st.sidebar.caption("ℹ️ Click the button to fetch the latest performance data from the AI engine.")
+
+# ── Performance Chart Helper ──────────────────────────────────
+def render_page_performance_chart(df, metrics, model_category):
+    st.subheader("📊 Performance Visualization")
+    
+    if metrics.get("eval_status") == "stored_metrics_only":
+        st.info("📊 **Live chart not available for LSTM** — This model uses stored training metrics. "
+                "A live evaluation chart will be available in a future update. All accuracy metrics "
+                "shown above are from the model's out-of-sample test set during training.")
+        return
+
+    if df.empty or "actual" not in df.columns:
+        st.warning("No prediction data available for visualization.")
+        return
+
+    fig = go.Figure()
+    # Actual Price Line
+    fig.add_trace(go.Scatter(
+        x=df["date"], y=df["actual"],
+        mode="lines", name="Actual Price",
+        line=dict(color="#2563eb", width=2),
+    ))
+
+    if model_category == "regression" and "predicted" in df.columns:
+        # Forecasted Price
+        fig.add_trace(go.Scatter(
+            x=df["date"], y=df["predicted"],
+            mode="lines", name="Predicted Price",
+            line=dict(color="#f59e0b", width=2, dash='dot'),
+        ))
+        
+        # Confidence Band
+        if "lower_bound" in df.columns and "upper_bound" in df.columns:
+            fig.add_trace(go.Scatter(
+                x=df["date"].tolist() + df["date"].tolist()[::-1],
+                y=df["upper_bound"].tolist() + df["lower_bound"].tolist()[::-1],
+                fill="toself",
+                fillcolor="rgba(37, 99, 235, 0.1)",
+                line=dict(color="rgba(37, 99, 235, 0)"),
+                name="Confidence Interval",
+                hoverinfo='skip'
+            ))
+            
+    elif model_category == "classification" and "signal" in df.columns:
+        # AI Signals (Markers)
+        buys = df[df["signal"] == "BUY"]
+        avoids = df[df["signal"] == "AVOID"]
+        
+        fig.add_trace(go.Scatter(
+            x=buys["date"], y=buys["actual"],
+            mode="markers", name="AI: BUY",
+            marker=dict(color="#22c55e", size=10, symbol="triangle-up"),
+        ))
+        fig.add_trace(go.Scatter(
+            x=avoids["date"], y=avoids["actual"],
+            mode="markers", name="AI: AVOID",
+            marker=dict(color="#ef4444", size=10, symbol="triangle-down"),
+        ))
+        
+        # Wrong Calls (Actual != Predicted)
+        if "label" in df.columns:
+            wrong = df[df["signal"] != df["label"]]
+            if not wrong.empty:
+                fig.add_trace(go.Scatter(
+                    x=wrong["date"], y=wrong["actual"],
+                    mode="markers", name="❌ Wrong Prediction",
+                    marker=dict(color="#ef4444", size=8, symbol="x"),
+                    hoverinfo='text',
+                    text=[f"Predicted {s}, but actually {l}" for s, l in zip(wrong["signal"], wrong["label"])]
+                ))
+
+    fig.update_layout(
+        yaxis_title=f"Price ({CURRENCY_SYMBOL})",
+        template="plotly_white",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        hovermode="x unified",
+        margin=dict(t=80, b=20, l=0, r=0)
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # ── Main Content ──────────────────────────────────────────────
 if refresh and "No models" not in selected_model:
@@ -57,145 +146,98 @@ if refresh and "No models" not in selected_model:
         match = re.match(r"(\S+)\s+\(([^,]+)", selected_model)
         if not match:
             st.error("Could not parse selected model.")
-            raise ValueError("Invalid model string format.")
+            st.stop()
 
         ticker = match.group(1).strip()
         model_type = match.group(2).strip()
+        is_beginner = st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner"
 
-        is_xgboost = model_type.lower() == "xgboost"
-
-        eval_url = (
-            f"http://127.0.0.1:8000/api/v1/evaluate"
-            f"?ticker={ticker}&period={period}&model_type={model_type}"
-        )
-        eval_response = requests.get(eval_url)
+        # 1. API Fetch
+        with st.spinner(f"AI Engine is evaluating {ticker}..."):
+            eval_url = (
+                f"http://127.0.0.1:8000/api/v1/evaluate"
+                f"?ticker={ticker}&period={period}&model_type={model_type}"
+            )
+            eval_response = requests.get(eval_url)
 
         if eval_response.status_code != 200:
             detail = eval_response.json().get("detail", "N/A")
-            st.error(f"Failed to fetch metrics. Status: {eval_response.status_code}. {detail}")
+            st.error(f"❌ Failed to fetch metrics. Error: {detail}")
         else:
             metrics = eval_response.json()
+            model_category = metrics.get("model_category", "regression")
+            df = pd.DataFrame(metrics.get("predictions", []))
+            if not df.empty:
+                df["date"] = pd.to_datetime(df["date"])
 
-            # ── KPI Section ────
-            st.subheader(f"📈 Performance Overview — {ticker}")
+            # ── Section 1: Health Chips ──
+            render_health_chips(metrics)
+            st.write("")
 
-            is_beginner = st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner"
+            # ── Section 2: Hero Accuracy ──
+            render_hero_accuracy(metrics, is_beginner)
             
-            if is_xgboost:
-                kpi1, kpi2, kpi3 = st.columns(3)
-                label_acc = "Trend Accuracy" if is_beginner else "Accuracy (Directional)"
-                kpi1.metric(
-                    label_acc,
-                    f"{metrics.get('directional_accuracy', metrics.get('accuracy', 0)):.1%}"
-                )
-                kpi2.metric("Days Tested" if is_beginner else "Data Points", metrics.get("data_points", "N/A"))
-                kpi3.metric("AI Type" if is_beginner else "Model Type", "XGBoost Classifier")
-            else:
-                kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-                kpi1.metric("Avg. Price Error" if is_beginner else "MAE", format_currency(metrics.get('MAE', 0)))
-                kpi2.metric("Precision Score" if is_beginner else "RMSE", format_currency(metrics.get('RMSE', 0)))
-                kpi3.metric("Reliability Score" if is_beginner else "R² Score", f"{metrics.get('R2', 0):.3f}")
-                kpi4.metric("Days Tested" if is_beginner else "Data Points", metrics.get("data_points", "N/A"))
-
+            # ── Section 3: KPI Metrics ──
+            st.subheader(f"📈 Performance Overview — {ticker}")
+            render_kpi_cards(metrics, model_category, is_beginner)
             st.markdown("---")
 
-            # ── Prediction vs Actual Chart ────
-            if "predictions" in metrics:
-                df = pd.DataFrame(metrics["predictions"])
-                if not df.empty and all(k in df.columns for k in ["date", "actual"]):
-                    df["date"] = pd.to_datetime(df["date"])
-                    st.subheader("📊 Performance Visualization")
+            # ── Section 4: Performance Chart ──
+            render_page_performance_chart(df, metrics, model_category)
+            st.markdown("---")
 
-                    fig = go.Figure()
-
-                    # Base Price Line
-                    fig.add_trace(go.Scatter(
-                        x=df["date"], y=df["actual"],
-                        mode="lines", name="Stock Price",
-                        line=dict(color="rgba(31, 119, 180, 0.4)", width=2),
-                    ))
-
-                    # For Classification (XGBoost)
-                    if "signal" in df.columns:
-                        # Buy Signals
-                        buys = df[df["signal"] == "BUY"]
-                        fig.add_trace(go.Scatter(
-                            x=buys["date"], y=buys["actual"],
-                            mode="markers", name="AI: BUY",
-                            marker=dict(color="#22c55e", size=10, symbol="triangle-up"),
-                        ))
-                        # Avoid Signals
-                        avoids = df[df["signal"] == "AVOID"]
-                        fig.add_trace(go.Scatter(
-                            x=avoids["date"], y=avoids["actual"],
-                            mode="markers", name="AI: AVOID",
-                            marker=dict(color="#ef4444", size=10, symbol="triangle-down"),
-                        ))
-                    
-                    # For Regression (Prophet)
-                    elif "predicted" in df.columns:
-                        fig.add_trace(go.Scatter(
-                            x=df["date"], y=df["predicted"],
-                            mode="lines", name="Predicted Price",
-                            line=dict(color="#ff7f0e", width=2),
-                        ))
-
-                    if "lower_bound" in df.columns and "upper_bound" in df.columns:
-                        fig.add_trace(go.Scatter(
-                            x=df["date"].tolist() + df["date"].tolist()[::-1],
-                            y=df["upper_bound"].tolist() + df["lower_bound"].tolist()[::-1],
-                            fill="toself",
-                            fillcolor="rgba(37, 99, 235, 0.12)",
-                            line=dict(color="rgba(37, 99, 235, 0)"),
-                            name="Confidence Interval",
-                        ))
-                    fig.update_layout(
-                        yaxis_title=f"Price ({CURRENCY_SYMBOL})", template="plotly_white",
-                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-
-                    # Residuals
-                    df["residual"] = df["actual"] - df["predicted"]
-                    st.subheader("📉 Residual Distribution")
-                    fig_resid = px.histogram(df, x="residual", nbins=25)
-                    fig_resid.update_layout(template="plotly_white")
-                    st.plotly_chart(fig_resid, use_container_width=True)
-
-            # ── Feature Importance ────
-            st.subheader("🔍 Feature Importance")
-            feat_data = metrics.get("feature_importance", None)
-            model_summary_name = metrics.get("model_type", "Unknown")
-
-            if feat_data and feat_data.get("Weight", ["N/A"])[0] != "N/A":
-                df_feat = pd.DataFrame(feat_data)
-                fig_feat = px.bar(
-                    df_feat, x="Weight", y="Feature",
-                    orientation="h", color="Weight",
-                    color_continuous_scale="Blues",
-                )
-                fig_feat.update_layout(
-                    height=400, template="plotly_white",
-                    yaxis=dict(autorange="reversed"),
-                )
-                st.plotly_chart(fig_feat, use_container_width=True)
-            else:
-                if is_xgboost:
-                    st.info("Feature importance will be available after model evaluation is implemented for XGBoost.")
+            # ── Section 5: Deep Dive ──
+            col_dd1, col_dd2 = st.columns([1.2, 1])
+            with col_dd1:
+                if model_category == "classification":
+                    render_confusion_matrix(metrics, is_beginner)
                 else:
-                    st.info(f"Feature importance is not available for {model_summary_name} models.")
+                    render_residuals(df, model_category, is_beginner)
+            
+            with col_dd2:
+                # ── Section 6: Feature Importance ──
+                st.subheader("🔍 Feature Importance")
+                feat_data = metrics.get("feature_importance")
+                
+                if feat_data and feat_data.get("Weight") and any(w > 0 for w in feat_data["Weight"]):
+                    df_feat = pd.DataFrame(feat_data)
+                    # Sort by weight
+                    df_feat = df_feat.sort_values(by="Weight", ascending=False).head(10)
+                    
+                    fig_feat = px.bar(
+                        df_feat, x="Weight", y="Feature",
+                        orientation="h", color="Weight",
+                        color_continuous_scale="Blues",
+                    )
+                    fig_feat.update_layout(
+                        height=400, template="plotly_white",
+                        yaxis=dict(autorange="reversed"),
+                        margin=dict(t=20, b=20, l=0, r=0)
+                    )
+                    st.plotly_chart(fig_feat, use_container_width=True)
+                else:
+                    st.info(f"Feature importance detail is not yet available for this {model_type} model.")
 
-            # ── Model Summary ────
-            st.markdown("### 🧾 Model Summary")
-            st.write(f"""
-            **Model:** {model_summary_name}
-            **Ticker:** {ticker}
-            **Evaluation Period:** {period}
-            **Trained On:** {format_date(metrics.get('trained_on', datetime.date.today()))}
-            """)
+            # ── Section 7: Academic & Meta ──
+            st.markdown("---")
+            render_academic_summary(metrics, period)
+            render_training_metadata(metrics)
 
     except Exception as e:
         logger.exception("Error fetching insights")
-        st.error(f"⚠️ Error: {e}")
+        st.error(f"⚠️ Critical UI Error: {e}")
 else:
-    st.info("ℹ️ Select a trained model from the sidebar and click **Refresh Insights**.")
+    # ── Landing State ────
+    st.info("ℹ️ Select a trained model from the sidebar and click **Refresh Insights** to view its performance dashboard.")
+    
+    # Simple empty state graphics or placeholder
+    lcol1, lcol2, lcol3 = st.columns(3)
+    with lcol1:
+        st.write("### 🎯 Accuracy")
+        st.caption("See unmissable win-rates and accuracy percentages.")
+    with lcol2:
+        st.write("### 📉 Confidence")
+        st.caption("Validate AI signals with historical price overlays.")
+    with lcol3:
+        st.write("### 📋 Academic")
+        st.caption("Get detailed reports for your project documentation.")
