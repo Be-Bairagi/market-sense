@@ -52,7 +52,7 @@ class ModelService:
                 f"{BASE_URL}/train",
                 params={"model": model_type, "ticker": ticker, "period": period},
                 headers={"X-API-Key": API_KEY},
-                timeout=600,  # training can take a while
+                timeout=1800,  # training can take a while (High-Accuracy Ensemble)
             )
 
             # Always try to parse JSON first — even on 4xx responses the backend
@@ -80,7 +80,7 @@ class ModelService:
             return {"error": str(detail)}
 
         except requests.exceptions.Timeout:
-            return {"error": "Training timed out (> 10 min). The model may still be training in the background."}
+            return {"error": "Training is still processing (> 30 min). The High-Accuracy model is training in the background; please check the Model Management page in a few minutes."}
         except Exception as e:
             logger.exception(f"Failed to train '{model_type}' model")
             return {"error": f"Failed to train '{model_type}' model: {str(e)}"}

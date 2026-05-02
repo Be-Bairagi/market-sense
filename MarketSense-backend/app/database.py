@@ -7,9 +7,16 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# NeonDB compatibility: Ensure sslmode=require for postgres
+if DATABASE_URL and "postgresql" in DATABASE_URL and "sslmode" not in DATABASE_URL:
+    if "?" in DATABASE_URL:
+        DATABASE_URL += "&sslmode=require"
+    else:
+        DATABASE_URL += "?sslmode=require"
+
 engine = create_engine(
     DATABASE_URL,
-    echo=False,  # Disable SQL query logging for security
+    echo=False,
     pool_pre_ping=True,
     pool_recycle=300,
 )

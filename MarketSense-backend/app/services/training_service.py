@@ -38,7 +38,7 @@ PROPHET_PERIOD_MAP: dict[str, str] = {
 class TrainingService:
 
     @staticmethod
-    def train_and_register(db: Session, model_type: str, ticker: str, period: str):
+    def train_and_register(model_type: str, ticker: str, period: str):
         """Train (or incrementally update) a model and register it in the DB.
 
         Workflow
@@ -64,28 +64,30 @@ class TrainingService:
         # Local imports to avoid circular dependency
         from app.services.fetch_data_service import FetchDataService
         from app.services.feature_computation_service import FeatureComputationService
+        from app.database import engine
 
         # ── STEP 0: Fetch current active model (if any) ──────────────────────
         from app.models.model_registry import TrainedModel
 
-        active_stmt = (
-            select(TrainedModel)
-            .where(
-                TrainedModel.model_name == model_name,
-                TrainedModel.is_active == True,
+        with Session(engine) as db:
+            active_stmt = (
+                select(TrainedModel)
+                .where(
+                    TrainedModel.model_name == model_name,
+                    TrainedModel.is_active == True,
+                )
+                .order_by(TrainedModel.version.desc())
             )
-            .order_by(TrainedModel.version.desc())
-        )
-        active_model = db.exec(active_stmt).first()
+            active_model = db.exec(active_stmt).first()
 
-        existing_model_path: str | None = (
-            active_model.file_path
-            if active_model
-            and active_model.file_path
-            and os.path.exists(active_model.file_path)
-            else None
-        )
-        old_metrics: dict = active_model.metrics or {} if active_model else {}
+            existing_model_path: str | None = (
+                active_model.file_path
+                if active_model
+                and active_model.file_path
+                and os.path.exists(active_model.file_path)
+                else None
+            )
+            old_metrics: dict = active_model.metrics or {} if active_model else {}
 
         if existing_model_path:
             logger.info(
@@ -170,6 +172,21 @@ class TrainingService:
             framework = MLFramework.pytorch
             save_obj = {"model": model, "metrics": metrics}
 
+        elif model_type == "hybrid":
+            from app.features.trainers.hybrid_trainer import train_hybrid_model
+            
+            # Hybrid requires data readiness for all sub-components
+            try:
+                fetch_svc = FetchDataService()
+                fetch_svc.fetch_stock_data(ticker, period=period, interval="1d", raw=False)
+                FeatureComputationService.backfill_features(ticker, horizon="short_term")
+            except Exception as e:
+                logger.warning(f"Data readiness failed for {ticker} hybrid ensemble: {e}")
+
+            # train_hybrid_model returns (bundle, metrics)
+            save_obj, metrics = train_hybrid_model(ticker, period=period)
+            framework = MLFramework.hybrid
+
         else:
             raise ValueError(f"Model '{model_type}' not supported")
 
@@ -197,41 +214,54 @@ class TrainingService:
                     },
                 )
 
-        # ── STEP 3: Save model to disk ───────────────────────────────────────
+        # ── STEP 3 & 4: Save model and Register in DB (using fresh session) ──
         model_dir = settings.models_path
+        from app.database import engine
+        try:
+            with Session(engine) as fresh_db:
+                # Use fresh_db for versioning to avoid SSL timeout from long training
+                version = TrainingService._get_next_version(fresh_db, safe_ticker, model_type)
+                file_name = f"{safe_ticker}_{model_type}_v{version}.pkl"
+                model_path = os.path.join(model_dir, file_name)
 
-        version = TrainingService._get_next_version(db, safe_ticker, model_type)
-        file_name = f"{safe_ticker}_{model_type}_v{version}.pkl"
-        model_path = os.path.join(model_dir, file_name)
+                # Update payload with correct version and path
+                joblib.dump(save_obj, model_path)
+                logger.info("Model saved to %s", model_path)
 
-        joblib.dump(save_obj, model_path)
-        logger.info("Model saved to %s", model_path)
+                payload = TrainedModelCreate(
+                    model_name=model_name,
+                    version=version,
+                    file_path=model_path,
+                    framework=framework,
+                    training_period=period,
+                    metrics=metrics,
+                )
 
-        # ── STEP 4: Register in DB (deactivates old + deletes old .pkl) ──────
-        payload = TrainedModelCreate(
-            model_name=model_name,
-            version=version,
-            file_path=model_path,
-            framework=framework,
-            training_period=period,
-            metrics=metrics,
-        )
+                registered = ModelRegistryService.register_model(
+                    db=fresh_db, payload=payload, activate=True
+                )
 
-        registered = ModelRegistryService.register_model(
-            db=db, payload=payload, activate=True
-        )
-
-        logger.info(
-            "Training complete: %s v%d (warm_start=%s)",
-            registered.model_name,
-            registered.version,
-            existing_model_path is not None,
-        )
+                logger.info(
+                    "Training complete and registered: %s v%d (warm_start=%s)",
+                    registered.model_name,
+                    registered.version,
+                    existing_model_path is not None,
+                )
+                
+                # Copy for the return dict
+                reg_model_name = registered.model_name
+                reg_version = registered.version
+        except Exception as reg_err:
+            logger.exception("Failed to register model in DB after successful training: %s", reg_err)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Model trained but registration failed (DB timeout?): {str(reg_err)}"
+            )
 
         return {
             "status": "success",
-            "model_name": registered.model_name,
-            "version": registered.version,
+            "model_name": reg_model_name,
+            "version": reg_version,
             "training_metrics": metrics,
             "artifact_path": model_path,
             "warm_start": existing_model_path is not None,
@@ -249,7 +279,7 @@ class TrainingService:
         Tolerance: new metric may be up to METRIC_TOLERANCE worse.
         """
         try:
-            if model_type == "xgboost" or model_type == "lstm":
+            if model_type in ["xgboost", "lstm", "hybrid"]:
                 old_acc = float(old_metrics.get("accuracy", 0))
                 new_acc = float(new_metrics.get("accuracy", 0))
                 # Allow up to METRIC_TOLERANCE degradation

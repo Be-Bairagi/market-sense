@@ -18,5 +18,9 @@ class PredictionOutput(BaseModel):
     predicted_at: datetime
     valid_until: datetime
     model_name: str
-    model_version: int
+    model_version: Optional[int] = None
     metrics: Optional[dict] = None
+    
+    # Phase 6 Enhancements
+    model_agreement: Optional[str] = "3/3"
+    is_high_confidence: bool = False

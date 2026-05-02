@@ -1,8 +1,6 @@
 import logging
-import datetime as dt
 from typing import Dict, Optional, Tuple
 
-import joblib
 import numpy as np
 import pandas as pd
 from prophet import Prophet
@@ -31,130 +29,129 @@ HOLIDAYS_DF = pd.DataFrame({
 BUDGET_DAYS = pd.DataFrame({
     'holiday': 'Union_Budget',
     'ds': pd.to_datetime(['2024-02-01', '2025-02-01', '2026-02-01']),
-    'lower_window': -1,
-    'upper_window': 1,
+    'lower_window': -3,
+    'upper_window': 2,
 })
 ALL_HOLIDAYS = pd.concat([HOLIDAYS_DF, BUDGET_DAYS])
+
+def prepare_prophet_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Standardized data preparation for Prophet (Renaming, Cleaning, Log-Smoothing)."""
+    df = df.copy()
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    
+    col_map = {c.lower(): c for c in df.columns}
+    rename_targets = {}
+    if "date" in col_map: rename_targets[col_map["date"]] = "ds"
+    if "close" in col_map: rename_targets[col_map["close"]] = "y"
+    
+    if "ds" not in rename_targets and df.index.name and df.index.name.lower() == "date":
+        df = df.reset_index()
+        col_map = {c.lower(): c for c in df.columns}
+        if "date" in col_map: rename_targets[col_map["date"]] = "ds"
+
+    df = df.rename(columns=rename_targets)
+    if "ds" not in df.columns: df = df.rename(columns={df.columns[0]: "ds"})
+
+    df["ds"] = pd.to_datetime(df["ds"], errors="coerce").dt.tz_localize(None)
+    if "y" not in df.columns:
+        potential_y = [c for c in df.columns if 'close' in c.lower() or 'adj' in c.lower()]
+        if potential_y: df = df.rename(columns={potential_y[0]: "y"})
+    
+    df["y"] = pd.to_numeric(df.get("y", 0), errors="coerce")
+    df["y"] = df["y"].rolling(window=5, min_periods=1).mean()
+    df["y"] = np.log1p(df["y"]) 
+    
+    df.dropna(subset=["ds", "y"], inplace=True)
+    return df.sort_values("ds")
+
+def extract_prophet_signals(model: Prophet, raw_df: pd.DataFrame) -> pd.DataFrame:
+    """Extract trend signals from a trained Prophet model for meta-learner."""
+    from app.database import engine
+    df = prepare_prophet_data(raw_df)
+    
+    if model.extra_regressors:
+        with Session(engine) as db:
+            macro_rows = db.exec(select(MacroData).order_by(MacroData.date.asc())).all()
+        
+        macro_df = pd.DataFrame([{"ds": pd.to_datetime(m.date), "indicator": m.indicator, "value": m.value} for m in macro_rows])
+        if not macro_df.empty:
+            pivot_macro = macro_df.pivot(index="ds", columns="indicator", values="value").ffill().fillna(0)
+            pivot_macro.columns = [f"reg_{c.lower()}" for c in pivot_macro.columns]
+            df = df.merge(pivot_macro, on="ds", how="left").ffill().fillna(0)
+
+    forecast = model.predict(df)
+    signals = pd.DataFrame({
+        "date": forecast["ds"],
+        "prophet_trend_dir": np.sign(forecast["trend"].diff().fillna(0)),
+        "prophet_trend_strength": forecast["trend"].diff().abs().fillna(0),
+        "prophet_uncertainty": forecast["yhat_upper"] - forecast["yhat_lower"],
+    })
+    return signals
+
 
 def train_prophet_model(
     raw_data_df: pd.DataFrame,
     existing_model_path: Optional[str] = None,
 ) -> Tuple[Prophet, Dict]:
-    """Train Prophet with Macro Regressors and optimized seasonality."""
-    if raw_data_df.empty:
-        raise ValueError("Training data is empty")
+    """Train Prophet with Macro Regressors and boundary search for speed (Phase 3)."""
+    if raw_data_df.empty: raise ValueError("Training data is empty")
 
     from app.database import engine
-
-    # Prepare historical macro features
     with Session(engine) as db:
         macro_rows = db.exec(select(MacroData).order_by(MacroData.date.asc())).all()
     
     macro_df = pd.DataFrame([{"ds": pd.to_datetime(m.date), "indicator": m.indicator, "value": m.value} for m in macro_rows])
     if not macro_df.empty:
-        pivot_macro = macro_df.pivot(index="ds", columns="indicator", values="value").fillna(method="ffill").fillna(0)
+        pivot_macro = macro_df.pivot(index="ds", columns="indicator", values="value").ffill().fillna(0)
         pivot_macro.columns = [f"reg_{c.lower()}" for c in pivot_macro.columns]
     else:
         pivot_macro = pd.DataFrame()
 
-    # Prepare main df
-    df = raw_data_df.copy()
-    df.columns = [col[0] if isinstance(col, tuple) else col for col in df.columns]
-    df = df.rename(columns={"Date": "ds", "Close": "y"})
-    df["ds"] = pd.to_datetime(df["ds"], errors="coerce")
-    df["y"] = pd.to_numeric(df["y"], errors="coerce")
-    
-    # ── Section 2A: Use Smoothed Trend ──────────────────────────────────────
-    # Stock prices have noise; smoothing helps Prophet find the underlying trend.
-    df["y"] = df["y"].rolling(window=5, min_periods=1).mean()
-    
-    df.dropna(subset=["ds", "y"], inplace=True)
-    df = df[["ds", "y"]].drop_duplicates(subset="ds").sort_values("ds")
-
-    # Join regressors
+    df = prepare_prophet_data(raw_data_df)
     regressors = []
     if not pivot_macro.empty:
-        df = df.merge(pivot_macro, on="ds", how="left").fillna(method="ffill")
-        # Only keep regressors that have at least 80% coverage in the dataset
-        potential_regs = [c for c in df.columns if c.startswith("reg_")]
-        for reg in potential_regs:
-            non_zero_pct = (df[reg].notna() & (df[reg] != 0)).sum() / len(df)
-            if non_zero_pct > 0.8:
-                regressors.append(reg)
-            else:
-                df.drop(columns=[reg], inplace=True)
+        df = df.merge(pivot_macro, on="ds", how="left").ffill()
+        for reg in [c for c in df.columns if c.startswith("reg_")]:
+            if (df[reg].notna() & (df[reg] != 0)).sum() / len(df) > 0.8: regressors.append(reg)
+            else: df.drop(columns=[reg], inplace=True)
         df.fillna(0, inplace=True)
 
-    if len(df) < 50:
-        raise ValueError(f"Insufficient samples: {len(df)} (need 50+)")
+    if len(df) < 50: raise ValueError(f"Insufficient samples: {len(df)}")
 
-    # ── 80/20 Split & Cross-Validation ───────────────────────────────────────
     split_idx = int(len(df) * 0.8)
-    train_df = df.iloc[:split_idx].copy()
-    test_df = df.iloc[split_idx:].copy()
+    train_df, test_df = df.iloc[:split_idx].copy(), df.iloc[split_idx:].copy()
 
-    def build_model(cp_scale):
-        m = Prophet(
-            holidays=ALL_HOLIDAYS,
-            seasonality_mode='additive', # More stable for price
-            changepoint_prior_scale=cp_scale,
-            yearly_seasonality=True,
-            weekly_seasonality=True,
-            daily_seasonality=False
-        )
-        for reg in regressors:
-            m.add_regressor(reg)
+    def build_model(cp_scale, s_scale):
+        m = Prophet(holidays=ALL_HOLIDAYS, seasonality_mode='multiplicative', 
+                    changepoint_prior_scale=cp_scale, seasonality_prior_scale=s_scale,
+                    yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=False)
+        m.add_seasonality(name='results_season', period=91.25, fourier_order=3)
+        for reg in regressors: m.add_regressor(reg)
         return m
 
-    # ── Section 2D: Tunning — Grid Search for changepoint_prior_scale ────────
-    # The default 0.05 is often too rigid. We test a few values to find the best fit.
-    best_mae = float('inf')
-    best_cp = 0.4
-    candidate_scales = [0.1, 0.25, 0.4, 0.5]
+    # Boundary search (4 combinations instead of 12 for speed)
+    best_mae, best_cp, best_ss, best_metrics = float('inf'), 0.1, 10.0, {}
+    candidate_cp, candidate_ss = [0.05, 0.5], [1.0, 10.0]
     
-    logger.info(f"Starting grid search for Prophet (scales: {candidate_scales})...")
-    
-    for cp in candidate_scales:
-        try:
-            temp_model = build_model(cp)
-            temp_model.fit(train_df)
-            
-            future_test = test_df.drop(columns="y")
-            forecast_test = temp_model.predict(future_test)
-            
-            y_actual = test_df["y"].values
-            y_pred = forecast_test["yhat"].values[:len(y_actual)]
-            
-            temp_mae = mean_absolute_error(y_actual, y_pred)
-            if temp_mae < best_mae:
-                best_mae = temp_mae
-                best_cp = cp
-        except Exception as e:
-            logger.warning(f"Prophet tuning failed for scale {cp}: {e}")
+    logger.info(f"Refined boundary search for Prophet...")
+    for cp in candidate_cp:
+        for ss in candidate_ss:
+            try:
+                temp_model = build_model(cp, ss).fit(train_df)
+                forecast_test = temp_model.predict(test_df.drop(columns="y"))
+                y_actual, y_pred = np.expm1(test_df["y"].values), np.expm1(forecast_test["yhat"].values[:len(test_df)])
+                mae = mean_absolute_error(y_actual, y_pred)
+                if mae < best_mae:
+                    best_mae, best_cp, best_ss = mae, cp, ss
+                    best_metrics = {"MAE": round(mae, 4), "RMSE": round(float(np.sqrt(mean_squared_error(y_actual, y_pred))), 4),
+                                    "R2": round(float(r2_score(y_actual, y_pred)), 4), "MAPE": f"{(np.mean(np.abs((y_actual - y_pred) / (y_actual + 1e-9))) * 100):.2f}%"}
+            except Exception as e: logger.warning(f"Prophet tuning failed: {e}")
 
-    logger.info(f"Grid search complete. Best changepoint_prior_scale: {best_cp} (MAE: {best_mae:.2f})")
+    model = build_model(best_cp, best_ss).fit(df)
+    metrics = {**best_metrics, "train_size": len(train_df), "test_size": len(test_df), 
+               "regressors_used": regressors, "best_cp": best_cp, "best_ss": best_ss, 
+               "end_date": str(df["ds"].max().date()), "supports_trend_signals": True}
 
-    # ── Final Training ───────────────────────────────────────────────────────
-    model = build_model(best_cp)
-    model.fit(df)
-    
-    # Final metrics calculation on the best model
-    mae = best_mae
-    # Re-calculate others for the best one to be sure
-    rmse = float(np.sqrt(mean_squared_error(y_actual, y_pred)))
-    r2 = float(r2_score(y_actual, y_pred))
-    mape = float(np.mean(np.abs((y_actual - y_pred) / y_actual))) * 100
-
-    metrics = {
-        "MAE": round(mae, 4),
-        "RMSE": round(rmse, 4),
-        "R2": round(r2, 4),
-        "MAPE": f"{mape:.2f}%",
-        "train_size": len(train_df),
-        "test_size": len(test_df),
-        "regressors_used": regressors,
-        "end_date": str(df["ds"].max().date())
-    }
-
-    logger.info(f"Prophet Training Done. R2: {r2:.3f}, MAPE: {mape:.2f}%")
+    logger.info(f"Prophet Phase 3 Done. R2: {best_metrics.get('R2')}")
     return model, metrics

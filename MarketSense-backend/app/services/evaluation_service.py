@@ -15,6 +15,9 @@ from app.models.feature_data import FeatureVector
 from app.models.stock_data import StockPrice
 from app.models.market_data import MacroData
 
+import torch
+from app.features.trainers.prophet_trainer import extract_prophet_signals
+
 logger = logging.getLogger(__name__)
 
 def evaluate_model(ticker: str, period: str, model_type: str) -> Dict[str, Any]:
@@ -58,7 +61,7 @@ def evaluate_model(ticker: str, period: str, model_type: str) -> Dict[str, Any]:
             raise FileNotFoundError(f"Model file missing: {model_path}")
 
         bundle = joblib.load(model_path)
-        model = bundle["model"] if isinstance(bundle, dict) else bundle
+        model = bundle.get("model") if isinstance(bundle, dict) else bundle
 
         # --- EVALUATION LOGIC BY TYPE ---
         
@@ -178,6 +181,164 @@ def evaluate_model(ticker: str, period: str, model_type: str) -> Dict[str, Any]:
                 "confusion_matrix": confusion_data,
                 "MAE": None, "RMSE": None, "R2": None, "MAPE": None,
                 "feature_importance": feat_imp
+            }
+
+        elif model_type.lower() == "hybrid":
+            # Hybrid models are stored as a bundle dictionary
+            if not isinstance(bundle, dict):
+                raise ValueError("Corrupt hybrid model: expected bundle dictionary")
+            
+            xgb_m = bundle["xgb_model"]
+            lstm_bundle = bundle["lstm_bundle"]
+            prophet_m = bundle["prophet_model"]
+            meta_m = bundle["meta_learner"]
+            
+            # 1. Generic Feature Fetching
+            fvs = db.exec(
+                select(FeatureVector)
+                .where(FeatureVector.symbol == original_ticker, FeatureVector.horizon == "short_term")
+                .order_by(FeatureVector.date.desc())
+                .limit(100) # Recent 100 days for live eval
+            ).all()
+
+            if len(fvs) < 50:
+                raise ValueError(f"Insufficient history for hybrid evaluation: {len(fvs)} rows")
+
+            data = []
+            for fv in fvs:
+                row = fv.features.copy()
+                row["date"] = pd.to_datetime(fv.date)
+                data.append(row)
+
+            features_df = pd.DataFrame(data).set_index("date").sort_index()
+            features_df.index = pd.to_datetime(features_df.index).normalize()
+            features_df = features_df[~features_df.index.duplicated(keep="last")]
+            features_df = features_df.apply(pd.to_numeric, errors='coerce').fillna(0)
+            
+            prices = db.exec(select(StockPrice).where(StockPrice.symbol == original_ticker).order_by(StockPrice.date.asc())).all()
+            price_series = pd.Series({pd.to_datetime(p.date): p.close for p in prices}).sort_index()
+            price_series.index = pd.to_datetime(price_series.index).normalize()
+            
+            # Prophet signals - requires raw data for regressors
+            from app.services.fetch_data_service import FetchDataService
+            fetch_svc = FetchDataService()
+            raw_data = fetch_svc.fetch_stock_data(original_ticker, period="1y", interval="1d", raw=True)
+            prophet_signals = extract_prophet_signals(prophet_m, raw_data)
+            prophet_signals["date"] = pd.to_datetime(prophet_signals["date"]).dt.tz_localize(None).dt.normalize()
+            prophet_signals.set_index("date", inplace=True)
+
+            # 2. Reconstruct Meta-Features
+            meta_rows = []
+            eval_indices = []
+            
+            from app.features.trainers.lstm_trainer import HybridStockModel
+            lstm_m = HybridStockModel(**lstm_bundle["model_config"])
+            lstm_m.load_state_dict(lstm_bundle["model_state"])
+            lstm_m.eval()
+            
+            lstm_scaler = lstm_bundle["scaler"]
+            lstm_feats_in = lstm_bundle["features_in"]
+            seq_len = lstm_bundle["seq_length"]
+            
+            for d in features_df.index:
+                try:
+                    curr_idx = price_series.index.get_loc(d)
+                    if curr_idx + 5 >= len(price_series): continue
+                    
+                    # Target
+                    ret = (price_series.iloc[curr_idx + 5] - price_series.iloc[curr_idx]) / price_series.iloc[curr_idx]
+                    label = 1
+                    if ret > 0.02: label = 2
+                    elif ret < -0.02: label = 0
+                    
+                    # XGB
+                    xgb_cols = xgb_m.feature_names_in_ if hasattr(xgb_m, 'feature_names_in_') else xgb_m.estimator.feature_names_in_
+                    xgb_x = features_df.loc[[d]].reindex(columns=xgb_cols, fill_value=0.0)
+                    xgb_probs = xgb_m.predict_proba(xgb_x)[0]
+                    
+                    # LSTM
+                    row_idx = features_df.index.get_loc(d)
+                    if isinstance(row_idx, (slice, np.ndarray)):
+                        row_idx = row_idx[0] if isinstance(row_idx, np.ndarray) else row_idx.start
+
+                    if row_idx < seq_len: continue
+                    seq_feats = features_df.iloc[row_idx - seq_len : row_idx].reindex(columns=lstm_feats_in, fill_value=0.0).values
+                    seq_scaled = lstm_scaler.transform(seq_feats).reshape(1, seq_len, -1)
+                    lstm_m.eval()
+                    with torch.no_grad():
+                        out = lstm_m(torch.FloatTensor(seq_scaled))
+                        lstm_probs = torch.softmax(out, dim=1).numpy()[0]
+                    
+                    # Prophet
+                    p_row = prophet_signals.loc[d]
+                    
+                    meta_rows.append({
+                        "xgb_p0": float(xgb_probs[0]), "xgb_p1": float(xgb_probs[1]), "xgb_p2": float(xgb_probs[2]),
+                        "lstm_p0": float(lstm_probs[0]), "lstm_p1": float(lstm_probs[1]), "lstm_p2": float(lstm_probs[2]),
+                        "p_dir": float(p_row["prophet_trend_dir"]),
+                        "p_strength": float(p_row["prophet_trend_strength"]),
+                        "p_uncertainty": float(p_row["prophet_uncertainty"]),
+                        "rsi": float(features_df.loc[d, "rsi_14"] if "rsi_14" in features_df.columns else 50),
+                        "vol": float(features_df.loc[d, "volatility_30d"] if "volatility_30d" in features_df.columns else 0),
+                    })
+                    eval_indices.append({"date": d, "target": label, "actual_price": price_series.iloc[curr_idx]})
+                except: continue
+
+            if not meta_rows:
+                raise ValueError("Failed to align meta-features for hybrid evaluation.")
+
+            X_meta = pd.DataFrame(meta_rows)
+            y_true = [r["target"] for r in eval_indices]
+            y_pred = meta_m.predict(X_meta)
+            
+            acc = accuracy_score(y_true, y_pred)
+            mask = np.array(y_true) != 1
+            dir_acc = accuracy_score(np.array(y_true)[mask], y_pred[mask]) if mask.sum() > 0 else acc
+
+            # Per-class metrics
+            report = classification_report(y_true, y_pred, labels=[0, 1, 2], output_dict=True, zero_division=0)
+            
+            return {
+                "ticker": ticker,
+                "model_type": "Hybrid Stacking Ensemble",
+                "model_category": "classification",
+                "accuracy_pct": round(acc * 100, 1),
+                "directional_accuracy": round(float(dir_acc), 4),
+                "data_points": len(y_true),
+                "trained_on": str(model_entry.trained_at.date()),
+                "training_period": model_entry.training_period,
+                "training_metrics": model_entry.metrics,
+                "predictions": [
+                    {
+                        "date": eval_indices[i]["date"].strftime("%Y-%m-%d"),
+                        "actual": float(eval_indices[i]["actual_price"]),
+                        "predicted": float(eval_indices[i]["actual_price"]),
+                        "signal": "BUY" if y_pred[i]==2 else "AVOID" if y_pred[i]==0 else "HOLD",
+                        "label": "BUY" if y_true[i]==2 else "AVOID" if y_true[i]==0 else "HOLD"
+                    } for i in range(len(y_true))
+                ],
+                "eval_status": "live",
+                "precision_per_class": {
+                    "AVOID": round(float(report["0"]["precision"]), 4),
+                    "HOLD": round(float(report["1"]["precision"]), 4),
+                    "BUY": round(float(report["2"]["precision"]), 4)
+                },
+                "recall_per_class": {
+                    "AVOID": round(float(report["0"]["recall"]), 4),
+                    "HOLD": round(float(report["1"]["recall"]), 4),
+                    "BUY": round(float(report["2"]["recall"]), 4)
+                },
+                "f1_per_class": {
+                    "AVOID": round(float(report["0"]["f1-score"]), 4),
+                    "HOLD": round(float(report["1"]["f1-score"]), 4),
+                    "BUY": round(float(report["2"]["f1-score"]), 4)
+                },
+                "confusion_matrix": {"labels": ["AVOID", "HOLD", "BUY"], "matrix": confusion_matrix(y_true, y_pred, labels=[0,1,2]).tolist()},
+                "MAE": None, "RMSE": None, "R2": None, "MAPE": None,
+                "feature_importance": {
+                    "Feature": list(X_meta.columns), 
+                    "Weight": [round(float(w), 4) for w in (meta_m.feature_importances_ if hasattr(meta_m, "feature_importances_") else np.abs(meta_m.coef_).mean(axis=0))]
+                }
             }
 
         elif model_type.lower() == "prophet":

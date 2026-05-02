@@ -3,8 +3,6 @@ import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
 from app.services.data_ingestion_service import DataIngestionService
 from app.services.feature_computation_service import FeatureComputationService
 from app.services.sentiment_service import SentimentService
@@ -22,7 +20,6 @@ def update_nifty50_prices():
     """Daily job to update NIFTY 50 prices."""
     logger.info("Starting scheduled NIFTY 50 price update...")
     for stock in NIFTY_50_STOCKS:
-        # Fetch at least some history to ensure we don't miss days (e.g., weekends/holidays)
         DataIngestionService.backfill_stock(stock["symbol"], years=1) 
     logger.info("Finished scheduled price update.")
 
@@ -36,7 +33,6 @@ def update_news_headlines():
     """Frequent job for news ingestion."""
     logger.info("Starting scheduled news ingestion...")
     DataIngestionService.fetch_news()
-    # Score new headlines immediately after ingestion
     SentimentService.score_all_unscored()
     logger.info("Finished scheduled news ingestion + sentiment scoring.")
 
@@ -59,40 +55,45 @@ def run_daily_screener():
     except Exception as e:
         logger.error("Screener job failed: %s", e)
 
+def weekly_retrain():
+    """Weekly retrain for top 20 stocks every Sunday (Phase 6)."""
+    logger.info("Starting weekly model retraining for Priority Watchlist...")
+    from app.services.training_service import TrainingService
+    
+    # Priority watchlist (Top 10 from NIFTY 50)
+    priority_watchlist = NIFTY_50_STOCKS[:10]
+    
+    for stock in priority_watchlist:
+        symbol = stock["symbol"]
+        try:
+            # Retrain Hybrid (which triggers XGBoost, LSTM, Prophet)
+            TrainingService.train_and_register("hybrid", symbol, "5y")
+            logger.info(f"Weekly retrain success for {symbol}")
+        except Exception as e:
+            logger.error(f"Weekly retrain failed for {symbol}: {e}")
+            
+    logger.info("Finished weekly model retraining.")
+
 def monthly_retrain():
     """Retrain all active models for NIFTY 50 stocks on the 1st of every month."""
     logger.info("Starting monthly model retraining for NIFTY 50...")
     from app.services.training_service import TrainingService
-    from app.database import engine
-    from sqlmodel import Session
-    from app.repositories.model_registry_repository import ModelRegistryRepository
 
     for stock in NIFTY_50_STOCKS:
         symbol = stock["symbol"]
-        with Session(engine) as db:
-            active_xgboost = ModelRegistryRepository.get_active_model(db, f"{symbol.replace('.', '_')}_xgboost")
-            active_prophet = ModelRegistryRepository.get_active_model(db, f"{symbol.replace('.', '_')}_prophet")
-            
-            if active_xgboost:
-                try:
-                    TrainingService.train_and_register(db, "xgboost", symbol, "5y")
-                    logger.debug(f"Retrained XGBoost for {symbol}")
-                except Exception as e:
-                    logger.error(f"Monthly XGBoost retrain failed for {symbol}: {e}")
-            
-            if active_prophet:
-                try:
-                    TrainingService.train_and_register(db, "prophet", symbol, "5y")
-                    logger.debug(f"Retrained Prophet for {symbol}")
-                except Exception as e:
-                    logger.error(f"Monthly Prophet retrain failed for {symbol}: {e}")
+        try:
+            # Retrain Hybrid Ensemble for all stocks monthly
+            TrainingService.train_and_register("hybrid", symbol, "5y")
+            logger.debug(f"Retrained Hybrid Ensemble for {symbol}")
+        except Exception as e:
+            logger.error(f"Monthly retrain failed for {symbol}: {e}")
                 
     logger.info("Finished monthly model retraining.")
 
 def start_scheduler():
     """Register and start all background jobs."""
     if not scheduler.running:
-        # 1. Price updates: Daily at 4:30 PM IST (after market close)
+        # 1. Price updates: Daily at 4:30 PM IST
         scheduler.add_job(
             update_nifty50_prices,
             CronTrigger(hour=16, minute=30),
@@ -119,7 +120,7 @@ def start_scheduler():
             replace_existing=True
         )
 
-        # 4. Feature computation: Daily at 4:45 PM IST (after price update)
+        # 4. Feature computation: Daily at 4:45 PM IST
         scheduler.add_job(
             compute_daily_features,
             CronTrigger(hour=16, minute=45),
@@ -128,7 +129,7 @@ def start_scheduler():
             replace_existing=True
         )
 
-        # 5. Stock screener: Daily at 5:00 PM IST (after feature computation)
+        # 5. Stock screener: Daily at 5:00 PM IST
         scheduler.add_job(
             run_daily_screener,
             CronTrigger(hour=17, minute=0),
@@ -137,17 +138,26 @@ def start_scheduler():
             replace_existing=True
         )
         
-        # 6. Monthly Retraining: 1st of every month at 1:00 AM IST
+        # 6. Weekly Retraining: Every Sunday at 1:00 AM IST (Phase 6)
+        scheduler.add_job(
+            weekly_retrain,
+            CronTrigger(day_of_week='sun', hour=1, minute=0),
+            id="weekly_retrain",
+            name="Weekly Priority Model Retraining",
+            replace_existing=True
+        )
+
+        # 7. Monthly Retraining: 1st of every month at 2:00 AM IST
         scheduler.add_job(
             monthly_retrain,
-            CronTrigger(day=1, hour=1, minute=0),
+            CronTrigger(day=1, hour=2, minute=0),
             id="monthly_retrain",
             name="Monthly Model Retraining",
             replace_existing=True
         )
 
         scheduler.start()
-        logger.info("Background scheduler started with 6 jobs (IST timezone).")
+        logger.info("Background scheduler started with 7 jobs (IST timezone).")
 
 def stop_scheduler():
     """Shut down the scheduler."""

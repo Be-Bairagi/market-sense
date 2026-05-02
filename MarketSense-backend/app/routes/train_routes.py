@@ -13,11 +13,10 @@ def train_model(
     model: str = Query(..., description="Model to train (e.g., prophet)"),
     ticker: str = Query(..., description="Stock ticker (e.g., MSFT)"),
     period: str = Query("2y", description="Training period (e.g., 2y, 5y)"),
-    db: Session = Depends(get_session),
 ):
     try:
         return TrainingService.train_and_register(
-            db=db, model_type=model.lower(), ticker=ticker, period=period
+            model_type=model.lower(), ticker=ticker, period=period
         )
     except HTTPException:
         raise  # Re-raise structured HTTP errors (400 validation, 409 metric guard)

@@ -9,7 +9,7 @@ import torch
 from sqlmodel import Session, select
 
 from app.database import engine
-from app.features.trainers.lstm_trainer import StockLSTM
+from app.features.trainers.lstm_trainer import HybridStockModel
 from app.models.feature_data import FeatureVector
 from app.config import settings
 from typing import Any, Dict
@@ -18,19 +18,19 @@ logger = logging.getLogger(__name__)
 MODELS_DIR = settings.models_path
 
 def predict_lstm(model_path: str, n_days: int = 5) -> Dict[str, Any]:
-    """Make predictions using the trained PyTorch LSTM model."""
+    """Make predictions using the trained PyTorch Hybrid-LSTM model."""
     # Extract symbol from filename (e.g. RELIANCE_NS_lstm_v1.pkl)
     filename = os.path.basename(model_path)
     symbol = filename.split("_lstm")[0].replace("_", ".") # RELIANCE.NS
 
-    # Ensure StockLSTM is in scope for joblib
-    _ = StockLSTM
+    # Ensure HybridStockModel is in scope for joblib
+    _ = HybridStockModel
     safe_symbol = symbol.replace(".", "_")
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"LSTM model file not found at {model_path}")
 
-    logger.info(f"Loading LSTM model from {model_path}")
+    logger.info(f"Loading Hybrid-LSTM model from {model_path}")
     full_bundle = joblib.load(model_path)
     
     # TrainingService wraps models in {"model": ..., "metrics": ...}
@@ -98,20 +98,19 @@ def predict_lstm(model_path: str, n_days: int = 5) -> Dict[str, Any]:
         probabilities = torch.softmax(outputs, dim=1).cpu().numpy()[0]
         predicted_idx = np.argmax(probabilities)
 
-    # 0=DOWN, 1=UP
-    signal_map = {0: "AVOID", 1: "BUY"}
-    signal = signal_map[predicted_idx]
+    # 0=AVOID, 1=HOLD, 2=BUY
+    signal_map = {0: "AVOID", 1: "HOLD", 2: "BUY"}
+    signal = signal_map.get(predicted_idx, "HOLD")
     confidence = float(probabilities[predicted_idx])
 
     # Convert to standard PredictionOutput
     from datetime import datetime
 
     # Feature Importance / Drivers
-    # LSTM doesn't natively expose feature importance easily, so we use a fallback
     key_drivers = [
-        "Sequential Price Context (30-day window)",
-        "LSTM Deep Learning Analysis",
-        "Recent Market Trend Consolidation"
+        "Sequential Price Context (Hybrid-LSTM)",
+        "BiLSTM+GRU temporal fusion",
+        "Market Trend Attention Analysis"
     ]
     
     # Get current price for targets
@@ -128,9 +127,9 @@ def predict_lstm(model_path: str, n_days: int = 5) -> Dict[str, Any]:
         "target_low": round(curr_price * 0.98, 2),
         "target_high": round(curr_price * 1.05, 2),
         "stop_loss": round(curr_price * 0.95, 2),
-        "risk_level": "MEDIUM",
+        "risk_level": "HIGH" if signal == "BUY" else "MEDIUM",
         "key_drivers": key_drivers,
-        "bear_case": "LSTM sequence pattern might be affected by sudden macro shifts.",
+        "bear_case": "Hybrid sequence pattern might be affected by sudden macro shifts.",
         "predicted_at": datetime.utcnow(),
         "valid_until": datetime.utcnow() + timedelta(days=n_days),
         "model_name": filename,

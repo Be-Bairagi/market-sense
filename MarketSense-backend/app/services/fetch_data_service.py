@@ -45,8 +45,11 @@ class FetchDataService:
                 expected_days = int(days * 0.6) # conservative estimate
                 
                 if len(results) >= expected_days:
-                    logger.info(f"Cache hit for {ticker} ({len(results)} rows)")
+                    # One clean logger for successful cache retrieval
+                    logger.info("Cache HIT: %s (%d rows, %s to %s)", ticker, len(results), results[0].date, results[-1].date)
+                    
                     df = pd.DataFrame([r.dict() for r in results])
+                    
                     # Format date to match frontend expectation
                     df["Date"] = df["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
                     # Standardize column casing for frontend
@@ -76,8 +79,14 @@ class FetchDataService:
                 cleaned_df, quality_score = DataCleanerService.clean_ohlcv(df)
                 
                 with Session(engine) as db:
-                    for idx, row in cleaned_df.iterrows():
+                    total_rows = len(cleaned_df)
+                    for i, (idx, row) in enumerate(cleaned_df.iterrows()):
                         date_val = pd.to_datetime(idx).date()
+                        
+                        # Progress logging for large datasets
+                        if (i + 1) % 100 == 0:
+                            logger.info("Caching progress for %s: %d/%d rows processed", ticker, i + 1, total_rows)
+                            
                         # Use a simple check-then-add for safety against UniqueConstraint
                         existing = db.exec(select(StockPrice).where(
                             StockPrice.symbol == ticker, StockPrice.date == date_val

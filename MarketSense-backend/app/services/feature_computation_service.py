@@ -22,6 +22,26 @@ class FeatureComputationService:
     """
 
     @staticmethod
+    def _add_calendar_features(features: Dict, date: datetime) -> Dict:
+        """Add time-based features relevant to Indian markets."""
+        dt = pd.to_datetime(date)
+        features["day_of_week"] = float(dt.dayofweek)
+        features["month"] = float(dt.month)
+        
+        # Indian Results Months: Jan, Apr, Jul, Oct
+        features["is_results_month"] = 1.0 if dt.month in [1, 4, 7, 10] else 0.0
+        
+        # Indian Budget Month: Feb
+        features["is_budget_month"] = 1.0 if dt.month == 2 else 0.0
+        
+        # Expiry Week Proxy (Last 7 days of the month)
+        # In India, F&O expiry is last Thursday.
+        last_day = pd.Period(dt, freq='M').end_time.day
+        features["is_expiry_week"] = 1.0 if (last_day - dt.day) <= 7 else 0.0
+        
+        return features
+
+    @staticmethod
     def compute_features(symbol: str, horizon: str = "short_term") -> Optional[Dict]:
         """
         Compute the full feature vector for a symbol on the latest available date.
@@ -91,12 +111,15 @@ class FeatureComputationService:
         all_features.update(macro_features)
         all_features.update(context_features)
 
-        # 7. Validate
+        # 7. Add Calendar Features
+        all_features = FeatureComputationService._add_calendar_features(all_features, latest_date)
+
+        # 8. Validate
         validation_errors = FeatureComputationService._validate(all_features)
         if validation_errors:
             logger.warning(f"Feature validation warnings for {symbol}: {validation_errors}")
 
-        # 8. Store in DB
+        # 9. Store in DB
         with Session(engine) as db:
             # Check for existing record
             existing = db.exec(
@@ -165,7 +188,12 @@ class FeatureComputationService:
         computed_count = 0
 
         with Session(engine) as db:
-            for target_date in dates_to_compute:
+            total_dates = len(dates_to_compute)
+            for i, target_date in enumerate(dates_to_compute):
+                # Progress logging (Every 100 rows, regardless of if stored)
+                if (i + 1) % 100 == 0:
+                    logger.info("Backfill progress for %s: %d/%d dates checked", symbol, i + 1, total_dates)
+                
                 # Get technical indicators for this date
                 tech_row = tech_df.loc[target_date].to_dict()
 
@@ -174,6 +202,9 @@ class FeatureComputationService:
                 all_features.update({f"sentiment_{k}": v for k, v in sentiment_features.items()})
                 all_features.update(macro_features)
                 all_features.update(context_features)
+                
+                # Add calendar features
+                all_features = FeatureComputationService._add_calendar_features(all_features, target_date)
 
                 # Check for existing
                 existing = db.exec(
@@ -197,7 +228,6 @@ class FeatureComputationService:
 
                     if computed_count % 100 == 0:
                         db.commit()
-                        logger.info(f"Backfill progress for {symbol}: {computed_count} feature vectors stored.")
 
             db.commit()
 
@@ -219,9 +249,9 @@ class FeatureComputationService:
             errors.append(f"Bollinger position unusual: {bb_pos}")
 
         # Check for critical NaN features
-        critical = ["rsi_14", "macd_line", "ema_9", "atr_14", "current_close"]
+        critical = ["rsi_14", "price_vs_ema_9", "atr_14_ratio", "current_close", "log_return_lag_1"]
         for key in critical:
-            if key in features and features[key] is None:
-                errors.append(f"Critical feature is None: {key}")
+            if key in features and (features[key] is None or pd.isna(features[key])):
+                errors.append(f"Critical feature is missing or NaN: {key}")
 
         return errors

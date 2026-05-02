@@ -11,6 +11,7 @@ class MLFramework(str, Enum):
     keras = "keras"
     xgboost = "xgboost"
     prophet = "prophet"
+    hybrid = "hybrid"
 
 
 class TrainedModelCreate(BaseModel):
