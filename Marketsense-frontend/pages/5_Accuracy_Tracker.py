@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 from services.model_service import ModelService
+from services.dashboard_service import DashboardService
+from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from utils.helpers import format_currency, format_datetime, format_date, CURRENCY_SYMBOL, initialize_ui_context
 from components.accuracy_components import (
     render_health_chips,
@@ -23,6 +25,11 @@ logger = logging.getLogger(__name__)
 # Initialize Global UI
 initialize_ui_context()
 
+if 'available_models' not in st.session_state:
+    st.session_state.available_models = []
+if 'models_ticker' not in st.session_state:
+    st.session_state.models_ticker = None
+
 # ── Page Setup ────────────────────────────────────────────────
 st.set_page_config(
     page_title="Model Insights | MarketSense", page_icon="🧠", layout="wide"
@@ -36,28 +43,63 @@ st.markdown(
 st.markdown("---")
 
 # Sidebar Configuration
-st.sidebar.header("📊 Evaluation Settings")
+st.sidebar.header("🔎 Stock Selection")
+ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
+selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=0)
+ticker = selected_option.split(" (")[-1].rstrip(")")
 
-# Fetch available models dynamically
-try:
-    models_resp = ModelService.get_model_list()
-    if models_resp.get("models"):
-        model_list = [
-            f"{m['ticker']} ({m['model_type']}, trained {format_date(m['date_trained'])})"
-            for m in models_resp["models"]
-        ]
+st.sidebar.divider()
+st.sidebar.header("📊 Model Selection")
+
+# 1. Fetch available models for the selected ticker (with caching)
+if st.session_state.models_ticker != ticker:
+    with st.spinner("Loading models..."):
+        resp = DashboardService.fetch_available_models(ticker)
+    if not isinstance(resp, dict) or resp.get("error"):
+        st.session_state.available_models = []
     else:
-        model_list = ["No models available"]
-except Exception:
-    logger.exception("Failed to fetch available models")
-    model_list = ["No models available"]
+        st.session_state.available_models = resp.get("models", [])
+    st.session_state.models_ticker = ticker
 
-selected_model = st.sidebar.selectbox("Select a trained model", model_list)
+available_models = st.session_state.available_models
+
+if not available_models:
+    st.sidebar.warning(
+        f"⚠️ No trained models found for **{ticker}**.\n\n"
+        "Go to **Model Management** to train one first."
+    )
+    model_type = None
+else:
+    def _model_label(m: dict) -> str:
+        fw = m["framework"].upper()
+        badge = "Active" if m["is_active"] else "Inactive"
+        return f"{m['model_name']}_v{m['version']} ({fw} · {badge})"
+
+    model_labels = [_model_label(m) for m in available_models]
+    
+    # Default to Hybrid if available
+    hybrid_idx = next((i for i, m in enumerate(available_models) if "hybrid" in m["framework"].lower()), 0)
+    
+    chosen_label = st.sidebar.selectbox(
+        "Select Model:",
+        model_labels,
+        index=hybrid_idx,
+    )
+    chosen_idx = model_labels.index(chosen_label)
+    selected_model = available_models[chosen_idx]
+    model_type = selected_model["framework"]
+
+    # Model Details
+    active_tag = "✅ Active" if selected_model["is_active"] else "⏸ Inactive"
+    st.sidebar.write(f"**Framework:** {model_type.upper()}")
+    st.sidebar.write(f"**Version:** v{selected_model['version']}")
+    st.sidebar.write(f"**Status:** {active_tag}")
+
 period = st.sidebar.selectbox(
     "Evaluation Period", ["7d", "30d", "90d", "180d", "1y"], index=2
 )
 st.sidebar.markdown("---")
-refresh = st.sidebar.button("🔄 Refresh Insights", type="primary", use_container_width=True)
+refresh = st.sidebar.button("🔄 Refresh Insights", type="primary", use_container_width=True, disabled=not model_type)
 st.sidebar.caption("ℹ️ Click the button to fetch the latest performance data from the AI engine.")
 
 # ── Performance Chart Helper ──────────────────────────────────
@@ -140,16 +182,8 @@ def render_page_performance_chart(df, metrics, model_category):
     st.plotly_chart(fig, use_container_width=True)
 
 # ── Main Content ──────────────────────────────────────────────
-if refresh and "No models" not in selected_model:
+if refresh and model_type:
     try:
-        # Parse ticker and model type
-        match = re.match(r"(\S+)\s+\(([^,]+)", selected_model)
-        if not match:
-            st.error("Could not parse selected model.")
-            st.stop()
-
-        ticker = match.group(1).strip()
-        model_type = match.group(2).strip()
         is_beginner = st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner"
 
         # 1. API Fetch
