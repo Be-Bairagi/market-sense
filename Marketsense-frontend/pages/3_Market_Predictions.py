@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from utils.helpers import format_currency, initialize_ui_context
+from components.loader import render_loader
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +31,10 @@ st.divider()
 
 # Sidebar
 st.sidebar.header("🔎 Stock Selection")
+from utils.helpers import get_default_ticker_index
 ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
-selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=0)
+default_idx = get_default_ticker_index(NIFTY_50_SYMBOLS)
+selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=default_idx)
 ticker = selected_option.split(" (")[-1].rstrip(")")
 
 st.sidebar.divider()
@@ -40,7 +43,7 @@ st.sidebar.divider()
 st.sidebar.header("🤖 Prediction")
 
 if st.session_state.models_ticker != ticker:
-    with st.spinner("Loading models..."):
+    with render_loader("Loading models"):
         resp = DashboardService.fetch_available_models(ticker)
     if not isinstance(resp, dict) or resp.get("error"):
         st.session_state.available_models = []
@@ -66,12 +69,22 @@ else:
         return f"{m['model_name']}_v{m['version']} ({fw} · {badge})"
 
     model_labels = [_model_label(m) for m in available_models]
-    # Default to Hybrid if available
-    hybrid_idx = next((i for i, m in enumerate(available_models) if "hybrid" in m["framework"].lower()), 0)
+    # Default to saved framework, else hybrid, else 0
+    default_fw = st.session_state.get("default_model_framework")
+    default_model_idx = 0
+    if default_fw:
+        for i, m in enumerate(available_models):
+            if m["framework"] == default_fw:
+                default_model_idx = i
+                break
+    else:
+        # Fallback to hybrid
+        default_model_idx = next((i for i, m in enumerate(available_models) if "hybrid" in m["framework"].lower()), 0)
+    
     chosen_label = st.sidebar.selectbox(
         "Select Model:",
         model_labels,
-        index=hybrid_idx,
+        index=default_model_idx,
     )
     chosen_idx = model_labels.index(chosen_label)
     selected_model = available_models[chosen_idx]
@@ -89,11 +102,7 @@ else:
 
 st.sidebar.divider()
 
-predict_btn = st.sidebar.button(
-    "🤖 Run Prediction",
-    use_container_width=True,
-    disabled=(selected_model is None),
-)
+
 
 with st.sidebar.expander("📖 Hints "):
     st.markdown("""
@@ -104,19 +113,21 @@ with st.sidebar.expander("📖 Hints "):
     """)
 
 # ── Main Panel: Prediction ────────────────────────────────────
-if predict_btn:
+if selected_model:
     model_name_full = f"{selected_model['model_name']}_v{selected_model['version']}"
     days_param = predict_days if selected_framework == "prophet" else 5
     
-    with st.spinner(f"AI is analyzing {ticker} trends..."):
+    with render_loader(f"AI is analyzing {ticker} trends"):
         try:
             # We use the rich prediction endpoint for better detail
             result = DashboardService.fetch_rich_prediction(ticker, selected_framework)
         except Exception as e:
-            result = {"error": str(e)}
+            logger.exception("Prediction failed")
+            result = {"error": "We encountered an issue while generating the AI prediction. Please try selecting a different model or framework."}
 
     if not isinstance(result, dict) or result.get("error"):
-        st.error(f"⚠️ Prediction failed: {result.get('error', 'Unknown')}")
+        st.warning(f"🔔 **Prediction Notice**: {result.get('error', 'N/A')}")
+        st.info("Ensure the selected model is fully trained and available in Model Management.")
     else:
         # Standardize extraction: rich endpoint wraps prediction in "predictions" key
         pred = result.get("predictions", result)
@@ -192,4 +203,4 @@ if predict_btn:
                 )
                 st.plotly_chart(fig, use_container_width=True)
 else:
-    st.info("ℹ️ Select a stock models from the sidebar and click **Run Prediction** to generate AI signals.")
+    st.info("ℹ️ No active models found for this stock. Please select a stock with trained models or go to **Model Management** to train one.")

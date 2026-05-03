@@ -7,6 +7,7 @@ from services.dashboard_service import DashboardService
 from components.pulse import render_pulse_skeleton, render_market_pulse_cards
 from utils.helpers import format_time, format_date, format_datetime, initialize_ui_context
 from utils.health import check_backend_health
+from components.loader import render_loader
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +95,10 @@ st.divider()
 # Stock Selection is local to this page
 
 st.sidebar.header("🔎 Stock Selection")
+from utils.helpers import get_default_ticker_index
 ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
-selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=0)
+default_idx = get_default_ticker_index(NIFTY_50_SYMBOLS)
+selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=default_idx)
 ticker = selected_option.split(" (")[-1].rstrip(")")
 
 compare_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
@@ -128,7 +131,7 @@ with st.sidebar.expander("📖 Hints"):
 
 # ── Main Panel: Chart ─────────────────────────────────────────
 if fetch_data_btn:
-    with st.spinner(f"Loading {ticker} data..."):
+    with render_loader(f"Loading {ticker} data"):
         try:
             tickers_to_fetch = [ticker] + [t for t in compare_tickers if t != ticker]
             all_data = {}

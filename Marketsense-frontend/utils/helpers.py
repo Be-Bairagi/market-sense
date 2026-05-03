@@ -11,6 +11,10 @@ def initialize_ui_context():
     # 1. Initialize Global State
     if "user_mode" not in st.session_state:
         st.session_state.user_mode = "🧠 Expert"
+    if "default_ticker" not in st.session_state:
+        st.session_state.default_ticker = "RELIANCE.NS"
+    if "default_model_framework" not in st.session_state:
+        st.session_state.default_model_framework = None
     
     # 2. Render Global Sidebar Elements
     with st.sidebar:
@@ -40,16 +44,18 @@ def to_snake_case(text: str) -> str:
     )
 
 def format_currency(value: float, show_symbol: bool = True) -> str:
-    """Format a numeric value as Indian Rupee with appropriate suffixes."""
-    if value is None:
-        return f"{CURRENCY_SYMBOL}0.00" if show_symbol else "0.00"
+    """Format a numeric value as Indian Rupee with appropriate suffixes (Cr, Lakhs, Lakh Cr)."""
+    if value is None or value == 0:
+        return f"{CURRENCY_SYMBOL}0" if show_symbol else "0"
     
     symbol = CURRENCY_SYMBOL if show_symbol else ""
     
-    if value >= 10000000:  # Cr
+    if value >= 1000000000000:  # Lakh Crore
+        return f"{symbol}{value / 1000000000000:.2f} Lakh Cr"
+    elif value >= 10000000:  # Crore
         return f"{symbol}{value / 10000000:.2f} Cr"
-    elif value >= 100000:  # L
-        return f"{symbol}{value / 100000:.2f} L"
+    elif value >= 100000:  # Lakhs
+        return f"{symbol}{value / 100000:.2f} Lakhs"
     else:
         return f"{symbol}{value:,.2f}"
 
@@ -105,3 +111,10 @@ def get_sentiment_color(sentiment: str) -> str:
         return "red"
     else:
         return "orange"
+def get_default_ticker_index(symbols: list) -> int:
+    """Get the index of the default ticker in a symbols list."""
+    default = st.session_state.get("default_ticker", "RELIANCE.NS")
+    try:
+        return symbols.index(default)
+    except ValueError:
+        return 0

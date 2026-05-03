@@ -286,11 +286,45 @@ with tab2:
         st.info(f"Setting this to **{st.session_state.user_mode}** will update all charts and metrics labels.")
 
     with pref_tab2:
-        default_ticker = st.text_input("Default Focus Ticker", "RELIANCE.NS")
-        st.checkbox("Enable Real-time Polling (every 5 mins)", value=True)
-    
-    if st.button("💾 Save Settings"):
-        st.success(f"Preferences for {default_ticker} saved successfully!")
+        from data.nifty50 import NIFTY_50_MAP, NIFTY_50_SYMBOLS
+        from services.dashboard_service import DashboardService
+        from utils.helpers import get_default_ticker_index
+
+        # Default Ticker (dropdown)
+        ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
+        current_idx = get_default_ticker_index(NIFTY_50_SYMBOLS)
+        selected = st.selectbox("Default Focus Stock", ticker_options, index=current_idx)
+        chosen_ticker = selected.split(" (")[-1].rstrip(")")
+
+        # Fetch available models for chosen ticker
+        models_resp = DashboardService.fetch_available_models(chosen_ticker)
+        if isinstance(models_resp, dict) and not models_resp.get("error"):
+            models = models_resp.get("models", [])
+            active_models = [m for m in models if m.get("is_active")]
+            if active_models:
+                model_labels = [f"{m['model_name']}_v{m['version']} ({m['framework'].upper()})" for m in active_models]
+                default_idx = 0
+                # Try to match previously saved framework
+                if st.session_state.default_model_framework:
+                    for i, m in enumerate(active_models):
+                        if m["framework"] == st.session_state.default_model_framework:
+                            default_idx = i
+                            break
+                chosen_model_label = st.selectbox("Default AI Model", model_labels, index=default_idx)
+                chosen_model = active_models[model_labels.index(chosen_model_label)]
+            else:
+                st.info("No active models for this stock. Train one in Model Management.")
+                chosen_model = None
+        else:
+            st.info("Select a stock to see available models.")
+            chosen_model = None
+
+    if st.button("💾 Save Settings", type="primary"):
+        st.session_state.default_ticker = chosen_ticker
+        if chosen_model:
+            st.session_state.default_model_framework = chosen_model["framework"]
+        st.success(f"✅ Defaults saved: {chosen_ticker}" + 
+                   (f" · {chosen_model['framework'].upper()}" if chosen_model else ""))
 
 # ── TAB 3: ABOUT ─────────────────────────────────────────────
 with tab3:

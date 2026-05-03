@@ -9,6 +9,7 @@ from datetime import datetime
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
 from services.dashboard_service import DashboardService
 from services.model_service import ModelService
+from components.loader import render_loader
 
 # ── Session State ─────────────────────────────────────────────
 # Initialize Global UI
@@ -51,7 +52,9 @@ with conf_col1:
         st.info("🧠 **Hybrid Ensemble** combines all models for highest accuracy (Targets 85-92%). Training takes ~3-5 mins.")
 
 with conf_col2:
-    selected_ticker = st.selectbox("Target Stock", ticker_options, index=0)
+    from utils.helpers import get_default_ticker_index
+    default_idx = get_default_ticker_index(NIFTY_50_SYMBOLS)
+    selected_ticker = st.selectbox("Target Stock", ticker_options, index=default_idx)
     ticker = selected_ticker.split(" — ")[0]
 
 with conf_col3:
@@ -193,7 +196,7 @@ if "training_success_notice" in st.session_state:
 st.subheader("🗂️ Model Registry")
 
 if not st.session_state.models_loaded:
-    with st.spinner("🔄 Syncing registry..."):
+    with render_loader("Syncing registry"):
         st.session_state.models_cache = ModelService.get_all_models()
         st.session_state.models_loaded = True
 

@@ -225,8 +225,7 @@ def render_residuals(df: pd.DataFrame, model_category: str, is_beginner: bool):
 
 def render_academic_summary(metrics: dict, period: str):
     """Render a clean copy-pasteable table for academic reports."""
-    with st.expander("🎓 Academic Report (Copy for Professor)", expanded=False):
-        st.markdown("### 📋 Model Evaluation Summary")
+    with st.expander("### 📋 Model Evaluation Summary", expanded=False):
         col_m1, col_m2 = st.columns(2)
         col_m1.write(f"**Ticker:** {metrics.get('ticker')}")
         col_m1.write(f"**Model:** {metrics.get('model_type')}")

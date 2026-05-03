@@ -1,15 +1,12 @@
-import datetime
 import logging
-import re
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
 import streamlit as st
-from services.model_service import ModelService
 from services.dashboard_service import DashboardService
 from data.nifty50 import NIFTY_50_SYMBOLS, NIFTY_50_MAP
-from utils.helpers import format_currency, format_datetime, format_date, CURRENCY_SYMBOL, initialize_ui_context
+from utils.helpers import CURRENCY_SYMBOL, initialize_ui_context
 from components.accuracy_components import (
     render_health_chips,
     render_hero_accuracy,
@@ -19,6 +16,7 @@ from components.accuracy_components import (
     render_academic_summary,
     render_training_metadata
 )
+from components.loader import render_loader
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +42,10 @@ st.markdown("---")
 
 # Sidebar Configuration
 st.sidebar.header("🔎 Stock Selection")
+from utils.helpers import get_default_ticker_index
 ticker_options = [f"{NIFTY_50_MAP[s]} ({s})" for s in NIFTY_50_SYMBOLS]
-selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=0)
+default_idx = get_default_ticker_index(NIFTY_50_SYMBOLS)
+selected_option = st.sidebar.selectbox("Select Stock:", ticker_options, index=default_idx)
 ticker = selected_option.split(" (")[-1].rstrip(")")
 
 st.sidebar.divider()
@@ -53,7 +53,7 @@ st.sidebar.header("📊 Model Selection")
 
 # 1. Fetch available models for the selected ticker (with caching)
 if st.session_state.models_ticker != ticker:
-    with st.spinner("Loading models..."):
+    with render_loader("Loading models"):
         resp = DashboardService.fetch_available_models(ticker)
     if not isinstance(resp, dict) or resp.get("error"):
         st.session_state.available_models = []
@@ -77,13 +77,22 @@ else:
 
     model_labels = [_model_label(m) for m in available_models]
     
-    # Default to Hybrid if available
-    hybrid_idx = next((i for i, m in enumerate(available_models) if "hybrid" in m["framework"].lower()), 0)
+    # Default to saved framework, else hybrid, else 0
+    default_fw = st.session_state.get("default_model_framework")
+    default_model_idx = 0
+    if default_fw:
+        for i, m in enumerate(available_models):
+            if m["framework"] == default_fw:
+                default_model_idx = i
+                break
+    else:
+        # Fallback to hybrid
+        default_model_idx = next((i for i, m in enumerate(available_models) if "hybrid" in m["framework"].lower()), 0)
     
     chosen_label = st.sidebar.selectbox(
         "Select Model:",
         model_labels,
-        index=hybrid_idx,
+        index=default_model_idx,
     )
     chosen_idx = model_labels.index(chosen_label)
     selected_model = available_models[chosen_idx]
@@ -99,8 +108,7 @@ period = st.sidebar.selectbox(
     "Evaluation Period", ["7d", "30d", "90d", "180d", "1y"], index=2
 )
 st.sidebar.markdown("---")
-refresh = st.sidebar.button("🔄 Refresh Insights", type="primary", use_container_width=True, disabled=not model_type)
-st.sidebar.caption("ℹ️ Click the button to fetch the latest performance data from the AI engine.")
+
 
 # ── Performance Chart Helper ──────────────────────────────────
 def render_page_performance_chart(df, metrics, model_category):
@@ -182,12 +190,12 @@ def render_page_performance_chart(df, metrics, model_category):
     st.plotly_chart(fig, use_container_width=True)
 
 # ── Main Content ──────────────────────────────────────────────
-if refresh and model_type:
+if model_type:
     try:
         is_beginner = st.session_state.get("user_mode", "💡 Beginner") == "💡 Beginner"
 
         # 1. API Fetch
-        with st.spinner(f"AI Engine is evaluating {ticker}..."):
+        with render_loader(f"AI Engine is evaluating {ticker}"):
             eval_url = (
                 f"http://127.0.0.1:8000/api/v1/evaluate"
                 f"?ticker={ticker}&period={period}&model_type={model_type}"
@@ -196,7 +204,8 @@ if refresh and model_type:
 
         if eval_response.status_code != 200:
             detail = eval_response.json().get("detail", "N/A")
-            st.error(f"❌ Failed to fetch metrics. Error: {detail}")
+            st.warning(f"🔔 **Insight Notice**: {detail}")
+            st.info("Try selecting a different evaluation period or ensure the model is fully trained.")
         else:
             metrics = eval_response.json()
             model_category = metrics.get("model_category", "regression")
@@ -259,19 +268,9 @@ if refresh and model_type:
 
     except Exception as e:
         logger.exception("Error fetching insights")
-        st.error(f"⚠️ Critical UI Error: {e}")
+        st.error("⚠️ We encountered an issue while loading insights. Please try selecting a different period or model.")
 else:
     # ── Landing State ────
-    st.info("ℹ️ Select a trained model from the sidebar and click **Refresh Insights** to view its performance dashboard.")
+    st.info("ℹ️ No trained models found for this stock. Please select a stock with trained models or go to **Model Management** to train a new one.")
     
-    # Simple empty state graphics or placeholder
-    lcol1, lcol2, lcol3 = st.columns(3)
-    with lcol1:
-        st.write("### 🎯 Accuracy")
-        st.caption("See unmissable win-rates and accuracy percentages.")
-    with lcol2:
-        st.write("### 📉 Confidence")
-        st.caption("Validate AI signals with historical price overlays.")
-    with lcol3:
-        st.write("### 📋 Academic")
-        st.caption("Get detailed reports for your project documentation.")
+

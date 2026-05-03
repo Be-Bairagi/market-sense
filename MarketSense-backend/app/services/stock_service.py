@@ -23,7 +23,8 @@ class StockService:
             statement = select(StockMeta).where(StockMeta.symbol == symbol)
             meta = db.exec(statement).first()
 
-            if meta:
+            # Return from DB only if we have essential data (like market_cap)
+            if meta and meta.market_cap and meta.market_cap > 0:
                 return {
                     "symbol": meta.symbol,
                     "company_name": meta.company_name,
@@ -34,8 +35,8 @@ class StockService:
                     "last_updated": meta.last_updated.isoformat(),
                 }
 
-        # Fallback to yfinance
-        logger.info(f"Stock profile cache miss for {symbol}. Fetching from yfinance.")
+        # Fallback to yfinance if missing from DB or data is incomplete
+        logger.info(f"Refreshing stock profile for {symbol} from yfinance.")
         try:
             ticker = yf.Ticker(symbol)
             info = ticker.info
@@ -46,20 +47,30 @@ class StockService:
             market_cap = info.get("marketCap")
             exchange = info.get("exchange", "NSE")
 
-            # Store in DB
             with Session(engine) as db:
-                new_meta = StockMeta(
-                    symbol=symbol,
-                    company_name=company_name,
-                    sector=sector,
-                    industry=industry,
-                    market_cap=market_cap,
-                    exchange=exchange,
-                    last_updated=datetime.utcnow()
-                )
-                db.add(new_meta)
+                existing = db.exec(select(StockMeta).where(StockMeta.symbol == symbol)).first()
+                if existing:
+                    # Update existing record
+                    existing.company_name = company_name
+                    if sector: existing.sector = sector
+                    if industry: existing.industry = industry
+                    if market_cap: existing.market_cap = market_cap
+                    existing.exchange = exchange
+                    existing.last_updated = datetime.utcnow()
+                    db.add(existing)
+                else:
+                    # Create new record
+                    new_meta = StockMeta(
+                        symbol=symbol,
+                        company_name=company_name,
+                        sector=sector,
+                        industry=industry,
+                        market_cap=market_cap,
+                        exchange=exchange,
+                        last_updated=datetime.utcnow()
+                    )
+                    db.add(new_meta)
                 db.commit()
-                db.refresh(new_meta)
 
             return {
                 "symbol": symbol,
