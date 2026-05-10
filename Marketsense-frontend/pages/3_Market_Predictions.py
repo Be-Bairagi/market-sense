@@ -48,8 +48,7 @@ if st.session_state.models_ticker != ticker:
     if not isinstance(resp, dict) or resp.get("error"):
         st.session_state.available_models = []
     else:
-        all_m = resp.get("models", [])
-        st.session_state.available_models = [m for m in all_m if m.get("is_active")]
+        st.session_state.available_models = resp.get("models", [])
     st.session_state.models_ticker = ticker
 
 available_models = st.session_state.available_models
@@ -65,8 +64,7 @@ if not available_models:
 else:
     def _model_label(m: dict) -> str:
         fw = m["framework"].upper()
-        badge = "Active" if m["is_active"] else "Inactive"
-        return f"{m['model_name']}_v{m['version']} ({fw} · {badge})"
+        return f"{m['model_name']}_v{m['version']} ({fw})"
 
     model_labels = [_model_label(m) for m in available_models]
     # Default to saved framework, else hybrid, else 0
@@ -90,10 +88,8 @@ else:
     selected_model = available_models[chosen_idx]
     selected_framework = selected_model["framework"]
 
-    active_tag = "✅ Active" if selected_model["is_active"] else "⏸ Inactive"
     st.sidebar.write(f"**Framework:** {selected_framework.upper()}")
     st.sidebar.write(f"**Version:** v{selected_model['version']}")
-    st.sidebar.write(f"**Status:** {active_tag}")
 
     if selected_framework == "prophet":
         predict_days = st.sidebar.slider("Prediction Days Ahead:", 1, 30, 10)
@@ -106,7 +102,7 @@ st.sidebar.divider()
 
 with st.sidebar.expander("📖 Hints "):
     st.markdown("""
-    - **Confidence**: AI's certainty (0-100%).
+    # - **Confidence**: AI's certainty (0-100%).
     - **Stop Loss**: Safety level to minimize downside.
     - **Target**: Predicted price goals.
     - **Drivers**: Factors most influencing this signal.
@@ -134,22 +130,17 @@ if selected_model:
         st.subheader("🎯 AI Prediction Signal")
         
         direction = pred.get("direction", "HOLD")
-        confidence = pred.get("confidence", 0.0)
+        # confidence = pred.get("confidence", 0.0)
         signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
         
         with st.container(border=True):
-            col_header, col_conf, col_status = st.columns([2, 1, 1])
+            col_header, col_status = st.columns([2, 1])
             with col_header:
                 st.write(f"### {signals.get(direction, '🟡')} {direction}")
                 st.write(f"**Horizon:** {pred.get('horizon', 'N/A')}")
-            with col_conf:
-                st.metric("Confidence", f"{confidence:.0%}")
-                st.progress(min(confidence, 1.0))
             with col_status:
-                if pred.get("is_high_confidence"):
-                    st.success("💎 High Confidence")
-                else:
-                    st.info("📊 Standard Signal")
+                # Signal details simplified per SKILL.md
+                st.info("📊 Signal Active")
             
             st.divider()
             

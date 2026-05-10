@@ -72,8 +72,7 @@ if not available_models:
 else:
     def _model_label(m: dict) -> str:
         fw = m["framework"].upper()
-        badge = "Active" if m["is_active"] else "Inactive"
-        return f"{m['model_name']}_v{m['version']} ({fw} · {badge})"
+        return f"{m['model_name']}_v{m['version']} ({fw})"
 
     model_labels = [_model_label(m) for m in available_models]
     
@@ -99,10 +98,8 @@ else:
     model_type = selected_model["framework"]
 
     # Model Details
-    active_tag = "✅ Active" if selected_model["is_active"] else "⏸ Inactive"
     st.sidebar.write(f"**Framework:** {model_type.upper()}")
     st.sidebar.write(f"**Version:** v{selected_model['version']}")
-    st.sidebar.write(f"**Status:** {active_tag}")
 
 period = st.sidebar.selectbox(
     "Evaluation Period", ["7d", "30d", "90d", "180d", "1y"], index=2

@@ -225,19 +225,11 @@ with tab1:
             # FIX: Prediction data is nested under 'predictions' key
             pred = result.get("predictions", {})
             direction = pred.get("direction", "HOLD")
-            confidence = pred.get("confidence", 0.0)
             signals = {"BUY": "🟢", "HOLD": "🟡", "AVOID": "🔴"}
             
             with st.container(border=True):
                 st.write(f"### {signals.get(direction, '🟡')} {direction}")
                 
-                c_col1, c_col2 = st.columns([1, 2])
-                with c_col1:
-                    st.write(f"**AI Confidence:** {confidence:.0%}")
-                with c_col2:
-                    st.progress(float(confidence))
-                
-                st.write("")
                 m1, m2, m3 = st.columns(3)
                 m1.metric("Target (Near)", format_currency(pred.get('target_low', 0)))
                 m2.metric("Stop Loss", format_currency(pred.get('stop_loss', 0)))
@@ -300,7 +292,7 @@ with tab2:
         models_resp = DashboardService.fetch_available_models(chosen_ticker)
         if isinstance(models_resp, dict) and not models_resp.get("error"):
             models = models_resp.get("models", [])
-            active_models = [m for m in models if m.get("is_active")]
+            active_models = models
             if active_models:
                 model_labels = [f"{m['model_name']}_v{m['version']} ({m['framework'].upper()})" for m in active_models]
                 default_idx = 0

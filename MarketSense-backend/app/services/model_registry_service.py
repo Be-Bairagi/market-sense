@@ -15,20 +15,17 @@ class ModelRegistryService:
     def register_model(
         db: Session, payload: TrainedModelCreate, activate: bool = True
     ) -> TrainedModel:
-        """Register a new trained model in the DB.
-
-        When *activate* is True the previous active model for the same
-        model_name is deactivated **and its .pkl file is deleted from disk**,
-        keeping the models/ folder clean (active models only).
-        """
-        old_file_paths: list[str] = []
-
-        if activate:
-            deactivated = ModelRegistryRepository.deactivate_existing_models(
-                db, payload.model_name
+        """Register a model by upserting (one row per model_name)."""
+        # Find existing to clean up old .pkl
+        existing = db.exec(
+            select(TrainedModel).where(
+                TrainedModel.model_name == payload.model_name
             )
-            # Collect old file paths BEFORE committing (while objects are still valid)
-            old_file_paths = [m.file_path for m in deactivated if m.file_path]
+        ).first()
+        
+        old_file_path = None
+        if existing and existing.file_path and existing.file_path != payload.file_path:
+            old_file_path = existing.file_path
 
         model = TrainedModel(
             model_name=payload.model_name,
@@ -37,26 +34,54 @@ class ModelRegistryService:
             framework=payload.framework,
             training_period=payload.training_period,
             metrics=payload.metrics,
-            is_active=activate,
+            is_active=True,
         )
 
-        registered = ModelRegistryRepository.create(db, model)
+        registered = ModelRegistryRepository.upsert(db, model)
 
-        # Delete old .pkl files AFTER the DB commit succeeds
-        for old_path in old_file_paths:
+        # Delete old .pkl after DB commit
+        if old_file_path:
             try:
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-                    logger.info("Deleted old model file: %s", old_path)
+                if os.path.exists(old_file_path):
+                    os.remove(old_file_path)
+                    logger.info("Deleted old model file: %s", old_file_path)
             except OSError as exc:
-                logger.warning("Could not delete old model file %s: %s", old_path, exc)
+                logger.warning("Could not delete old file %s: %s", old_file_path, exc)
 
         return registered
 
     @staticmethod
+    def delete_model(db: Session, model_id: int) -> dict:
+        """Delete a single model by ID and clean up its .pkl file."""
+        model = ModelRegistryRepository.delete_by_id(db, model_id)
+        if not model:
+            return {"error": "Model not found"}
+        if model.file_path and os.path.exists(model.file_path):
+            try:
+                os.remove(model.file_path)
+                logger.info("Deleted model file: %s", model.file_path)
+            except OSError as exc:
+                logger.warning("Could not delete file %s: %s", model.file_path, exc)
+        return {"message": f"Model {model.model_name}_v{model.version} deleted"}
+
+    @staticmethod
+    def delete_all_models(db: Session) -> dict:
+        """Delete all models and clean up their .pkl files."""
+        models = ModelRegistryRepository.delete_all(db)
+        deleted_count = 0
+        for m in models:
+            if m.file_path and os.path.exists(m.file_path):
+                try:
+                    os.remove(m.file_path)
+                    deleted_count += 1
+                except OSError as exc:
+                    logger.warning("Could not delete file %s: %s", m.file_path, exc)
+        return {"message": f"Deleted {len(models)} models ({deleted_count} files removed)"}
+
+    @staticmethod
     def list_all_models(db: Session):
         models = ModelRegistryRepository.get_all(db)
-        logger.info("console reached to service")
+        logger.info("Listing all models from service")
         return [
             {
                 "id": m.id,
@@ -76,18 +101,13 @@ class ModelRegistryService:
     def get_available_models_for_ticker(
         ticker: str, db: Session
     ) -> list:
-        """Return DB models available for *ticker* (all versions, sorted active first).
-
-        The DB is the single source of truth — only active models have .pkl
-        files on disk, but we expose all versions so the user can see history.
-        """
+        """Return DB models available for *ticker*."""
         safe_ticker = ticker.upper().replace(".", "_")
 
         stmt = (
             select(TrainedModel)
             .where(TrainedModel.model_name.startswith(safe_ticker + "_"))
             .order_by(
-                TrainedModel.is_active.desc(),
                 TrainedModel.version.desc(),
             )
         )

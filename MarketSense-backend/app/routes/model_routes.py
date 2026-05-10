@@ -46,14 +46,33 @@ def get_available_models(
     ticker: str = Query(
         ...,
         description="Stock ticker (e.g. AAPL, RELIANCE.NS). "
-                    "Returns matching models from DB and local models/ folder.",
+                    "Returns matching models from DB.",
     ),
     db: Session = Depends(get_session),
 ):
-    """Returns a merged, sorted list of available models for the given ticker.
-
-    Sources: DB ``trained_models`` table + local ``models/`` directory.
-    Active DB models are listed first, followed by file-only models.
-    """
+    """Returns available models for the given ticker."""
     models = ModelRegistryService.get_available_models_for_ticker(ticker, db)
     return {"ticker": ticker, "count": len(models), "models": models}
+
+
+@router.delete("/all", status_code=status.HTTP_200_OK)
+def delete_all_models(
+    api_key: str = Security(verify_api_key),
+    db: Session = Depends(get_session),
+):
+    """Delete all models from the registry."""
+    return ModelRegistryService.delete_all_models(db)
+
+
+@router.delete("/{model_id}", status_code=status.HTTP_200_OK)
+def delete_model(
+    model_id: int,
+    api_key: str = Security(verify_api_key),
+    db: Session = Depends(get_session),
+):
+    """Delete a specific model by its database ID."""
+    result = ModelRegistryService.delete_model(db, model_id)
+    if isinstance(result, dict) and "error" in result:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result

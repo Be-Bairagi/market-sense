@@ -74,7 +74,6 @@ class TrainingService:
                 select(TrainedModel)
                 .where(
                     TrainedModel.model_name == model_name,
-                    TrainedModel.is_active == True,
                 )
                 .order_by(TrainedModel.version.desc())
             )

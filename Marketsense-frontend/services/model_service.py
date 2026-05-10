@@ -87,6 +87,34 @@ class ModelService:
 
 
     @staticmethod
+    def delete_model(model_id: int) -> dict:
+        """Delete a specific model by ID."""
+        try:
+            response = requests.delete(
+                f"{BASE_URL}/models/{model_id}",
+                headers={"X-API-Key": API_KEY},
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.exception("Failed to delete model")
+            return {"error": f"Failed to delete model: {str(e)}"}
+
+    @staticmethod
+    def delete_all_models() -> dict:
+        """Delete all models from the registry."""
+        try:
+            response = requests.delete(
+                f"{BASE_URL}/models/all",
+                headers={"X-API-Key": API_KEY},
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.exception("Failed to delete all models")
+            return {"error": f"Failed to delete all models: {str(e)}"}
+
+    @staticmethod
     def get_all_models():
         """Fetch all models and return a display-friendly DataFrame."""
         try:
@@ -101,17 +129,36 @@ class ModelService:
 
             # Create display-friendly columns
             from utils.helpers import format_date
+            from data.nifty50 import NIFTY_50_MAP
+
+            def get_company_info(model_name):
+                # Strip the framework suffix to get the safe ticker
+                frameworks = ["_xgboost", "_prophet", "_lstm", "_hybrid", "_sklearn", "_keras", "_pytorch"]
+                safe_ticker = model_name
+                for fw in frameworks:
+                    if safe_ticker.endswith(fw):
+                        safe_ticker = safe_ticker[:-len(fw)]
+                        break
+                
+                # Reconstruct the original ticker (e.g., RELIANCE_NS -> RELIANCE.NS)
+                ticker = safe_ticker.replace("_", ".")
+                company = NIFTY_50_MAP.get(ticker, ticker)
+                return company, ticker
+
+            # Apply parsing
+            info = df["model_name"].apply(get_company_info)
+            df["Company"] = [i[0] for i in info]
+            df["Ticker"] = [i[1] for i in info]
+
             df["Model"] = df["model_name"] + "_v" + df["version"].astype(str)
             df["Date Trained"] = df["trained_at"].apply(lambda x: format_date(x))
             df["Period"] = df["training_period"]
-            df["Status"] = df["is_active"].apply(
-                lambda x: "✅ Active" if x else "⏸️ Inactive"
-            )
             df["Framework"] = df["framework"].str.upper()
 
+            # Include Company and Ticker in the final DataFrame for grouped UI
             display_df = df[
-                ["Model", "Framework", "Date Trained", "Period", "Status"]
-            ].sort_values(by=["Model", "Date Trained"], ascending=[True, False])
+                ["id", "Company", "Ticker", "Model", "Framework", "Date Trained", "Period"]
+            ].sort_values(by=["Company", "Model", "Date Trained"], ascending=[True, True, False])
 
             return display_df
         except Exception as e:

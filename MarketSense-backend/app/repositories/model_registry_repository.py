@@ -5,20 +5,52 @@ from sqlmodel import Session, select
 class ModelRegistryRepository:
 
     @staticmethod
-    def deactivate_existing_models(
-        db: Session, model_name: str
-    ) -> list["TrainedModel"]:
-        """Mark all active models for *model_name* as inactive.
-
-        Returns the list of deactivated models so the caller can clean up
-        their ``.pkl`` files from disk.
+    def upsert(db: Session, model: TrainedModel) -> TrainedModel:
+        """Insert or update a model record by model_name.
+        
+        If a record with the same model_name exists, update it in-place.
+        Otherwise, insert a new record.
         """
         statement = select(TrainedModel).where(
-            TrainedModel.model_name == model_name, TrainedModel.is_active == True
+            TrainedModel.model_name == model.model_name
         )
-        models = db.exec(statement).all()
-        for model in models:
-            model.is_active = False
+        existing = db.exec(statement).first()
+        
+        if existing:
+            existing.version = model.version
+            existing.file_path = model.file_path
+            existing.framework = model.framework
+            existing.training_period = model.training_period
+            existing.metrics = model.metrics
+            existing.is_active = True
+            existing.trained_at = model.trained_at
+            db.add(existing)
+            db.commit()
+            db.refresh(existing)
+            return existing
+        else:
+            model.is_active = True
+            db.add(model)
+            db.commit()
+            db.refresh(model)
+            return model
+
+    @staticmethod
+    def delete_by_id(db: Session, model_id: int) -> TrainedModel | None:
+        """Delete a single model by its database ID."""
+        model = db.get(TrainedModel, model_id)
+        if model:
+            db.delete(model)
+            db.commit()
+        return model
+
+    @staticmethod
+    def delete_all(db: Session) -> list[TrainedModel]:
+        """Delete all model records."""
+        models = db.exec(select(TrainedModel)).all()
+        for m in models:
+            db.delete(m)
+        db.commit()
         return list(models)
 
     @staticmethod
@@ -43,13 +75,13 @@ class ModelRegistryRepository:
         model_name: str,
         version: int = None,
     ):
+        """Get the model record for a given model_name."""
         # First try exact match with version
         if version is not None:
             statement = (
                 select(TrainedModel)
                 .where(
                     TrainedModel.model_name == model_name,
-                    TrainedModel.is_active == True,
                     TrainedModel.version == version,
                 )
             )
@@ -57,12 +89,11 @@ class ModelRegistryRepository:
             if result:
                 return result
 
-        # Try to find by base name
+        # Try to find by base name (all models are 'active' now)
         statement = (
             select(TrainedModel)
             .where(
                 TrainedModel.model_name == model_name,
-                TrainedModel.is_active == True,
             )
             .order_by(TrainedModel.version.desc())
         )

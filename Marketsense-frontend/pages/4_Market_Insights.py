@@ -97,7 +97,7 @@ with render_loader(f"Analyzing {ticker}"):
 if "error" not in prediction:
     pred = prediction.get("predictions", {})
     direction = pred.get("direction", "HOLD")
-    confidence = pred.get("confidence", 0.0)
+    # confidence = pred.get("confidence", 0.0)
     
     with st.container(border=True):
         st.subheader("🎯 AI Signal")
@@ -109,7 +109,6 @@ if "error" not in prediction:
             st.markdown(
                 f"""<div style="background-color:{bg_color}; color:{text_color}; padding:15px; border-radius:10px; margin-bottom:20px;">
                 <strong>AI Summary:</strong> Based on current market data, the system suggests a <strong>{direction}</strong> stance on {ticker}. 
-                The model is {confidence:.0%} confident in this signal.
                 </div>""", 
                 unsafe_allow_html=True
             )
@@ -118,10 +117,7 @@ if "error" not in prediction:
         
         with col_sig:
             st.markdown(f"## {get_signal_icon(direction)} {direction}")
-            st.write(f"**AI Confidence:** {confidence:.0%}")
-            st.progress(float(confidence))
-            if pred.get("is_high_confidence"):
-                st.success("💎 High Confidence Signal")
+            # Confidence display removed per SKILL.md
         
         with col_metrics:
             m1, m2, m3 = st.columns(3)

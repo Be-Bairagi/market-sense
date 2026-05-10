@@ -207,19 +207,79 @@ if isinstance(mc, dict) and "error" in mc:
     if st.button("🔄 Retry Sync"):
         st.session_state.models_loaded = False
         st.rerun()
-elif mc is not None and not mc.empty:
-    # Filter to only show active models as requested
-    active_models = mc[mc["Status"] == "✅ Active"]
-    st.write(f"Showing {len(active_models)} active models in the registry.")
+@st.dialog("⚠️ Delete All Models?")
+def confirm_delete_all_dialog():
+    st.warning("Are you sure you want to delete **ALL** models from the registry and disk? This action cannot be undone.")
     
-    st.dataframe(
-        active_models,
-        use_container_width=True,
-        hide_index=True,
-    )
-    
-    if st.button("🔄 Refresh List", use_container_width=True):
-        st.session_state.models_loaded = False
+    c1, c2 = st.columns(2)
+    if c1.button("✅ Yes, Delete All", use_container_width=True, type="primary"):
+        with render_loader("Wiping registry"):
+            res = ModelService.delete_all_models()
+            st.session_state.models_loaded = False
+            if "error" in res:
+                st.error(res["error"])
+            else:
+                st.success("All models deleted successfully.")
+            time.sleep(1)
+            st.rerun()
+    if c2.button("❌ Cancel", use_container_width=True):
         st.rerun()
+
+if mc is not None and not mc.empty:
+    st.write(f"Showing {len(mc)} registered models.")
+    st.divider()
+
+    # Group the dataframe by Company Name for cleaner UI
+    grouped = mc.groupby("Company")
+    # Initialize counter for sequential numbering
+    model_counter = 1
+    
+    for company, group in grouped:
+        ticker = group.iloc[0]["Ticker"]
+        # Use an expander for each company to segregate models cleanly (SKILL.md: Progressive Disclosure)
+        with st.expander(f"🏢 **{company}** ({ticker}) — {len(group)} Model(s)", expanded=True):
+            
+            # Header row for the models under this company
+            cols = st.columns([0.6, 2.4, 2, 2, 2, 1])
+            cols[0].write("**#**")
+            cols[1].write("**Model**")
+            cols[2].write("**Framework**")
+            cols[3].write("**Date Trained**")
+            cols[4].write("**Period**")
+            cols[5].write("**Action**")
+            st.markdown("<hr style='margin-top: 0px; margin-bottom: 10px;'/>", unsafe_allow_html=True)
+
+            # Rows for each model trained for this specific company
+            for idx, row in group.iterrows():
+                r_cols = st.columns([0.6, 2.4, 2, 2, 2, 1])
+                r_cols[0].write(f"{model_counter}")
+                r_cols[1].write(row['Model'])
+                r_cols[2].write(row['Framework'])
+                r_cols[3].write(row['Date Trained'])
+                r_cols[4].write(row['Period'])
+                
+                if r_cols[5].button(":red[🗑️]", key=f"del_{row['id']}", help=f"Delete {row['Model']}"):
+                    res = ModelService.delete_model(row['id'])
+                    if "error" in res:
+                        st.error(res["error"])
+                    else:
+                        st.success(f"Deleted {row['Model']}")
+                        st.session_state.models_loaded = False
+                        time.sleep(1)
+                        st.rerun()
+                
+                model_counter += 1
+    
+    st.divider()
+    
+    act_col1, act_col2 = st.columns([1, 1])
+    with act_col1:
+        if st.button("🔄 Refresh List", use_container_width=True):
+            st.session_state.models_loaded = False
+            st.rerun()
+            
+    with act_col2:
+        if st.button("🚨 Delete All Models", use_container_width=True):
+            confirm_delete_all_dialog()
 else:
     st.info("ℹ️ Your model registry is currently empty. Train a model above to see it here.")
